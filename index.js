@@ -2,11 +2,13 @@
 
 const fetch = require('node-fetch');
 const fs = require('fs');
+const Tools = require('./tools');
 
 class OpenReviewClient {
-  constructor(options = {}) {
-    this.baseUrl = options.baseUrl || 'https://api2.openreview.net';
+  constructor(baseUrl) {
+    this.baseUrl = baseUrl || 'https://api2.openreview.net';
     this.headers = { 'Content-Type': 'application/json' };
+    this.tools = new Tools(this);
 
     this.registerUrl = `${this.baseUrl}/register`;
     this.loginUrl = `${this.baseUrl}/login`;
