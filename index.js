@@ -285,16 +285,6 @@ class OpenReviewClient {
         fullResponse.profiles.push(...data.profiles);
       }
       fullResponse.count = data.count;
-
-      // const profilesByEmail = {};
-      // for (let profile of fullResponse) {
-      //   if (!profilesByEmail[profile.email]) {
-      //     profilesByEmail[profile.email] = [];
-      //   }
-      //   profilesByEmail[profile.email].push(profile);
-      // }
-      // return profilesByEmail;
-
       return fullResponse;
     }
 
@@ -316,14 +306,6 @@ class OpenReviewClient {
         fullResponse.profiles.push(...json.profiles);
       }
       fullResponse.count = data.count;
-
-      // const profilesByEmail = {};
-      // for (let profile of fullResponse) {
-      //   if (profile.content.emailsConfirmed.includes(profile.email)) {
-      //     profilesByEmail[profile.email] = profile;
-      //   }
-      // }
-
       return fullResponse;
     }
 
