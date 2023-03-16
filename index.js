@@ -21,6 +21,7 @@ class OpenReviewClient {
     this.editAttachmentUrl = `${this.baseUrl}/notes/edits/attachment`;
     this.profilesMergeUrl = `${this.baseUrl}/profiles/merge`;
     this.groupsUrl = `${this.baseUrl}/groups`;
+    this.groupEditsUrl = `${this.baseUrl}/groups/edits`;
     this.invitationsUrl = `${this.baseUrl}/invitations`;
     this.invitationEditsUrl = `${this.baseUrl}/invitations/edits`;
     this.tagsUrl = `${this.baseUrl}/tags`;
@@ -85,10 +86,24 @@ class OpenReviewClient {
     return result;
   };
 
+  /**
+   * Checks if a value is null or undefined.
+   * 
+   * @private
+   * @param {any} value - Value to check.
+   * @returns {boolean} True if the value is null or undefined, false otherwise.
+   */
   #isNil(value) {
     return value === null || value === undefined;
   }
 
+  /**
+   * Removes null and undefined values from an object.
+   * 
+   * @private
+   * @param {object} params - Object to sanitize.
+   * @returns {object} Sanitized object.
+   */
   #removeNilValues(params) {
     const sanitizedParams = {};
     for (const [ key, value ] of Object.entries(params)) {
@@ -99,6 +114,13 @@ class OpenReviewClient {
     return sanitizedParams;
   }
 
+  /**
+   * Generates a query string from an object.
+   * 
+   * @private
+   * @param {object} params - Object to convert to a query string.
+   * @returns {string} Query string.
+   */
   #generateQueryString(params) {
     const sanitizedParams = this.#removeNilValues(params);
     return new URLSearchParams(sanitizedParams).toString();
