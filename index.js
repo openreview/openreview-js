@@ -1113,25 +1113,25 @@ class OpenReviewClient {
    * Edits an existing Invitation.
    *
    * @async
-   * @param {object} params - Parameters object
-   * @param {Array<string>} [params.invitationId] - Invitation ID to validate the Edit
-   * @param {Array<string>} [params.readers] - List of User IDs to grant read access
-   * @param {Array<string>} [params.writers] - List of User IDs to grant write access
-   * @param {Array<string>} [params.signatures] - List with one item with the User ID to sign the Invitation
-   * @param {object} [params.content] - Content to be added to the Edit
-   * @param {boolean} [params.replacement] - If true, the Invitation is replaced by the one defined in the Edit
-   * @param {object} [params.invitation] - New Invitation object to be used in the inference
+   * @param {object} invitaionEdit - Invitation Edit object
+   * @param {Array<string>} [invitaionEdit.invitationId] - Invitation ID to validate the Edit
+   * @param {Array<string>} [invitaionEdit.readers] - List of User IDs to grant read access
+   * @param {Array<string>} [invitaionEdit.writers] - List of User IDs to grant write access
+   * @param {Array<string>} [invitaionEdit.signatures] - List with one item with the User ID to sign the Invitation
+   * @param {object} [invitaionEdit.content] - Content to be added to the Edit
+   * @param {boolean} [invitaionEdit.replacement] - If true, the Invitation is replaced by the one defined in the Edit
+   * @param {object} [invitaionEdit.invitation] - New Invitation object to be used in the inference
    * @returns {Promise<object>} - Response JSON object
    */
-  async postInvitationEdit(params) {
+  async postInvitationEdit(invitaionEdit) {
     const body = this.#removeNilValues({
-      invitations: params.invitationId,
-      readers: params.readers,
-      writers: params.writers,
-      signatures: params.signatures,
-      content: params.content,
-      replacement: params.replacement,
-      invitation: params.invitation
+      invitations: invitaionEdit.invitationId,
+      readers: invitaionEdit.readers,
+      writers: invitaionEdit.writers,
+      signatures: invitaionEdit.signatures,
+      content: invitaionEdit.content,
+      replacement: invitaionEdit.replacement,
+      invitation: invitaionEdit.invitation
     });
 
     const data = await this.#handleResponse(fetch(this.invitationEditsUrl, {
@@ -1147,16 +1147,16 @@ class OpenReviewClient {
    * Edits an existing Note.
    *
    * @async
-   * @param {string} invitation - Invitation ID for the Note Edit
-   * @param {Array<string>} signatures - List of one item with the User ID to sign the Note Edit
-   * @param {object} [note] - Note to be edited
-   * @param {Array<string>} [readers] - List of User IDs to grant read access
-   * @param {Array<string>} [writers] - List of User IDs to grant write access
+   * @param {object} noteEdit - Note Edit object
+   * @param {string} [noteEdit.invitation] - Invitation ID for the Note Edit
+   * @param {Array<string>} [noteEdit.signatures] - List of one item with the User ID to sign the Note Edit
+   * @param {object} [noteEdit.note] - Note to be edited
+   * @param {Array<string>} [noteEdit.readers] - List of User IDs to grant read access
+   * @param {Array<string>} [noteEdit.writers] - List of User IDs to grant write access
    * @returns {Promise<object>} - Response JSON object
    */
-  async postNoteEdit(params) {
-    const body = this.#removeNilValues(params);
-
+  async postNoteEdit(noteEdit) {
+    const body = this.#removeNilValues(noteEdit);
     const data = await this.#handleResponse(fetch(this.noteEditsUrl, {
       method: 'POST',
       headers: this.headers,
@@ -1170,16 +1170,16 @@ class OpenReviewClient {
    * Edits an existing Group.
    *
    * @async
-   * @param {string} invitation - Invitation ID for the Group Edit
-   * @param {Array<string>} signatures - List of one item with the User ID to sign the Group Edit
-   * @param {object} [group] - Group to be edited
-   * @param {Array<string>} [readers] - List of User IDs to grant read access
-   * @param {Array<string>} [writers] - List of User IDs to grant write access
+   * @param {object} groupEdit - Group Edit object
+   * @param {string} [groupEdit.invitation] - Invitation ID for the Group Edit
+   * @param {Array<string>} [groupEdit.signatures] - List of one item with the User ID to sign the Group Edit
+   * @param {object} [groupEdit.group] - Group to be edited
+   * @param {Array<string>} [groupEdit.readers] - List of User IDs to grant read access
+   * @param {Array<string>} [groupEdit.writers] - List of User IDs to grant write access
    * @returns {Promise<object>} - Response JSON object
    */
-  async postGroupEdit(params) {
-    const body = this.#removeNilValues(params);
-
+  async postGroupEdit(groupEdit) {
+    const body = this.#removeNilValues(groupEdit);
     const data = await this.#handleResponse(fetch(this.groupEditsUrl, {
       method: 'POST',
       headers: this.headers,
