@@ -47,14 +47,14 @@ class OpenReviewClient {
    * @param {string} response.token - Authentication token.
    * @returns {void}
    */
-  #handleToken(response) {
+  _handleToken(response) {
     if (response.token) {
       this.token = response.token;
       this.headers['Authorization'] = `Bearer ${this.token}`;
     }
   }
 
-  async #handleResponse(fetchPromise, onErrorData, dataName) {
+  async _handleResponse(fetchPromise, onErrorData, dataName) {
     try {
       const response = await fetchPromise;
       const data = await response.json();
@@ -78,7 +78,7 @@ class OpenReviewClient {
    * @param {number} size - Size of the chunks.
    * @returns {Array} Array of chunks.
    */
-  #splitArray(arr, size) {
+  _splitArray(arr, size) {
     const result = [];
     for (let i = 0; i < arr.length; i += size) {
       result.push(arr.slice(i, i + size));
@@ -93,7 +93,7 @@ class OpenReviewClient {
    * @param {any} value - Value to check.
    * @returns {boolean} True if the value is null or undefined, false otherwise.
    */
-  #isNil(value) {
+  _isNil(value) {
     return value === null || value === undefined;
   }
 
@@ -104,10 +104,10 @@ class OpenReviewClient {
    * @param {object} params - Object to sanitize.
    * @returns {object} Sanitized object.
    */
-  #removeNilValues(params) {
+  _removeNilValues(params) {
     const sanitizedParams = {};
     for (const [ key, value ] of Object.entries(params)) {
-      if (!this.#isNil(value)) {
+      if (!this._isNil(value)) {
         sanitizedParams[key] = value;
       }
     }
@@ -121,8 +121,8 @@ class OpenReviewClient {
    * @param {object} params - Object to convert to a query string.
    * @returns {string} Query string.
    */
-  #generateQueryString(params) {
-    const sanitizedParams = this.#removeNilValues(params);
+  _generateQueryString(params) {
+    const sanitizedParams = this._removeNilValues(params);
     return new URLSearchParams(sanitizedParams).toString();
   }
 
@@ -135,13 +135,13 @@ class OpenReviewClient {
    * @returns {Promise<object>} Dictionary containing user information and the authentication token.
    */
   async connect(username, password) {
-    const data = await this.#handleResponse(fetch(this.loginUrl, {
+    const data = await this._handleResponse(fetch(this.loginUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify({ id: username, password })
     }), { user: {}, token: '' });
     this.user = data.user;
-    this.#handleToken(data);
+    this._handleToken(data);
     return data;
   }
 
@@ -155,12 +155,12 @@ class OpenReviewClient {
    */
   async resetPassword(token, password) {
     const url = `${this.baseUrl}/reset/${token}`;
-    const data = await this.#handleResponse(fetch(url, {
+    const data = await this._handleResponse(fetch(url, {
       method: 'PUT',
       headers: this.headers,
       body: JSON.stringify({ password })
     }), { user: {}, token: '' });
-    this.#handleToken(data);
+    this._handleToken(data);
     return data;
   }
 
@@ -182,7 +182,7 @@ class OpenReviewClient {
       password
     };
     
-    const data = await this.#handleResponse(fetch(this.registerUrl, {
+    const data = await this._handleResponse(fetch(this.registerUrl, {
       method: 'POST',                 
       headers: this.headers,               
       body: JSON.stringify(registerPayload)  
@@ -215,13 +215,13 @@ class OpenReviewClient {
   async activateUser(token, content) {
     const url = `${this.baseurl}/activate/${token}`;
     
-    const data = await this.#handleResponse(fetch(url, {
+    const data = await this._handleResponse(fetch(url, {
       method: 'PUT',                  
       headers: this.headers,               
       body: JSON.stringify({ content })  
     }), { user: {}, token: '' });
     
-    this.#handleToken(data);
+    this._handleToken(data);
     return data;
   }
 
@@ -235,12 +235,12 @@ class OpenReviewClient {
   async getActivatable(token) {
     const url = `${this.baseurl}/activatable/${token}`;
 
-    const data = await this.#handleResponse(fetch(url, {
+    const data = await this._handleResponse(fetch(url, {
       method: 'GET',
       headers: this.headers
     }), { user: {}, token: '' });
     
-    this.#handleToken(data);
+    this._handleToken(data);
     return data;
   }
 
@@ -259,7 +259,7 @@ class OpenReviewClient {
    */
   async searchProfiles({ confirmedEmails, emails, ids, term, first, middle, last }) {
     if (term) {
-      const data = await this.#handleResponse(fetch(`${this.profilesSearchUrl}?term=${term}`, {
+      const data = await this._handleResponse(fetch(`${this.profilesSearchUrl}?term=${term}`, {
         method: 'GET',
         headers: this.headers
       }), { profiles: [], count: 0 });
@@ -269,10 +269,10 @@ class OpenReviewClient {
 
     if (emails) {
       const fullResponse = { profiles: [], count: 0 };
-      const batches = this.#splitArray(emails, this.RESPONSE_SIZE);
+      const batches = this._splitArray(emails, this.RESPONSE_SIZE);
       let data;
       for (let emailBatch of batches) {
-        data = await this.#handleResponse(fetch(this.profilesSearchUrl, {
+        data = await this._handleResponse(fetch(this.profilesSearchUrl, {
           method: 'POST',
           headers: this.headers,
           body: JSON.stringify({ emails: emailBatch })
@@ -290,10 +290,10 @@ class OpenReviewClient {
 
     if (confirmedEmails) {
       const fullResponse = { profiles: [], count: 0 };
-      const batches = this.#splitArray(confirmedEmails, this.RESPONSE_SIZE);
+      const batches = this._splitArray(confirmedEmails, this.RESPONSE_SIZE);
       let data;
       for (let emailBatch of batches) {
-        data = await this.#handleResponse(fetch(this.profilesSearchUrl, {
+        data = await this._handleResponse(fetch(this.profilesSearchUrl, {
           method: 'POST',
           headers: this.headers,
           body: JSON.stringify({ emails: emailBatch })
@@ -311,10 +311,10 @@ class OpenReviewClient {
 
     if (ids) {
       const fullResponse = { profiles: [], count: 0 };
-      const batches = this.#splitArray(ids, this.RESPONSE_SIZE);
+      const batches = this._splitArray(ids, this.RESPONSE_SIZE);
       let data;
       for (let batch of batches) {
-        data = await this.#handleResponse(fetch(this.profilesSearchUrl, {
+        data = await this._handleResponse(fetch(this.profilesSearchUrl, {
           method: 'POST',
           headers: this.headers,
           body: JSON.stringify({ ids: batch })
@@ -332,7 +332,7 @@ class OpenReviewClient {
 
     if (first || middle || last) {
       const params = new URLSearchParams({ first, middle, last });
-      const data = await this.#handleResponse(fetch(`${this.profilesUrl}?${params}`, {
+      const data = await this._handleResponse(fetch(`${this.profilesUrl}?${params}`, {
         method: 'GET',
         headers: this.headers
       }), { profiles: [], count: 0 });
@@ -363,10 +363,10 @@ class OpenReviewClient {
     let params;
     let url;
     if (editId) {
-      params = this.#generateQueryString({ id: editId, name: fieldName });
+      params = this._generateQueryString({ id: editId, name: fieldName });
       url = `${this.editAttachmentUrl}?${params}`;
     } else {
-      params = this.#generateQueryString({ id: noteId, name: fieldName });
+      params = this._generateQueryString({ id: noteId, name: fieldName });
       url = `${this.attachmentUrl}?${params}`;
     }
 
@@ -390,7 +390,7 @@ class OpenReviewClient {
   async putAttachment(filePath, invitation, name) {
     const file = await fs.promises.readFile(filePath);
 
-    const data = await this.#handleResponse(fetch(this.attachment_url, {
+    const data = await this._handleResponse(fetch(this.attachment_url, {
       method: 'PUT',
       headers: this.headers,
       body: {
@@ -410,7 +410,7 @@ class OpenReviewClient {
    * @return {Profile} The new updated Profile
    */
   async postProfile(profile) {
-    const data = await this.#handleResponse(fetch(this.profilesUrl, {
+    const data = await this._handleResponse(fetch(this.profilesUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(profile),
@@ -428,7 +428,7 @@ class OpenReviewClient {
    * @returns {Profile} The new updated Profile
    */
   async mergeProfiles(profileTo, profileFrom) {
-    const data = await this.#handleResponse(fetch(this.profilesMergeUrl, {
+    const data = await this._handleResponse(fetch(this.profilesMergeUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify({ to: profileTo, from: profileFrom }),
@@ -453,9 +453,9 @@ class OpenReviewClient {
    * @returns {Promise<{groups: Array<Object>, count: number}>} - Object containing an array of Groups and the count of all Groups.
    */
   async getGroups(params) {
-    const queryString = this.#generateQueryString(params);
+    const queryString = this._generateQueryString(params);
 
-    const data = await this.#handleResponse(fetch(`${this.groupsUrl}?${queryString}`, {
+    const data = await this._handleResponse(fetch(`${this.groupsUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers
     }), { groups: [], count: 0 });
@@ -512,9 +512,9 @@ class OpenReviewClient {
    * @returns {Promise<{invitations: Array<Object>, count: number}>} - Object containing an array of Invitations and the count of all Invitations.
    */
   async getInvitations(params) {
-    const queryString = this.#generateQueryString(params);
+    const queryString = this._generateQueryString(params);
 
-    const data = await this.#handleResponse(fetch(`${this.invitationsUrl}?${queryString}`, {
+    const data = await this._handleResponse(fetch(`${this.invitationsUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers,
     }), { invitations: [], count: 0 });
@@ -567,14 +567,14 @@ class OpenReviewClient {
    * @returns {Promise<{edits: Array<Object>, count: number}>} - Object containing an array of Invitation Edits and the count of all Invitation Edits.
    */
   async getInvitationEdits(params) {
-    const queryString = this.#generateQueryString({
+    const queryString = this._generateQueryString({
       id: params?.id,
       invitations: params?.invitation,
       'invitation.id': params?.invitationId,
       sort: params?.sort,
     });
 
-    const data = await this.#handleResponse(fetch(`${this.invitationEditsUrl}?${queryString}`, {
+    const data = await this._handleResponse(fetch(`${this.invitationEditsUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers
     }), { edits: [], count: 0 });
@@ -614,9 +614,9 @@ class OpenReviewClient {
       }
       delete params.content;
     }
-    const queryString = this.#generateQueryString(params);
+    const queryString = this._generateQueryString(params);
   
-    const data = await this.#handleResponse(fetch(`${this.notesUrl}?${queryString}`, {
+    const data = await this._handleResponse(fetch(`${this.notesUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers,
     }), { notes: [], count: 0 });
@@ -666,13 +666,13 @@ class OpenReviewClient {
    * @returns {Promise<{edits: Array<Object>, count: number}>} - Object containing an array of Note Edits and the count of all Note Edits.
    */
   async getNoteEdits(params) {
-    const queryString = this.#generateQueryString({
+    const queryString = this._generateQueryString({
       'note.id': params.noteId,
       invitation: params.invitation,
       sort: params.sort
     });
 
-    const data = await this.#handleResponse(fetch(`${this.noteEditsUrl}?${queryString}`, {
+    const data = await this._handleResponse(fetch(`${this.noteEditsUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers
     }), { edits: [], count: 0 });
@@ -695,9 +695,9 @@ class OpenReviewClient {
    * @returns {Promise<{tags: Array<Object>, count: number}>} - Object containing an array of tags and the count of all tags.
    */
   async getTags(params) {
-    const queryString = this.#generateQueryString(params);
+    const queryString = this._generateQueryString(params);
 
-    const data = await this.#handleResponse(fetch(`${this.tagsUrl}?${queryString}`, {
+    const data = await this._handleResponse(fetch(`${this.tagsUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers,
     }), { tags: [], count: 0 });
@@ -741,9 +741,9 @@ class OpenReviewClient {
    * @returns {Promise<{edges: Array<Object>, count: number}|{ groupedEdges: Array<Object> }>} - Object containing an array of edges and the count of all edges.
    */
   async getEdges(params) {
-    const queryString = this.#generateQueryString(params);
+    const queryString = this._generateQueryString(params);
 
-    const data = await this.#handleResponse(fetch(`${this.edgesUrl}?${queryString}`, {
+    const data = await this._handleResponse(fetch(`${this.edgesUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers
     }), params.groupBy ? { groupedEdges: [] } : { edges: [], count: 0 });
@@ -785,9 +785,9 @@ class OpenReviewClient {
    * @returns {Promise<{count: number}>} - The number of edges matching the provided filters.
    */
   async getEdgesCount(params) {
-    const queryString = this.#generateQueryString(params);
+    const queryString = this._generateQueryString(params);
 
-    const data = await this.#handleResponse(fetch(`${this.edgesCountUrl}?${queryString}`, {
+    const data = await this._handleResponse(fetch(`${this.edgesCountUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers
     }), { count: 0 });
@@ -803,7 +803,7 @@ class OpenReviewClient {
    * @returns {Promise<object>} Promise object representing the posted Edge object.
    */
   async postEdge(edge) {
-    const data = await this.#handleResponse(fetch(this.edgesUrl, {
+    const data = await this._handleResponse(fetch(this.edgesUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(edge),
@@ -820,7 +820,7 @@ class OpenReviewClient {
    * @returns {Promise<array>} Promise object representing an array of updated Edge objects with their ids.
    */
   async postEdges(edges) {
-    const data = await this.#handleResponse(fetch(this.bulkEdgesUrl, {
+    const data = await this._handleResponse(fetch(this.bulkEdgesUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(edges),
@@ -842,12 +842,12 @@ class OpenReviewClient {
    * @returns {Promise<object>} Promise object representing the response from the API.
    */
   async deleteEdges(params) {
-    const deleteQuery = this.#removeNilValues(params);
+    const deleteQuery = this._removeNilValues(params);
 
     deleteQuery.waitToFinish ??= true;
     deleteQuery.softDelete ??= false;
 
-    const data = await this.#handleResponse(fetch(this.edgesUrl, {
+    const data = await this._handleResponse(fetch(this.edgesUrl, {
       method: 'DELETE',
       headers: this.headers,
       body: JSON.stringify(deleteQuery),
@@ -864,7 +864,7 @@ class OpenReviewClient {
    * @returns {Promise<object>} Promise object representing the response from the API.
    */
   async deleteProfileReference(referenceId) {
-    const data = await this.#handleResponse(fetch(`${this.profilesUrl}/reference`, {
+    const data = await this._handleResponse(fetch(`${this.profilesUrl}/reference`, {
       method: 'DELETE',
       headers: this.headers,
       body: JSON.stringify({ id: referenceId }),
@@ -881,7 +881,7 @@ class OpenReviewClient {
    * @returns {Promise<object>} Promise object representing the response from the API.
    */
   async deleteGroup(groupId) {
-    const data = await this.#handleResponse(fetch(this.groupsUrl, {
+    const data = await this._handleResponse(fetch(this.groupsUrl, {
       method: 'DELETE',
       headers: this.headers,
       body: JSON.stringify({ id: groupId }),
@@ -907,9 +907,9 @@ class OpenReviewClient {
    * @returns {Promise<object>} - Contains the message that was sent to each Group
    */
   async postMessage(params) {
-    const body = this.#removeNilValues(params);
+    const body = this._removeNilValues(params);
 
-    const data = await this.#handleResponse(fetch(this.messages_url, {
+    const data = await this._handleResponse(fetch(this.messages_url, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(body)
@@ -956,7 +956,7 @@ class OpenReviewClient {
         error: null
       };
     } else {
-      const data = await this.#handleResponse(fetch(`${this.groupsUrl}/members`, {
+      const data = await this._handleResponse(fetch(`${this.groupsUrl}/members`, {
         method: 'PUT',
         headers: this.headers,
         body: JSON.stringify({
@@ -1007,7 +1007,7 @@ class OpenReviewClient {
         error: null
       };
     } else {
-      const data = await this.#handleResponse(fetch(`${this.groupsUrl}/members`, {
+      const data = await this._handleResponse(fetch(`${this.groupsUrl}/members`, {
         method: 'DELETE',
         headers: this.headers,
         body: JSON.stringify({
@@ -1039,9 +1039,9 @@ class OpenReviewClient {
       params.source ??= 'all';
     }
 
-    const queryString = this.#generateQueryString(params);
+    const queryString = this._generateQueryString(params);
   
-    const data = await this.#handleResponse(fetch(`${this.notes_url}/search?${queryString}`, {
+    const data = await this._handleResponse(fetch(`${this.notes_url}/search?${queryString}`, {
       method: 'GET',
       headers: this.headers
     }), { notes: [], count: 0 });
@@ -1059,8 +1059,8 @@ class OpenReviewClient {
    * @returns {Promise<object>} next possible tilde user name corresponding to the specified first, middle and last name
    */
   async getTildeUsername(first, last, middle = null) {
-    const queryString = this.#generateQueryString({ first, last, middle });
-    const data = await this.#handleResponse(fetch(`${this.tildeusernameUrl}?${queryString}`, {
+    const queryString = this._generateQueryString({ first, last, middle });
+    const data = await this._handleResponse(fetch(`${this.tildeusernameUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers,
     }), { username: '' });
@@ -1081,8 +1081,8 @@ class OpenReviewClient {
   * @returns {Promise<{messages: Array<Object>, count: number}>} - Messages that match the passed parameters
   */
   async getMessages(params) {
-    const queryString = this.#generateQueryString(params);
-    const data = await this.#handleResponse(fetch(`${this.messagesUrl}?${queryString}`, {
+    const queryString = this._generateQueryString(params);
+    const data = await this._handleResponse(fetch(`${this.messagesUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers
     }), { messages: [], count: 0 });
@@ -1100,8 +1100,8 @@ class OpenReviewClient {
    * @returns {Promise<{logs: Array<Object>, count: number}>} - Logs of the process
    */
   async getProcessLogs(id, invitation, status) {
-    const queryString = this.#generateQueryString({ id, invitation, status });
-    const data = await this.#handleResponse(fetch(`${this.process_logs_url}?${queryString}`, {
+    const queryString = this._generateQueryString({ id, invitation, status });
+    const data = await this._handleResponse(fetch(`${this.process_logs_url}?${queryString}`, {
       method: 'GET',
       headers: this.headers
     }), { logs: [], count: 0 });
@@ -1124,7 +1124,7 @@ class OpenReviewClient {
    * @returns {Promise<object>} - Response JSON object
    */
   async postInvitationEdit(invitaionEdit) {
-    const body = this.#removeNilValues({
+    const body = this._removeNilValues({
       invitations: invitaionEdit.invitationId,
       readers: invitaionEdit.readers,
       writers: invitaionEdit.writers,
@@ -1134,7 +1134,7 @@ class OpenReviewClient {
       invitation: invitaionEdit.invitation
     });
 
-    const data = await this.#handleResponse(fetch(this.invitationEditsUrl, {
+    const data = await this._handleResponse(fetch(this.invitationEditsUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(body)
@@ -1156,8 +1156,8 @@ class OpenReviewClient {
    * @returns {Promise<object>} - Response JSON object
    */
   async postNoteEdit(noteEdit) {
-    const body = this.#removeNilValues(noteEdit);
-    const data = await this.#handleResponse(fetch(this.noteEditsUrl, {
+    const body = this._removeNilValues(noteEdit);
+    const data = await this._handleResponse(fetch(this.noteEditsUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(body)
@@ -1179,8 +1179,8 @@ class OpenReviewClient {
    * @returns {Promise<object>} - Response JSON object
    */
   async postGroupEdit(groupEdit) {
-    const body = this.#removeNilValues(groupEdit);
-    const data = await this.#handleResponse(fetch(this.groupEditsUrl, {
+    const body = this._removeNilValues(groupEdit);
+    const data = await this._handleResponse(fetch(this.groupEditsUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(body)
@@ -1235,7 +1235,7 @@ class OpenReviewClient {
       model: { name: model }
     };
   
-    const data = await this.#handleResponse(fetch(this.expertiseUrl, {
+    const data = await this._handleResponse(fetch(this.expertiseUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(body)
@@ -1273,7 +1273,7 @@ class OpenReviewClient {
       model: { name: model }
     };
 
-    const data = await this.#handleResponse(fetch(this.expertiseUrl, {
+    const data = await this._handleResponse(fetch(this.expertiseUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(expertiseRequest)
@@ -1290,7 +1290,7 @@ class OpenReviewClient {
    * @return {Promise<object>} - The JSON response from the API.
    */
   async getExpertiseStatus(jobId) {
-    const data = await this.#handleResponse(fetch(this.expertiseStatusUrl, {
+    const data = await this._handleResponse(fetch(this.expertiseStatusUrl, {
       method: 'GET',
       headers: this.headers,
       params: { jobId }
@@ -1334,7 +1334,7 @@ class OpenReviewClient {
       }
       throw new Error('Unknown error, description: ' + statusResponse.description);
     } else {
-      const data = await this.#handleResponse(fetch(this.expertiseResultsUrl, {
+      const data = await this._handleResponse(fetch(this.expertiseResultsUrl, {
         method: 'GET',
         headers: this.headers,
         params: { jobId }
