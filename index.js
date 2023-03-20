@@ -929,7 +929,7 @@ class OpenReviewClient {
   async postMessage(params) {
     const body = this._removeNilValues(params);
 
-    const data = await this._handleResponse(fetch(this.messages_url, {
+    const data = await this._handleResponse(fetch(this.messagesUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(body)
