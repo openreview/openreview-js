@@ -59,6 +59,16 @@ class OpenReviewClient {
     }
   }
 
+  /**
+   * Handles the response returned by the OpenReview API.
+   * 
+   * @private
+   * @param {Promise} fetchPromise - Promise returned by the fetch function.
+   * @param {object} onErrorData - Data to return in case of error.
+   * @param {string} dataName - Name of the data to return.
+   * @returns {Promise} Promise that resolves to the response data.
+   * @async
+   */
   async _handleResponse(fetchPromise, onErrorData, dataName) {
     try {
       const response = await fetchPromise;
