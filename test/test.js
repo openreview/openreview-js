@@ -128,6 +128,42 @@ describe('OpenReview Client', function () {
     assert.equal(res.groups.length, 1);
     assert.equal(res.groups[0].id, `${this.superUser}/Test_Group`);
     assert.equal(res.count, 1);
+
+    const newMember = 'a_user@email.com';
+    res = await this.superClient.addMembersToGroup(`${this.superUser}/Test_Group`, [ newMember ]);
+    assert.equal(res.error, null);
+
+    res = await this.superClient.getGroups({
+      id: `${this.superUser}/Test_Group`
+    });
+    assert.equal(res.error, null);
+    assert.equal(res.groups.length, 1);
+    assert.equal(res.groups[0].id, `${this.superUser}/Test_Group`);
+    assert.equal(res.count, 1);
+    assert.equal(res.groups[0].members.length, 2);
+    assert.equal(res.groups[0].members[1], newMember);
+
+    res = await this.superClient.removeMembersFromGroup(`${this.superUser}/Test_Group`, [ newMember ]);
+
+    res = await this.superClient.getGroups({
+      id: `${this.superUser}/Test_Group`
+    });
+    assert.equal(res.error, null);
+    assert.equal(res.groups.length, 1);
+    assert.equal(res.groups[0].id, `${this.superUser}/Test_Group`);
+    assert.equal(res.count, 1);
+    assert.equal(res.groups[0].members.length, 1);
+
+    res = await this.superClient.deleteGroup(`${this.superUser}/Test_Group`);
+    assert.equal(res.error, null);
+
+    res = await this.superClient.getGroups({
+      id: `${this.superUser}/Test_Group`
+    });
+    assert.notEqual(res.error, null);
+    assert.equal(res.error.message, `Group Not Found: ${this.superUser}/Test_Group`);
+    assert.equal(res.groups.length, 0);
+    assert.equal(res.count, 0);
   });
 
   it('should POST and GET a Note', async function () {
