@@ -209,6 +209,13 @@ describe('OpenReview Client', function () {
     assert.equal(res.notes.length, 1);
     assert.equal(res.notes[0].id, noteId);
     assert.equal(res.count, 1);
+
+    res = await this.superClient.searchNotes({
+      term: 'this is a title'
+    });
+    assert.equal(res.error, null);
+    assert.equal(res.notes.length, 1);
+    assert.equal(res.notes[0].id, noteId);
   });
 
   it('should POST and GET a Edges', async function () {
