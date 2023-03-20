@@ -1121,7 +1121,7 @@ class OpenReviewClient {
    */
   async getProcessLogs(id, invitation, status) {
     const queryString = this._generateQueryString({ id, invitation, status });
-    const data = await this._handleResponse(fetch(`${this.process_logs_url}?${queryString}`, {
+    const data = await this._handleResponse(fetch(`${this.processLogsUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers
     }), { logs: [], count: 0 });
