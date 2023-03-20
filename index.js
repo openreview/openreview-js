@@ -2,6 +2,11 @@
 
 const fetch = require('node-fetch');
 const fs = require('fs');
+const { FormData } = require('formdata-node');
+const { fileFromPath } = require('formdata-node/file-from-path');
+const { Readable } = require('stream');
+const { FormDataEncoder } = require('form-data-encoder');
+const { pipeline } = require('stream/promises');
 const Tools = require('./tools');
 
 class OpenReviewClient {
@@ -351,15 +356,16 @@ class OpenReviewClient {
    * @param {string} [params.noteId] - ID of the Note.
    * @param {string} [params.editId] - ID of the Note Edit.
    * @param {string} [params.fieldName] - Name of the field that contains the file.
-   * @returns {Promise<Buffer>} File buffer.
+   * @param {string} destination - Path to the destination file.
+   * @returns {Promise<string>} Path to the destination file.
    * 
    * @example
    * const fileBuffer = await client.getAttachment({
    *  noteId: 'OpenReview.net/2023/Conference/-/Blind_Submission',
    *  fieldName: 'pdf'
-   * });
+   * }, 'destination.pdf');
    */
-  async getAttachment({ noteId, editId, fieldName }) {
+  async getAttachment({ noteId, editId, fieldName }, destination) {
     let params;
     let url;
     if (editId) {
@@ -375,8 +381,11 @@ class OpenReviewClient {
       headers: this.headers
     });
 
-    const buffer = await response.buffer();
-    return buffer;
+    // const buffer = await response.buffer();
+    // return buffer;
+
+    await pipeline(response.body, fs.createWriteStream(destination));
+    return destination;
   }
   
   /**
@@ -388,16 +397,17 @@ class OpenReviewClient {
    * @return {string} A relative URL for the uploaded file
    */
   async putAttachment(filePath, invitation, name) {
-    const file = await fs.promises.readFile(filePath);
+    const formData = new FormData();
+    formData.set('invitationId', invitation);
+    formData.set('name', name);
+    formData.set('file', await fileFromPath(filePath));
 
-    const data = await this._handleResponse(fetch(this.attachment_url, {
+    const encoder = new FormDataEncoder(formData);
+
+    const data = await this._handleResponse(fetch(this.attachmentUrl, {
       method: 'PUT',
-      headers: this.headers,
-      body: {
-        invitationId: { type: 'string', required: true, value: invitation },
-        name: { type: 'string', required: true, value: name },
-        file: { type: 'file', required: true, value: file },
-      }
+      headers: { ...this.headers, ...encoder.headers },
+      body: Readable.from(encoder)
     }), { url: '' });
 
     return data;
@@ -1114,7 +1124,7 @@ class OpenReviewClient {
    *
    * @async
    * @param {object} invitaionEdit - Invitation Edit object
-   * @param {Array<string>} [invitaionEdit.invitationId] - Invitation ID to validate the Edit
+   * @param {Array<string>} [invitaionEdit.invitations] - Invitation ID to validate the Edit
    * @param {Array<string>} [invitaionEdit.readers] - List of User IDs to grant read access
    * @param {Array<string>} [invitaionEdit.writers] - List of User IDs to grant write access
    * @param {Array<string>} [invitaionEdit.signatures] - List with one item with the User ID to sign the Invitation
@@ -1124,15 +1134,7 @@ class OpenReviewClient {
    * @returns {Promise<object>} - Response JSON object
    */
   async postInvitationEdit(invitaionEdit) {
-    const body = this._removeNilValues({
-      invitations: invitaionEdit.invitationId,
-      readers: invitaionEdit.readers,
-      writers: invitaionEdit.writers,
-      signatures: invitaionEdit.signatures,
-      content: invitaionEdit.content,
-      replacement: invitaionEdit.replacement,
-      invitation: invitaionEdit.invitation
-    });
+    const body = this._removeNilValues(invitaionEdit);
 
     const data = await this._handleResponse(fetch(this.invitationEditsUrl, {
       method: 'POST',

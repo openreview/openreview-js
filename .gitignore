@@ -31,3 +31,9 @@ node_modules/
 
 # Optional REPL history
 .node_repl_history
+
+# pdf files
+destination.pdf
+
+# DS_Store
+.DS_Store

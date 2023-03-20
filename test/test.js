@@ -174,4 +174,104 @@ describe('OpenReview Client', function () {
     assert.equal(res.notes[0].id, noteId);
     assert.equal(res.count, 1);
   });
+
+  it('should PUT and GET an attachment', async function () {
+    let res = await this.superClient.postInvitationEdit({
+      writers: [ this.superUser ],
+      readers: [ this.superUser ],
+      signatures: [ this.superUser ],
+      invitation: {
+        id: `${this.superUser}/-/Edit`,
+        signatures: [ this.superUser ],
+        writers: [ this.superUser ],
+        invitees: [ this.superUser ],
+        readers: [ this.superUser ],
+        edit: true
+      }
+    });
+    assert.equal(res.error, null);
+
+    res = await this.superClient.postInvitationEdit({
+      writers: [ this.superUser ],
+      readers: [ 'everyone' ],
+      signatures: [ this.superUser ],
+      invitations: `${this.superUser}/-/Edit`,
+      invitation: {
+        id: `${this.superUser}/-/Submission`,
+        signatures: [ this.superUser ],
+        writers: [ this.superUser ],
+        invitees: [ '~' ],
+        readers: [ 'everyone' ],
+        edit: {
+          readers: [ 'everyone' ],
+          signatures: { param: { regex: '.+' } },
+          writers: { param: { regex: '.*' } },
+          note: {
+            readers: [ 'everyone' ],
+            signatures: { param: { regex: '.+' } },
+            writers: { param: { regex: '.*' } },
+            content: {
+              title: {
+                value: {
+                  param: {
+                    type: 'string',
+                    regex: '.+'
+                  }
+                }
+              },
+              pdf: {
+                value: {
+                  param: {
+                    optional: true,
+                    type: 'file',
+                    maxSize: 0.1,
+                    extensions: [ 'pdf' ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+    assert.equal(res.error, null);
+
+    res = await this.superClient.putAttachment('./test/dummy.pdf', `${this.superUser}/-/Submission`, 'pdf');
+    assert.equal(res.error, null);
+    const url = res.url;
+
+    res = await this.superClient.postNoteEdit({
+      writers: [ this.superUser ],
+      readers: [ 'everyone' ],
+      signatures: [ this.superUser ],
+      invitation: `${this.superUser}/-/Edit`,
+      note: {
+        signatures: [ this.superUser ],
+        readers: [ 'everyone' ],
+        writers: [ this.superUser ],
+        content: {
+          title: {
+            value: 'this is a title'
+          },
+          pdf: {
+            value: url
+          }
+        }
+      }
+    });
+    assert.equal(res.error, null);
+    assert.equal(!!res.edit.note.id, true);
+    const noteId = res.edit.note.id;
+
+    res = await this.superClient.getNotes({
+      id: noteId
+    });
+    assert.equal(res.error, null);
+    assert.equal(res.notes.length, 1);
+    assert.equal(res.notes[0].id, noteId);
+    assert.equal(res.count, 1);
+
+    res = await this.superClient.getAttachment({ noteId, fieldName: 'pdf' }, './test/destination.pdf');
+    assert.equal(res.error, null);
+  });
 });
