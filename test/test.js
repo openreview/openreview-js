@@ -432,4 +432,54 @@ describe('OpenReview Client', function () {
     assert.equal(res.error, null);
     assert.equal(res.username, '~OpenReview_User1');
   });
+
+  it('should POST and GET a message', async function () {
+    let res = await this.superClient.postInvitationEdit({
+      writers: [ this.superUser ],
+      readers: [ this.superUser ],
+      signatures: [ this.superUser ],
+      invitation: {
+        id: `${this.superUser}/-/Edit`,
+        signatures: [ this.superUser ],
+        writers: [ this.superUser ],
+        invitees: [ this.superUser ],
+        readers: [ this.superUser ],
+        edit: true
+      }
+    });
+    assert.equal(res.error, null);
+
+    const recipient = 'recipient@email.com';
+    res = await this.superClient.postGroupEdit({
+      invitation: `${this.superUser}/-/Edit`,
+      signatures: [ this.superUser ],
+      writers: [ this.superUser ],
+      readers: [ this.superUser ],
+      group: {
+        id: `${this.superUser}/Message_Group`,
+        signatures: [ this.superUser ],
+        writers: [ this.superUser ],
+        readers: [ this.superUser ],
+        members: [ recipient ],
+        signatories: [ this.superUser ]
+      }
+    });
+    assert.equal(res.error, null);
+
+    res = await this.superClient.postMessage({
+      subject: 'test',
+      groups: [ `${this.superUser}/Message_Group` ],
+      message: 'test message'
+    });
+    assert.equal(res.error, null);
+    assert.equal(res.groups.length, 1);
+    assert.equal(res.groups[0].id, `${this.superUser}/Message_Group`);
+
+    res = await this.superClient.getMessages({
+      subject: 'test'
+    });
+    assert.equal(res.error, null);
+    assert.equal(res.messages.length, 1);
+    assert.equal(res.count, 1);
+  });
 });
