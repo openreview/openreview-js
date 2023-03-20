@@ -426,4 +426,10 @@ describe('OpenReview Client', function () {
     res = await this.superClient.getAttachment({ noteId, fieldName: 'pdf' }, './test/destination.pdf');
     assert.equal(res.error, null);
   });
+
+  it('should GET next tilde username', async function () {
+    let res = await this.superClient.getTildeUsername('OpenReview', 'User');
+    assert.equal(res.error, null);
+    assert.equal(res.username, '~OpenReview_User1');
+  });
 });
