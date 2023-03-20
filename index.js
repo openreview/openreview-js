@@ -12,7 +12,10 @@ const Tools = require('./tools');
 class OpenReviewClient {
   constructor(baseUrl) {
     this.baseUrl = baseUrl || 'https://api2.openreview.net';
-    this.headers = { 'Content-Type': 'application/json' };
+    this.headers = {
+      'Content-Type': 'application/json',
+      'User-Agent': 'OpenReview-Node-Client'
+    };
     this.tools = new Tools(this);
 
     this.registerUrl = `${this.baseUrl}/register`;
