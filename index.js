@@ -1061,7 +1061,7 @@ class OpenReviewClient {
 
     const queryString = this._generateQueryString(params);
   
-    const data = await this._handleResponse(fetch(`${this.notes_url}/search?${queryString}`, {
+    const data = await this._handleResponse(fetch(`${this.notesUrl}/search?${queryString}`, {
       method: 'GET',
       headers: this.headers
     }), { notes: [], count: 0 });
