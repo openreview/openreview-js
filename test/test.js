@@ -175,6 +175,115 @@ describe('OpenReview Client', function () {
     assert.equal(res.count, 1);
   });
 
+  it('should POST and GET a Edges', async function () {
+    let res = await this.superClient.postInvitationEdit({
+      writers: [ this.superUser ],
+      readers: [ this.superUser ],
+      signatures: [ this.superUser ],
+      invitation: {
+        id: `${this.superUser}/-/Edit`,
+        signatures: [ this.superUser ],
+        writers: [ this.superUser ],
+        invitees: [ this.superUser ],
+        readers: [ this.superUser ],
+        edit: true
+      }
+    });
+    assert.equal(res.error, null);
+
+    res = await this.superClient.postInvitationEdit({
+      writers: [ this.superUser ],
+      readers: [ 'everyone' ],
+      signatures: [ this.superUser ],
+      invitations: `${this.superUser}/-/Edit`,
+      invitation: {
+        id: `${this.superUser}/-/Edges`,
+        signatures: [ this.superUser ],
+        writers: [ this.superUser ],
+        invitees: [ '~' ],
+        readers: [ 'everyone' ],
+        edge: {
+          readers: [ 'everyone' ],
+          signatures: { param: { regex: '.+' } },
+          writers: { param: { regex: '.*' } },
+          head: { param: { type: 'profile' } },
+          tail: { param: { type: 'profile' } },
+          label: { param: { regex: '.*' } },
+          weight: { param: { minimum: 0 } }
+        }
+      }
+    });
+    assert.equal(res.error, null);
+
+    res = await this.superClient.postEdge({
+      invitation: `${this.superUser}/-/Edges`,
+      writers: [ this.superUser ],
+      readers: [ 'everyone' ],
+      signatures: [ this.superUser ],
+      head: this.superUser,
+      tail: this.superUser,
+      label: 'test 1',
+      weight: 1
+    });
+    assert.equal(res.error, null);
+
+    res = await this.superClient.postEdges([
+      {
+        invitation: `${this.superUser}/-/Edges`,
+        writers: [ this.superUser ],
+        readers: [ 'everyone' ],
+        signatures: [ this.superUser ],
+        head: this.superUser,
+        tail: this.superUser,
+        label: 'test 2',
+        weight: 1
+      },
+      {
+        invitation: `${this.superUser}/-/Edges`,
+        writers: [ this.superUser ],
+        readers: [ 'everyone' ],
+        signatures: [ this.superUser ],
+        head: this.superUser,
+        tail: this.superUser,
+        label: 'test 3',
+        weight: 1
+      }
+    ]);
+    assert.equal(res.error, null);
+
+    res = await this.superClient.getEdges({
+      head: this.superUser
+    });
+    assert.equal(res.error, null);
+    assert.equal(res.edges.length, 3);
+    assert.equal(res.count, 3);
+
+    res = await this.superClient.getEdges({
+      invitation: `${this.superUser}/-/Edges`,
+      groupBy: 'id'
+    });
+    assert.equal(res.error, null);
+    assert.equal(res.groupedEdges.length, 3);
+
+    res = await this.superClient.getEdgesCount({
+      head: this.superUser
+    });
+    assert.equal(res.error, null);
+    assert.equal(res.count, 3);
+
+    res = await this.superClient.deleteEdges({
+      invitation: `${this.superUser}/-/Edges`
+    });
+    assert.equal(res.error, null);
+    assert.equal(res.status, 'ok');
+
+    res = await this.superClient.getEdgesCount({
+      invitation: `${this.superUser}/-/Edges`
+    });
+    assert.equal(res.error, null);
+    assert.equal(res.count, 0);
+  });
+
   it('should PUT and GET an attachment', async function () {
     let res = await this.superClient.postInvitationEdit({
       writers: [ this.superUser ],
