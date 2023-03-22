@@ -1,3 +1,3 @@
-# Openreview API Client
+# OpenReview Node.js Client
 
-This is a placeholder for a Node.js client library for the OpenReview academic publishing API.
+A JavaScript client for the OpenReview API. This client provides methods for communicating with the OpenReview server, including authentication, CRUD (create, read, update, delete) operations on notes, profiles, groups, invitations, edges, and messages, and profiles.
