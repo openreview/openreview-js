@@ -29,12 +29,11 @@ class Tools {
   /**
    * Accepts an OpenReview profile object and retrieves the user's preferred name or the first listed name.
    * 
-   * @async
    * @param {object} profile - The OpenReview profile object.
    * @param {boolean} [lastNameOnly=false] - A boolean indicating whether to return only the last name or the full name.
    * @returns {string} - The user's preferred name or the first listed name.
    */
-  async getPreferredName(profile, lastNameOnly=false) {
+  getPreferredName(profile, lastNameOnly=false) {
     const names = profile.content.names;
     const preferredNames = names.filter(name => name.preferred);
     const preferredName = preferredNames.length > 0 ? preferredNames[0] : names[0];
