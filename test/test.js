@@ -480,4 +480,41 @@ describe('OpenReview Client', function () {
     assert.equal(res.messages.length, 1);
     assert.equal(res.count, 1);
   });
+
+  it('should compute the venue from venueid and decision', async function () {
+    let res = this.superClient.tools.decisionToVenue('ICLR.cc/2023/Conference', 'Accept');
+    assert.equal(res, 'ICLR.cc/2023/Conference');
+
+    res = this.superClient.tools.decisionToVenue('ICLR.cc/2023/Conference', 'Reject');
+    assert.equal(res, 'Submitted to ICLR.cc/2023/Conference');
+  });
+
+  it('should get preferred name from a profile', async function () {
+    let fakeProfile = {
+      content: {
+        names: [
+          {
+            first: 'First',
+            middle: 'Middle',
+            last: 'Last',
+            username: '~First_Middle_Last1',
+            preferred: false
+          },
+          {
+            first: 'AnotherFirst',
+            middle: 'AnotherMiddle',
+            last: 'AnotherLast',
+            username: '~AnotherFirst_AnotherMiddle_AnotherLast1',
+            preferred: true
+          }
+        ]
+      }
+    };
+
+    let res = this.superClient.tools.getPreferredName(fakeProfile);
+    assert.equal(res, 'AnotherFirst AnotherMiddle AnotherLast');
+
+    res = this.superClient.tools.getPreferredName(fakeProfile, true);
+    assert.equal(res, 'AnotherLast');
+  });
 });
