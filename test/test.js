@@ -7,9 +7,7 @@ describe('OpenReview Client', function () {
     this.superUserPassword = '1234';
     this.superClient = new OpenReviewClient('http://localhost:3001');
     await this.superClient.resetPassword(this.superUser, this.superUserPassword);
-  });
 
-  it('should be able to connect to the OpenReview', async function () {
     const data = await this.superClient.connect(this.superUser, this.superUserPassword);
     assert.equal(!!data.token, true);
     assert.equal(!!data.user, true);
