@@ -497,13 +497,10 @@ class OpenReviewClient {
    * @param {string} [params.members] - Returns Groups that contain this value as its member
    * @param {string} [params.signatory] - Groups that contain this signatory
    * @param {boolean} [params.web] - If true, only Groups that contain a web field value are returned
-   * @param {number} [params.limit] - Maximum amount of Groups that this method will return. The limit parameter can range between 0 and 1000 inclusive. If a bigger number is provided, only 1000 Groups will be returned
-   * @param {number} [params.offset] - Indicates the position to start retrieving Groups. For example, if there are 10 Groups and you want to obtain the last 3, then the offset would need to be 7.
    * @returns {Promise<{groups: Array<Object>, count: number}>} - Object containing an array of Groups and the count of all Groups.
    */
   async getAllGroups(params) {
-    // TODO: implement pagination
-    return { groups: [], count: 0 };
+    return this.tools.getAll(this.getGroups.bind(this), params);
   }
 
   /**
@@ -574,8 +571,7 @@ class OpenReviewClient {
    * @returns {Promise<{invitations: Array<Object>, count: number}>} - Object containing an array of Invitations and the count of all Invitations.
    */
   async getAllInvitations(params) {
-    // TODO: implement pagination
-    return { invitations: [], count: 0 };
+    return this.tools.getAll(this.getInvitations.bind(this), params);
   }
 
   /**
@@ -664,8 +660,6 @@ class OpenReviewClient {
    * @param {boolean} [params.trash] - If true, includes Notes that have been deleted (i.e. the ddate field is less than the current date)
    * @param {number} [params.number] - If present, includes Notes whose number field equals the given integer.
    * @param {object} [params.content] - If present, includes Notes whose each key is present in the content field and it is equals the given value.
-   * @param {number} [params.limit] - Maximum amount of Notes that this method will return. The limit parameter can range between 0 and 1000 inclusive. If a bigger number is provided, only 1000 Notes will be returned
-   * @param {number} [params.offset] - Indicates the position to start retrieving Notes. For example, if there are 10 Notes and you want to obtain the last 3, then the offset would need to be 7.
    * @param {number} [params.mintcdate] - Represents an Epoch time timestamp, in milliseconds. If provided, returns Notes whose "true creation date" (tcdate) is at least equal to the value of mintcdate.
    * @param {string} [params.details] - TODO: What is a valid value for this field?
    * @param {string} [params.sort] - Sorts the output by field depending on the string passed. Possible values: number, cdate, ddate, tcdate, tmdate, replyCount (Invitation id needed in the invitation field).
@@ -673,8 +667,7 @@ class OpenReviewClient {
    * @returns {Promise<{notes: Array<Object>, count: number}>} - Object containing an array of Notes and the count of all Notes.
    */
   async getAllNotes(params) {
-    // TODO: implement pagination
-    return { notes: [], count: 0 };
+    return this.tools.getAll(this.getNotes.bind(this), params);
   }
 
   /**
@@ -738,13 +731,10 @@ class OpenReviewClient {
    * @param {string} [params.forum] - A Note ID. If provided, returns Tags whose forum matches the given ID.
    * @param {string} [params.signature] - Signature
    * @param {string} [params.tag] - Tag
-   * @param {number} [params.limit] - Limit
-   * @param {number} [params.offset] - Offset
    * @returns {Promise<{tags: Array<Object>, count: number}>} - Object containing an array of tags and the count of all tags.
    */
   async getAllTags(params) {
-    // TODO: implement pagination
-    return { tags: [], count: 0 };
+    return this.tools.getAll(this.getTags.bind(this), params);
   }
 
   /**
@@ -786,13 +776,10 @@ class OpenReviewClient {
    * @param {string} [params.label] - Label ID of the match.
    * @param {string} [params.groupBy] - Group by head, tail, id, label, weight.
    * @param {string} [params.select] - Select the fields to return. The parameter groupBy must be used.
-   * @param {number} [params.limit] - Maximum number of edges or groups (when using groupBy) to return.
-   * @param {number} [params.offset] - Offset into the list of edges to return. It does not apply when using groupBy.
    * @returns {Promise<{edges: Array<Object>, count: number}>} - Object containing an array of edges and the count of all edges.
    */
   async getAllEdges(params) {
-    // TODO: implement pagination
-    return { edges: [], count: 0 };
+    return this.tools.getAll(this.getEdges.bind(this), params);
   }
 
   /**

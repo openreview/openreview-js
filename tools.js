@@ -50,6 +50,65 @@ class Tools {
     return lastNameOnly ? preferredName.last : nameParts.join(' ');
   }
 
+  /**
+   * Gets all the results for a given get function like getNotes, getGroups, etc.
+   * This is a helper function that is used to get all the results for a given query.
+   * It's already implemented in the client in functions like getAllNotes, getAllGroups, etc.
+   * 
+   * @async
+   * @param {function} func - The function to call to get the results. It should be a function that returns a promise.
+   * @param {object} params - The parameters to pass to the function.
+   * @returns {Promise<object>} - The results of the function call.
+   */
+  async getAll(func, params) {
+    params.offset = 0;
+
+    if (params.limit && (params.limit <= this.client.RESPONSE_SIZE)) {
+      return func(params);
+    }
+
+    // Get total number of results
+    const res = await func({ ...params, limit: 1 });
+    const count = res.count;
+    let docType;
+    for (let key in res) {
+      if (key !== 'count') {
+        docType = key;
+        break;
+      }
+    }
+
+    async function* gen() {
+      let index = 0;
+      let res = await func(params);
+      while (index < count) {
+        if (res[docType].length > 0) {
+          yield res[docType].shift();
+          index++;
+        } else {
+          params.offset += this.client.RESPONSE_SIZE;
+          res = await func(params);
+        }
+      }
+    }
+
+    const g = gen.bind(this)();
+
+    const result = {
+      [docType]: [],
+      count
+    }
+    while (true) {
+      const { value } = await g.next();
+      if (value) {
+        result[docType].push(value);
+      } else {
+        break;
+      }
+    }
+    return result;
+  }
+
 }
 
 module.exports = Tools;
