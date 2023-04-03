@@ -89,6 +89,38 @@ class OpenReviewClient {
   }
 
   /**
+   * Formats a profile when a token is provided instead of a username and password.
+   *
+   * @private
+   * @param {object} profile - Profile object.
+   * @returns {object} Formatted profile object.
+   */
+  _formatUserProfile(profile) {
+    if (!profile) {
+      return {};
+    }
+
+    const prefName = (profile.content?.names || []).find(name => name.preferred);
+    const name = prefName || profile.content?.names?.[0];
+    const usernames = (profile.content?.names || []).map(nameObj => nameObj.username);
+    if (!usernames.includes(profile.id)) {
+      usernames.push(profile.id);
+    }
+
+    return {
+      id: profile.id,
+      first: name.first,
+      middle: name.middle,
+      last: name.last,
+      emails: profile.content.emails,
+      preferredEmail: profile.content.preferredEmail,
+      usernames: usernames,
+      preferredId: prefName ? prefName.username : profile.id,
+      state: profile.state,
+    };
+  };
+
+  /**
    * Splits an array into chunks of a given size.
    * 
    * @private
@@ -139,7 +171,7 @@ class OpenReviewClient {
    * @param {object} params - Object to convert to a query string.
    * @returns {string} Query string.
    */
-  _generateQueryString(params) {
+  _generateQueryString(params = {}) {
     const sanitizedParams = this._removeNilValues(params);
     return new URLSearchParams(sanitizedParams).toString();
   }
@@ -152,15 +184,22 @@ class OpenReviewClient {
    * @param {string} password - Password of the user.
    * @returns {Promise<object>} Dictionary containing user information and the authentication token.
    */
-  async connect(username, password) {
-    const data = await this._handleResponse(fetch(this.loginUrl, {
-      method: 'POST',
-      headers: this.headers,
-      body: JSON.stringify({ id: username, password })
-    }), { user: {}, token: '' });
-    this.user = data.user;
-    this._handleToken(data);
-    return data;
+  async connect({ username, password, token }) {
+    if (token) {
+      this._handleToken({ token });
+      const data = await this.getProfiles({});
+      this.user = this._formatUserProfile(data.profiles[0]);
+      return { user: this.user, token: this.token, error: null };
+    } else {
+      const data = await this._handleResponse(fetch(this.loginUrl, {
+        method: 'POST',
+        headers: this.headers,
+        body: JSON.stringify({ id: username, password })
+      }), { user: {}, token: '' });
+      this.user = data.user;
+      this._handleToken(data);
+      return data;
+    }
   }
 
   /**
@@ -359,6 +398,38 @@ class OpenReviewClient {
     }
 
     return { profiles: [], count: 0 };
+  }
+
+  /**
+   * Gets a profiles.
+   *
+   * @async
+   * @param {object} params - An object containing the filters to apply.
+   * @param {string} [params.id] - ID of the profile.
+   * @param {string} [params.ids] - IDs of the profiles.
+   * @param {string} [params.email] - Email of the profile.
+   * @param {string} [params.emails] - Emails of the profiles.
+   * @param {string} [params.confirmedEmail] - Confirmed email of the profile.
+   * @param {string} [params.confirmedEmails] - Confirmed emails of the profiles.
+   * @param {string} [params.first] - First name of the profile.
+   * @param {string} [params.middle] - Middle name of the profile.
+   * @param {string} [params.last] - Last name of the profile.
+   * @param {string} [params.select] - Fields to select.
+   * @param {string} [params.state] - State of the profile.
+   * @param {string} [params.sort] - Sort order of the profiles to return.
+   * @param {string} [params.limit] - Number of profiles to return.
+   * @param {string} [params.offset] - Number of profiles to skip.
+   * @returns {Promise<object>} Dictionary containing the profiles and the total count.
+   */
+  async getProfiles(params) {
+    const queryString = this._generateQueryString(params);
+
+    const data = await this._handleResponse(fetch(`${this.profilesUrl}?${queryString}`, {
+      method: 'GET',
+      headers: this.headers,
+    }), { profiles: [], count: 0 });
+
+    return data;
   }
 
   /**
