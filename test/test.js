@@ -8,7 +8,10 @@ describe('OpenReview Client', function () {
     this.superClient = new OpenReviewClient('http://localhost:3001');
     await this.superClient.resetPassword(this.superUser, this.superUserPassword);
 
-    const data = await this.superClient.connect(this.superUser, this.superUserPassword);
+    const data = await this.superClient.connect({
+      username: this.superUser,
+      password: this.superUserPassword
+    });
     assert.equal(!!data.token, true);
     assert.equal(!!data.user, true);
     assert.equal(data.error, null);
@@ -522,5 +525,12 @@ describe('OpenReview Client', function () {
     let res = await this.superClient.getProfiles();
     assert.equal(res.error, null);
     assert.equal(res.profiles[0].id, '~Super_User1');
+  });
+
+  it('should connect using a token', async function () {
+    let res = await this.superClient.connect({ token: this.superClient.token });
+    assert.equal(res.error, null);
+    assert.equal(res.token, this.superClient.token);
+    assert.equal(res.user.id, '~Super_User1');
   });
 });

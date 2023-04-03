@@ -89,6 +89,38 @@ class OpenReviewClient {
   }
 
   /**
+   * Formats a profile when a token is provided instead of a username and password.
+   *
+   * @private
+   * @param {object} profile - Profile object.
+   * @returns {object} Formatted profile object.
+   */
+  _formatUserProfile(profile) {
+    if (!profile) {
+      return {};
+    }
+
+    const prefName = (profile.content?.names || []).find(name => name.preferred);
+    const name = prefName || profile.content?.names?.[0];
+    const usernames = (profile.content?.names || []).map(nameObj => nameObj.username);
+    if (!usernames.includes(profile.id)) {
+      usernames.push(profile.id);
+    }
+
+    return {
+      id: profile.id,
+      first: name.first,
+      middle: name.middle,
+      last: name.last,
+      emails: profile.content.emails,
+      preferredEmail: profile.content.preferredEmail,
+      usernames: usernames,
+      preferredId: prefName ? prefName.username : profile.id,
+      state: profile.state,
+    };
+  };
+
+  /**
    * Splits an array into chunks of a given size.
    * 
    * @private
@@ -152,15 +184,22 @@ class OpenReviewClient {
    * @param {string} password - Password of the user.
    * @returns {Promise<object>} Dictionary containing user information and the authentication token.
    */
-  async connect(username, password) {
-    const data = await this._handleResponse(fetch(this.loginUrl, {
-      method: 'POST',
-      headers: this.headers,
-      body: JSON.stringify({ id: username, password })
-    }), { user: {}, token: '' });
-    this.user = data.user;
-    this._handleToken(data);
-    return data;
+  async connect({ username, password, token }) {
+    if (token) {
+      this._handleToken({ token });
+      const data = await this.getProfiles({});
+      this.user = this._formatUserProfile(data.profiles[0]);
+      return { user: this.user, token: this.token, error: null };
+    } else {
+      const data = await this._handleResponse(fetch(this.loginUrl, {
+        method: 'POST',
+        headers: this.headers,
+        body: JSON.stringify({ id: username, password })
+      }), { user: {}, token: '' });
+      this.user = data.user;
+      this._handleToken(data);
+      return data;
+    }
   }
 
   /**
