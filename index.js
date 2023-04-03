@@ -139,7 +139,7 @@ class OpenReviewClient {
    * @param {object} params - Object to convert to a query string.
    * @returns {string} Query string.
    */
-  _generateQueryString(params) {
+  _generateQueryString(params = {}) {
     const sanitizedParams = this._removeNilValues(params);
     return new URLSearchParams(sanitizedParams).toString();
   }
