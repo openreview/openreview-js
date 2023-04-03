@@ -517,4 +517,10 @@ describe('OpenReview Client', function () {
     res = this.superClient.tools.getPreferredName(fakeProfile, true);
     assert.equal(res, 'AnotherLast');
   });
+
+  it('should GET a profile with no params', async function () {
+    let res = await this.superClient.getProfiles();
+    assert.equal(res.error, null);
+    assert.equal(res.profiles[0].id, '~Super_User1');
+  });
 });

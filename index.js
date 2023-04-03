@@ -362,6 +362,38 @@ class OpenReviewClient {
   }
 
   /**
+   * Gets a profiles.
+   *
+   * @async
+   * @param {object} params - An object containing the filters to apply.
+   * @param {string} [params.id] - ID of the profile.
+   * @param {string} [params.ids] - IDs of the profiles.
+   * @param {string} [params.email] - Email of the profile.
+   * @param {string} [params.emails] - Emails of the profiles.
+   * @param {string} [params.confirmedEmail] - Confirmed email of the profile.
+   * @param {string} [params.confirmedEmails] - Confirmed emails of the profiles.
+   * @param {string} [params.first] - First name of the profile.
+   * @param {string} [params.middle] - Middle name of the profile.
+   * @param {string} [params.last] - Last name of the profile.
+   * @param {string} [params.select] - Fields to select.
+   * @param {string} [params.state] - State of the profile.
+   * @param {string} [params.sort] - Sort order of the profiles to return.
+   * @param {string} [params.limit] - Number of profiles to return.
+   * @param {string} [params.offset] - Number of profiles to skip.
+   * @returns {Promise<object>} Dictionary containing the profiles and the total count.
+   */
+  async getProfiles(params) {
+    const queryString = this._generateQueryString(params);
+
+    const data = await this._handleResponse(fetch(`${this.profilesUrl}?${queryString}`, {
+      method: 'GET',
+      headers: this.headers,
+    }), { profiles: [], count: 0 });
+
+    return data;
+  }
+
+  /**
    * Gets a file from a Note or a Note Edit
    * 
    * @async
