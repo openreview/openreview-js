@@ -24,6 +24,7 @@ class OpenReviewClient {
     this.noteEditsUrl = `${this.baseUrl}/notes/edits`;
     this.profilesUrl = `${this.baseUrl}/profiles`;
     this.profilesSearchUrl = `${this.baseUrl}/profiles/search`;
+    this.profilesModerateUrl = `${this.baseUrl}/profile/moderate`;
     this.pdfUrl = `${this.baseUrl}/pdf`;
     this.attachmentUrl = `${this.baseUrl}/attachment`;
     this.editAttachmentUrl = `${this.baseUrl}/notes/edits/attachment`;
@@ -528,6 +529,25 @@ class OpenReviewClient {
       body: JSON.stringify({ to: profileTo, from: profileFrom }),
     }), { profile: {} }, 'profile');
     
+    return data;
+  }
+
+  /**
+   * Moderates a Profile
+   * 
+   * @async
+   * @param {string} profileId - ID of the Profile
+   * @param {string} decision - Decision to take on the Profile
+   * @param {string} reason - Reason for the decision
+   * @returns {object} The new updated Profile
+   */
+  async moderateProfile({ profileId, decision, reason }) {
+    const data = await this._handleResponse(fetch(this.profilesModerateUrl, {
+      method: 'POST',
+      headers: this.headers,
+      body: JSON.stringify({ id: profileId, decision, reason }),
+    }), { profile: {} }, 'profile');
+
     return data;
   }
 
