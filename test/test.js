@@ -533,4 +533,42 @@ describe('OpenReview Client', function () {
     assert.equal(res.token, this.superClient.token);
     assert.equal(res.user.id, '~Super_User1');
   });
+
+  it('should moderate a Profile', async function () {
+    const { user, error } = await this.superClient.registerUser({
+      email: 'moderated_profile@email.com',
+      first: 'Moderate',
+      last: 'User',
+      password: '1234'
+    });
+    assert.equal(user.id.startsWith('~Moderate_User'), true);
+    assert.equal(user.state, 'Inactive');
+    assert.equal(error, null);
+
+    const { error: blockError } = await this.superClient.moderateProfile({
+      profileId: user.id,
+      decision: 'block'
+    });
+    assert.equal(blockError, null);
+
+    let { profiles, error: profileError } = await this.superClient.getProfiles({
+      id: user.id,
+      withBlocked: true
+    });
+    assert.equal(profileError, null);
+    assert.equal(profiles[0].state, 'Blocked');
+
+    const { error: UnblockError } = await this.superClient.moderateProfile({
+      profileId: user.id,
+      decision: 'unblock'
+    });
+    assert.equal(UnblockError, null);
+
+    ({ profiles, error: profileError } = await this.superClient.getProfiles({
+      id: user.id,
+      withBlocked: true
+    }));
+    assert.equal(profileError, null);
+    assert.equal(profiles[0].state, 'Inactive');
+  });
 });
