@@ -571,4 +571,78 @@ describe('OpenReview Client', function () {
     assert.equal(profileError, null);
     assert.equal(profiles[0].state, 'Inactive');
   });
+
+  it('should throw errors when setting throwErrors to true', async function () {
+    this.superClient.throwErrors = true;
+
+    try {
+      res = await this.superClient.getGroups({
+        id: `${this.superUser}/Test_Group`
+      });
+    } catch (error) {
+      assert.equal(error.name, 'NotFoundError');
+      assert.equal(error.message, `Group Not Found: ${this.superUser}/Test_Group`);
+      assert.equal(error.status, 404);
+    }
+
+    try {
+      res = await this.superClient.getNotes({
+        id: 'non_existent_note_id'
+      });
+    } catch (error) {
+      assert.equal(error.name, 'NotFoundError');
+      assert.equal(error.message, 'The Note non_existent_note_id was not found');
+      assert.equal(error.status, 404);
+    }
+
+    res = await this.superClient.postInvitationEdit({
+      writers: [ this.superUser ],
+      readers: [ this.superUser ],
+      signatures: [ this.superUser ],
+      invitation: {
+        id: `${this.superUser}/-/Edit`,
+        signatures: [ this.superUser ],
+        writers: [ this.superUser ],
+        invitees: [ this.superUser ],
+        readers: [ this.superUser ],
+        edit: true
+      }
+    });
+    assert.equal(res.error, null);
+
+    try {
+      res = await this.superClient.postNoteEdit({
+        writers: [ this.superUser ],
+        readers: [ 'everyone' ],
+        signatures: [ this.superUser ],
+        invitation: `${this.superUser}/-/Edit`,
+        note: {
+          signatures: [ this.superUser ],
+          readers: [ 'everyone' ],
+          invalidField: 'invalid',
+          writers: [ this.superUser ],
+          content: {
+            title: {
+              value: 'this is a title',
+              invalidField: 'invalid'
+            }
+          }
+        }
+      });
+    } catch (error) {
+      assert.equal(error.name, 'MultiError');
+      assert.equal(error.message, 'First of 2: The property invalidField must NOT be present');
+      assert.equal(error.status, 400);
+      assert.equal(error.errors[0].name, 'AdditionalPropertiesError');
+      assert.equal(error.errors[0].message, 'The property invalidField must NOT be present');
+      assert.equal(error.errors[0].status, 400);
+      assert.equal(error.errors[0].details.path, 'note');
+      assert.equal(error.errors[1].name, 'AdditionalPropertiesError');
+      assert.equal(error.errors[1].message, 'The property invalidField must NOT be present');
+      assert.equal(error.errors[1].status, 400);
+      assert.equal(error.errors[1].details.path, 'note/content/title');
+    }
+
+    this.throwErrors = false;
+  });
 });
