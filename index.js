@@ -8,15 +8,18 @@ const { Readable } = require('stream');
 const { FormDataEncoder } = require('form-data-encoder');
 const { pipeline } = require('stream/promises');
 const Tools = require('./tools');
+const { OpenReviewError, MultiOpenReviewError } = require('./errors');
 
 class OpenReviewClient {
-  constructor(baseUrl) {
+  constructor(baseUrl, options = {}) {
     this.baseUrl = baseUrl || 'https://api2.openreview.net';
     this.headers = {
       'Content-Type': 'application/json',
       'User-Agent': 'OpenReview-Node-Client'
     };
     this.tools = new Tools(this);
+
+    this.throwErrors = options.throwErrors || false;
 
     this.registerUrl = `${this.baseUrl}/register`;
     this.loginUrl = `${this.baseUrl}/login`;
@@ -78,14 +81,32 @@ class OpenReviewClient {
       const response = await fetchPromise;
       const data = await response.json();
       if (response.status !== 200) {
-        return { ...onErrorData, error: data };
+        if (!this.throwErrors) {
+          return { ...onErrorData, error: data };
+        }
+        if (data.errors) {
+          throw new MultiOpenReviewError(data);
+        } else {
+          throw new OpenReviewError(data);
+        }
       } else if (dataName) {
         return { [dataName]: data, error: null };
       } else {
         return { ...data, error: null };
       }
     } catch (error) {
-      return { ...onErrorData, error: error.message };
+      if (this.throwErrors) {
+        throw error;
+      } else {
+        return {
+          ...onErrorData,
+          error: {
+            name: 'Error',
+            message: error.message,
+            status: 500
+          }
+        };
+      }
     }
   }
 
