@@ -77,35 +77,39 @@ class OpenReviewClient {
    * @async
    */
   async _handleResponse(fetchPromise, onErrorData, dataName) {
+    let response;
+    let data;
     try {
-      const response = await fetchPromise;
-      const data = await response.json();
+      response = await fetchPromise;
+      data = await response.json();
+    } catch (error) {
+      throw new OpenReviewError({
+        name: error.name || 'Error',
+        message: error.message,
+        status: error.status || 500,
+        cause: error
+      });
+    }
+
+    if (this.throwErrors) {
       if (response.status !== 200) {
-        if (!this.throwErrors) {
-          return { ...onErrorData, error: data };
-        }
         if (data.errors) {
           throw new MultiOpenReviewError(data);
         } else {
           throw new OpenReviewError(data);
         }
       } else if (dataName) {
+        return { [dataName]: data };
+      } else {
+        return data;
+      }
+    } else {
+      if (response.status !== 200) {
+        return { ...onErrorData, error: data };
+      } else if (dataName) {
         return { [dataName]: data, error: null };
       } else {
         return { ...data, error: null };
-      }
-    } catch (error) {
-      if (this.throwErrors) {
-        throw error;
-      } else {
-        return {
-          ...onErrorData,
-          error: {
-            name: 'Error',
-            message: error.message,
-            status: 500
-          }
-        };
       }
     }
   }
