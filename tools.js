@@ -22,6 +22,28 @@ class Tools {
   };
 
   /**
+   * Returns V1 API URL from V2 API URL.
+   * 
+   * @param {string} url - V2 API URL.
+   * @returns {string} V1 API URL.
+   */
+  convertUrlToV1(url) {
+    if (url.startsWith('https://api2')) {
+      return url.replace('https://api2', 'https://api');
+    }
+
+    if (url.startsWith('https://devapi2')) {
+      return url.replace('https://devapi2', 'https://devapi');
+    }
+
+    if (url.startsWith('http://localhost:3001')) {
+      return url.replace('http://localhost:3001', 'http://localhost:3000');
+    }
+
+    return url;
+  }
+
+  /**
    * Returns the venue for a submission based on its decision
    *
    * @param {string} venueId - venue's short name (i.e., ICLR 2022)
