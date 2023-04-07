@@ -6,6 +6,44 @@ class Tools {
   }
 
   /**
+   * Splits an array into chunks of a given size.
+   *
+   * @private
+   * @param {Array} arr - Array to split.
+   * @param {number} size - Size of the chunks.
+   * @returns {Array} Array of chunks.
+   */
+  splitArray(arr, size) {
+    const result = [];
+    for (let i = 0; i < arr.length; i += size) {
+      result.push(arr.slice(i, i + size));
+    }
+    return result;
+  };
+
+  /**
+   * Returns V1 API URL from V2 API URL.
+   * 
+   * @param {string} url - V2 API URL.
+   * @returns {string} V1 API URL.
+   */
+  convertUrlToV1(url) {
+    if (url.startsWith('https://api2')) {
+      return url.replace('https://api2', 'https://api');
+    }
+
+    if (url.startsWith('https://devapi2')) {
+      return url.replace('https://devapi2', 'https://devapi');
+    }
+
+    if (url.startsWith('http://localhost:3001')) {
+      return url.replace('http://localhost:3001', 'http://localhost:3000');
+    }
+
+    return url;
+  }
+
+  /**
    * Returns the venue for a submission based on its decision
    *
    * @param {string} venueId - venue's short name (i.e., ICLR 2022)
@@ -107,6 +145,109 @@ class Tools {
       }
     }
     return result;
+  }
+
+  /**
+   * Gets profiles by ID or email. If withPublications is true, it also gets the publications for each profile.
+   * If asDict is true, it returns a dictionary with the profiles indexed by ID or email.
+   *
+   * @async
+   * @param {string[]} idsOrEmails - An array of profile IDs or emails.
+   * @param {boolean} [withPublications=false] - A boolean indicating whether to get the publications for each profile.
+   * @param {boolean} [asDict=false] - A boolean indicating whether to return a dictionary with the profiles indexed by ID or email.
+   * @returns {Promise<object>} - A dictionary with the profiles indexed by ID or email.
+   * @returns {Promise<object[]>} - An array of profiles.
+   */
+  async getProfiles(idsOrEmails, withPublications = false, asDict = false) {
+    const ids = [];
+    const emails = [];
+
+    for (const member of idsOrEmails) {
+      if (member.startsWith('~')) {
+        ids.push(member);
+      } else {
+        emails.push(member);
+      }
+    }
+
+    const profileById = {};
+    const profileByIdOrEmail = {};
+
+    const processProfile = (profile) => {
+      profileById[profile.id] = profile;
+
+      for (const name of profile.content.names ?? []) {
+        if (name.username) {
+          profileByIdOrEmail[name.username] = profile;
+        }
+      }
+
+      for (const confirmedEmail of profile.content.emailsConfirmed ?? []) {
+        profileByIdOrEmail[confirmedEmail] = profile;
+      }
+    };
+
+    // Get profiles by ID and add them to the profiles list
+    for (const batch of this.splitArray(ids, this.client.RESPONSE_SIZE)) {
+      const { profiles } = await this.client.searchProfiles({ ids: batch });
+      for (const profile of profiles) {
+        processProfile(profile);
+      }
+    }
+
+    // Get profiles by email and add them to the profiles list
+    for (const batch of this.splitArray(emails, this.client.RESPONSE_SIZE)) {
+      const { profiles } = await this.client.searchProfiles({ confirmedEmails: batch });
+      for (const profile of profiles) {
+        processProfile(profile);
+      }
+    }
+
+    for (const email of emails) {
+      if (!profileByIdOrEmail[email]) {
+        const profile = {
+          id: email,
+          content: {
+            emails: [email],
+            preferredEmail: email,
+            emailsConfirmed: [email],
+            names: [],
+          },
+        };
+        profileById[profile.id] = profile;
+        profileByIdOrEmail[email] = profile;
+      }
+    }
+
+    if (withPublications) {
+      // Get publications for all the profiles
+      const profiles = Object.values(profileById);
+
+      for (const batch of this.splitArray(profiles, 10)) {
+        await Promise.all(batch.map(async (profile) => {
+          const [ { notes: notesV1 }, { notes: notesV2 } ] = await Promise.all([
+            this.client.getAllV1Notes({ content: { authorids: profile.id } }),
+            this.client.getAllNotes({ content: { authorids: profile.id } })
+          ]);
+          profileById[profile.id].content.publications = [ ...notesV1, ...notesV2 ];
+        }));
+      }
+    }
+
+    if (asDict) {
+      const profilesAsDict = {}
+      for (const id of ids) {
+        profilesAsDict[id] = profileByIdOrEmail[id]
+      }
+
+      for (const email of emails) {
+        profilesAsDict[email] = profileByIdOrEmail[email]
+      }
+
+      return profilesAsDict
+    }
+
+    return Object.values(profileById);
   }
 
 }

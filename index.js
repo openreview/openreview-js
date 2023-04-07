@@ -147,22 +147,6 @@ class OpenReviewClient {
   };
 
   /**
-   * Splits an array into chunks of a given size.
-   * 
-   * @private
-   * @param {Array} arr - Array to split.
-   * @param {number} size - Size of the chunks.
-   * @returns {Array} Array of chunks.
-   */
-  _splitArray(arr, size) {
-    const result = [];
-    for (let i = 0; i < arr.length; i += size) {
-      result.push(arr.slice(i, i + size));
-    }
-    return result;
-  };
-
-  /**
    * Checks if a value is null or undefined.
    * 
    * @private
@@ -352,7 +336,7 @@ class OpenReviewClient {
 
     if (emails) {
       const fullResponse = { profiles: [], count: 0 };
-      const batches = this._splitArray(emails, this.RESPONSE_SIZE);
+      const batches = this.tools.splitArray(emails, this.RESPONSE_SIZE);
       let data;
       for (let emailBatch of batches) {
         data = await this._handleResponse(fetch(this.profilesSearchUrl, {
@@ -373,7 +357,7 @@ class OpenReviewClient {
 
     if (confirmedEmails) {
       const fullResponse = { profiles: [], count: 0 };
-      const batches = this._splitArray(confirmedEmails, this.RESPONSE_SIZE);
+      const batches = this.tools.splitArray(confirmedEmails, this.RESPONSE_SIZE);
       let data;
       for (let emailBatch of batches) {
         data = await this._handleResponse(fetch(this.profilesSearchUrl, {
@@ -386,7 +370,7 @@ class OpenReviewClient {
           return data;
         }
 
-        fullResponse.profiles.push(...json.profiles);
+        fullResponse.profiles.push(...data.profiles);
       }
       fullResponse.count = data.count;
       return fullResponse;
@@ -394,7 +378,7 @@ class OpenReviewClient {
 
     if (ids) {
       const fullResponse = { profiles: [], count: 0 };
-      const batches = this._splitArray(ids, this.RESPONSE_SIZE);
+      const batches = this.tools.splitArray(ids, this.RESPONSE_SIZE);
       let data;
       for (let batch of batches) {
         data = await this._handleResponse(fetch(this.profilesSearchUrl, {
@@ -744,7 +728,7 @@ class OpenReviewClient {
    */
   async getNotes(params) {
     if (params?.content) {
-      for (const [k, v] of Object.entries(content)) {
+      for (const [k, v] of Object.entries(params.content)) {
         params[`content.${k}`] = v;
       }
       delete params.content;
@@ -784,6 +768,77 @@ class OpenReviewClient {
    */
   async getAllNotes(params) {
     return this.tools.getAll(this.getNotes.bind(this), params);
+  }
+
+  /**
+   * Gets list of Note objects based on the filters provided. The Notes that will be returned match all the criteria passed in the parameters.
+   *
+   * @async
+   * @param {object} params - An object containing the filters to apply.
+   * @param {string} [params.id] - A Note ID. If provided, returns Notes whose ID matches the given ID.
+   * @param {string} [params.paperhash] - A "paperhash" for a note. If provided, returns Notes whose paperhash matches this argument. (A paperhash is a human-interpretable string built from the Note's title and list of authors to uniquely identify the Note)
+   * @param {string} [params.forum] - A Note ID. If provided, returns Notes whose forum matches the given ID.
+   * @param {string} [params.original] - A Note ID. If provided, returns Notes whose original matches the given ID.
+   * @param {string} [params.invitation] - An Invitation ID. If provided, returns Notes whose "invitation" field is this Invitation ID.
+   * @param {string} [params.replyto] - A Note ID. If provided, returns Notes whose replyto field matches the given ID.
+   * @param {string} [params.tauthor] - A Group ID. If provided, returns Notes whose tauthor field ("true author") matches the given ID, or is a transitive member of the Group represented by the given ID.
+   * @param {string} [params.signature] - A Group ID. If provided, returns Notes whose signatures field contains the given Group ID.
+   * @param {string} [params.writer] - A Group ID. If provided, returns Notes whose writers field contains the given Group ID.
+   * @param {boolean} [params.trash] - If true, includes Notes that have been deleted (i.e. the ddate field is less than the current date)
+   * @param {number} [params.number] - If present, includes Notes whose number field equals the given integer.
+   * @param {object} [params.content] - If present, includes Notes whose each key is present in the content field and it is equals the given value.
+   * @param {number} [params.limit] - Maximum amount of Notes that this method will return. The limit parameter can range between 0 and 1000 inclusive. If a bigger number is provided, only 1000 Notes will be returned
+   * @param {number} [params.offset] - Indicates the position to start retrieving Notes. For example, if there are 10 Notes and you want to obtain the last 3, then the offset would need to be 7.
+   * @param {number} [params.mintcdate] - Represents an Epoch time timestamp, in milliseconds. If provided, returns Notes whose "true creation date" (tcdate) is at least equal to the value of mintcdate.
+   * @param {string} [params.details] - TODO: What is a valid value for this field?
+   * @param {string} [params.sort] - Sorts the output by field depending on the string passed. Possible values: number, cdate, ddate, tcdate, tmdate, replyCount (Invitation id needed in the invitation field).
+   *
+   * @returns {Promise<{notes: Array<Object>, count: number}>} - Object containing an array of Notes and the count of all Notes.
+   */
+  async getV1Notes(params) {
+    if (params?.content) {
+      for (const [k, v] of Object.entries(params.content)) {
+        params[`content.${k}`] = v;
+      }
+      delete params.content;
+    }
+    const queryString = this._generateQueryString(params);
+
+    const v1Url = this.tools.convertUrlToV1(this.notesUrl);
+
+    const data = await this._handleResponse(fetch(`${v1Url}?${queryString}`, {
+      method: 'GET',
+      headers: this.headers,
+    }), { notes: [], count: 0 });
+
+    return data;
+  }
+
+  /**
+   * Gets list of Note objects based on the filters provided. The Notes that will be returned match all the criteria passed in the parameters.
+   *
+   * @async
+   * @param {object} params - An object containing the filters to apply.
+   * @param {string} [params.id] - A Note ID. If provided, returns Notes whose ID matches the given ID.
+   * @param {string} [params.paperhash] - A "paperhash" for a note. If provided, returns Notes whose paperhash matches this argument. (A paperhash is a human-interpretable string built from the Note's title and list of authors to uniquely identify the Note)
+   * @param {string} [params.forum] - A Note ID. If provided, returns Notes whose forum matches the given ID.
+   * @param {string} [params.original] - A Note ID. If provided, returns Notes whose original matches the given ID.
+   * @param {string} [params.invitation] - An Invitation ID. If provided, returns Notes whose "invitation" field is this Invitation ID.
+   * @param {string} [params.replyto] - A Note ID. If provided, returns Notes whose replyto field matches the given ID.
+   * @param {string} [params.tauthor] - A Group ID. If provided, returns Notes whose tauthor field ("true author") matches the given ID, or is a transitive member of the Group represented by the given ID.
+   * @param {string} [params.signature] - A Group ID. If provided, returns Notes whose signatures field contains the given Group ID.
+   * @param {string} [params.writer] - A Group ID. If provided, returns Notes whose writers field contains the given Group ID.
+   * @param {boolean} [params.trash] - If true, includes Notes that have been deleted (i.e. the ddate field is less than the current date)
+   * @param {number} [params.number] - If present, includes Notes whose number field equals the given integer.
+   * @param {object} [params.content] - If present, includes Notes whose each key is present in the content field and it is equals the given value.
+   * @param {number} [params.mintcdate] - Represents an Epoch time timestamp, in milliseconds. If provided, returns Notes whose "true creation date" (tcdate) is at least equal to the value of mintcdate.
+   * @param {string} [params.details] - TODO: What is a valid value for this field?
+   * @param {string} [params.sort] - Sorts the output by field depending on the string passed. Possible values: number, cdate, ddate, tcdate, tmdate, replyCount (Invitation id needed in the invitation field).
+   *
+   * @returns {Promise<{notes: Array<Object>, count: number}>} - Object containing an array of Notes and the count of all Notes.
+   */
+  async getAllV1Notes(params) {
+    return this.tools.getAll(this.getV1Notes.bind(this), params);
   }
 
   /**
