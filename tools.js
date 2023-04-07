@@ -59,27 +59,6 @@ class Tools {
       return id;
     }
 
-    const lowercaseExceptions = [
-      'conference',
-      'workshop',
-      'submission',
-      'recommendation',
-      'paper',
-      'review',
-      'reviewer',
-      'reviewers',
-      'official',
-      'public',
-      'meta',
-      'comment',
-      'question',
-      'acceptance',
-      'pcs',
-      'affinity',
-      'bid',
-      'tpms',
-    ];
-
     if (id.includes('${')) {
       const match = id.match('{.*}')[0];
       const newMatch = match.replace(/\//g, '.');
@@ -113,7 +92,7 @@ class Tools {
 
       // if the letters in the token are all lowercase, replace it with empty string
       const lettersOnly = token.replace(/\d|\W/g, '')
-      if (lettersOnly && lettersOnly === lettersOnly.toLowerCase() && lowercaseExceptions.indexOf(token) < 0) {
+      if (lettersOnly && lettersOnly === lettersOnly.toLowerCase()) {
         token = ''
       }
 
