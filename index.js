@@ -370,7 +370,7 @@ class OpenReviewClient {
           return data;
         }
 
-        fullResponse.profiles.push(...json.profiles);
+        fullResponse.profiles.push(...data.profiles);
       }
       fullResponse.count = data.count;
       return fullResponse;
