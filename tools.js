@@ -43,6 +43,84 @@ class Tools {
     return url;
   }
 
+  prettyId(id, onlyLast) {
+    if (!id) {
+      return '';
+    } else if (id.indexOf('~') === 0 && id.length > 1) {
+      return id.substring(1).replace(/_|\d+/g, ' ').trim();
+    } else if (id === 'everyone' || id === '(anonymous)' || id === '(guest)' || id === '~') {
+      return id;
+    }
+
+    const lowercaseExceptions = [
+      'conference',
+      'workshop',
+      'submission',
+      'recommendation',
+      'paper',
+      'review',
+      'reviewer',
+      'reviewers',
+      'official',
+      'public',
+      'meta',
+      'comment',
+      'question',
+      'acceptance',
+      'pcs',
+      'affinity',
+      'bid',
+      'tpms',
+    ];
+
+    if (id.includes('${')) {
+      const match = id.match('{.*}')[0];
+      const newMatch = match.replace(/\//g, '.');
+      // remove value when it appears at the end of the token
+      id = id.replace(match, newMatch).replace('.value}', '}');
+    }
+
+    let tokens = id.split('/');
+    if (onlyLast) {
+      const sliceIndex = tokens.findIndex(token => {
+        return token.match(/^[pP]aper\d+$/);
+      });
+      tokens = tokens.slice(sliceIndex);
+    }
+
+    const transformedId = tokens.map(token => {
+      // API v2 tokens can include strings like ${note.number}
+      if (token.includes('${')) {
+        token = token.replace(/\$\{(\S+)\}/g, (match, p1) => {
+            return ' {' + p1.split('.').pop() + '}';
+          })
+          .replace(/_/g, ' ');
+        return token;
+      }
+
+      token = token
+        .replace(/^\./g, '') // journal names start with '.'
+        .replace(/\..+/g, '') // remove text after dots, ex: uai.org
+        .replace(/^-$/g, '') // remove dashes
+        .replace(/_/g, ' '); // replace undescores with spaces
+
+      // if the letters in the token are all lowercase, replace it with empty string
+      const lettersOnly = token.replace(/\d|\W/g, '')
+      if (lettersOnly && lettersOnly === lettersOnly.toLowerCase() && lowercaseExceptions.indexOf(token) < 0) {
+        token = ''
+      }
+
+      return token;
+    })
+    .filter(formattedToken => {
+      // filter out any empty tokens
+      return formattedToken;
+    })
+    .join(' ');
+
+    return transformedId || id;
+  }
+
   /**
    * Returns the venue for a submission based on its decision
    *

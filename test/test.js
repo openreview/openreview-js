@@ -645,4 +645,21 @@ describe('OpenReview Client', function () {
 
     this.throwErrors = false;
   });
+
+  it('should test prettyId', async function () {
+    let res = this.superClient.tools.prettyId('ICLR.cc/2023/Conference');
+    assert.equal(res, 'ICLR 2023 Conference');
+
+    res = this.superClient.tools.prettyId('ICLR.cc/2023/Conference/-/Blind_Submission');
+    assert.equal(res, 'ICLR 2023 Conference Blind Submission');
+
+    res = this.superClient.tools.prettyId('ICLR.cc/2023/Conference/-/Revision');
+    assert.equal(res, 'ICLR 2023 Conference Revision');
+
+    res = this.superClient.tools.prettyId('ICLR.cc/2023/Conference/-/Meta_Review', true);
+    assert.equal(res, 'Meta Review');
+
+    res = this.superClient.tools.prettyId('');
+    assert.equal(res, '');
+  });
 });
