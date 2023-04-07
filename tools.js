@@ -43,6 +43,13 @@ class Tools {
     return url;
   }
 
+  /**
+   * Takes an Invitation or Group ID and returns a pretty version of it.
+   * 
+   * @param {string} id - Invitation or Group ID.
+   * @param {boolean} onlyLast - If true, only the last part of the ID will be returned.
+   * @returns {string} Pretty version of the ID.
+   */
   prettyId(id, onlyLast) {
     if (!id) {
       return '';
