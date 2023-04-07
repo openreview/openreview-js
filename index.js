@@ -728,7 +728,7 @@ class OpenReviewClient {
    */
   async getNotes(params) {
     if (params?.content) {
-      for (const [k, v] of Object.entries(content)) {
+      for (const [k, v] of Object.entries(params.content)) {
         params[`content.${k}`] = v;
       }
       delete params.content;
