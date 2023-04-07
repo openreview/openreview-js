@@ -147,22 +147,6 @@ class OpenReviewClient {
   };
 
   /**
-   * Splits an array into chunks of a given size.
-   * 
-   * @private
-   * @param {Array} arr - Array to split.
-   * @param {number} size - Size of the chunks.
-   * @returns {Array} Array of chunks.
-   */
-  _splitArray(arr, size) {
-    const result = [];
-    for (let i = 0; i < arr.length; i += size) {
-      result.push(arr.slice(i, i + size));
-    }
-    return result;
-  };
-
-  /**
    * Checks if a value is null or undefined.
    * 
    * @private
@@ -352,7 +336,7 @@ class OpenReviewClient {
 
     if (emails) {
       const fullResponse = { profiles: [], count: 0 };
-      const batches = this._splitArray(emails, this.RESPONSE_SIZE);
+      const batches = this.tools.splitArray(emails, this.RESPONSE_SIZE);
       let data;
       for (let emailBatch of batches) {
         data = await this._handleResponse(fetch(this.profilesSearchUrl, {
@@ -373,7 +357,7 @@ class OpenReviewClient {
 
     if (confirmedEmails) {
       const fullResponse = { profiles: [], count: 0 };
-      const batches = this._splitArray(confirmedEmails, this.RESPONSE_SIZE);
+      const batches = this.tools.splitArray(confirmedEmails, this.RESPONSE_SIZE);
       let data;
       for (let emailBatch of batches) {
         data = await this._handleResponse(fetch(this.profilesSearchUrl, {
@@ -394,7 +378,7 @@ class OpenReviewClient {
 
     if (ids) {
       const fullResponse = { profiles: [], count: 0 };
-      const batches = this._splitArray(ids, this.RESPONSE_SIZE);
+      const batches = this.tools.splitArray(ids, this.RESPONSE_SIZE);
       let data;
       for (let batch of batches) {
         data = await this._handleResponse(fetch(this.profilesSearchUrl, {

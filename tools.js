@@ -6,6 +6,22 @@ class Tools {
   }
 
   /**
+   * Splits an array into chunks of a given size.
+   *
+   * @private
+   * @param {Array} arr - Array to split.
+   * @param {number} size - Size of the chunks.
+   * @returns {Array} Array of chunks.
+   */
+  splitArray(arr, size) {
+    const result = [];
+    for (let i = 0; i < arr.length; i += size) {
+      result.push(arr.slice(i, i + size));
+    }
+    return result;
+  };
+
+  /**
    * Returns the venue for a submission based on its decision
    *
    * @param {string} venueId - venue's short name (i.e., ICLR 2022)
