@@ -80,7 +80,7 @@ jobs:
         run: |
           cd openreview-api
           npm run cleanStartJS &
-      - name: Run TestCafe Tests
+      - name: Run Tests
         run: |
           cd openreview-js
           npm run test
