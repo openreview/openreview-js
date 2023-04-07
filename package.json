@@ -1,10 +1,10 @@
 {
   "name": "@openreview/client",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "Node.js client library for OpenReview's academic publishing API",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "npm install && mocha"
   },
   "repository": {
     "type": "git",
