@@ -1,4 +1,4 @@
-name: OpenReview-js CI
+name: OpenReview-js Tests
 
 on:
   pull_request:
