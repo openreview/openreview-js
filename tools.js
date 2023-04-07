@@ -19,11 +19,11 @@ class Tools {
       result.push(arr.slice(i, i + size));
     }
     return result;
-  };
+  }
 
   /**
    * Returns V1 API URL from V2 API URL.
-   * 
+   *
    * @param {string} url - V2 API URL.
    * @returns {string} V1 API URL.
    */
@@ -66,7 +66,7 @@ class Tools {
 
   /**
    * Accepts an OpenReview profile object and retrieves the user's preferred name or the first listed name.
-   * 
+   *
    * @param {object} profile - The OpenReview profile object.
    * @param {boolean} [lastNameOnly=false] - A boolean indicating whether to return only the last name or the full name.
    * @returns {string} - The user's preferred name or the first listed name.
@@ -92,7 +92,7 @@ class Tools {
    * Gets all the results for a given get function like getNotes, getGroups, etc.
    * This is a helper function that is used to get all the results for a given query.
    * It's already implemented in the client in functions like getAllNotes, getAllGroups, etc.
-   * 
+   *
    * @async
    * @param {function} func - The function to call to get the results. It should be a function that returns a promise.
    * @param {object} params - The parameters to pass to the function.
@@ -135,7 +135,8 @@ class Tools {
     const result = {
       [docType]: [],
       count
-    }
+    };
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const { value } = await g.next();
       if (value) {
@@ -235,16 +236,16 @@ class Tools {
     }
 
     if (asDict) {
-      const profilesAsDict = {}
+      const profilesAsDict = {};
       for (const id of ids) {
-        profilesAsDict[id] = profileByIdOrEmail[id]
+        profilesAsDict[id] = profileByIdOrEmail[id];
       }
 
       for (const email of emails) {
-        profilesAsDict[email] = profileByIdOrEmail[email]
+        profilesAsDict[email] = profileByIdOrEmail[email];
       }
 
-      return profilesAsDict
+      return profilesAsDict;
     }
 
     return Object.values(profileById);

@@ -574,6 +574,7 @@ describe('OpenReview Client', function () {
 
   it('should throw errors when setting throwErrors to true', async function () {
     this.superClient.throwErrors = true;
+    let res;
 
     try {
       res = await this.superClient.getGroups({
