@@ -3,6 +3,7 @@
 const fetch = require('node-fetch');
 const fs = require('fs');
 const { FormData } = require('formdata-node');
+// eslint-disable-next-line import/no-unresolved
 const { fileFromPath } = require('formdata-node/file-from-path');
 const { Readable } = require('stream');
 const { FormDataEncoder } = require('form-data-encoder');
@@ -53,7 +54,7 @@ class OpenReviewClient {
 
   /**
    * Handles the token returned by the OpenReview API.
-   * 
+   *
    * @private
    * @param {object} response - Response object returned by the OpenReview API.
    * @param {string} response.token - Authentication token.
@@ -62,13 +63,13 @@ class OpenReviewClient {
   _handleToken(response) {
     if (response.token) {
       this.token = response.token;
-      this.headers['Authorization'] = `Bearer ${this.token}`;
+      this.headers.Authorization = `Bearer ${this.token}`;
     }
   }
 
   /**
    * Handles the response returned by the OpenReview API.
-   * 
+   *
    * @private
    * @param {Promise} fetchPromise - Promise returned by the fetch function.
    * @param {object} onErrorData - Data to return in case of error.
@@ -144,11 +145,11 @@ class OpenReviewClient {
       preferredId: prefName ? prefName.username : profile.id,
       state: profile.state,
     };
-  };
+  }
 
   /**
    * Checks if a value is null or undefined.
-   * 
+   *
    * @private
    * @param {any} value - Value to check.
    * @returns {boolean} True if the value is null or undefined, false otherwise.
@@ -159,7 +160,7 @@ class OpenReviewClient {
 
   /**
    * Removes null and undefined values from an object.
-   * 
+   *
    * @private
    * @param {object} params - Object to sanitize.
    * @returns {object} Sanitized object.
@@ -176,7 +177,7 @@ class OpenReviewClient {
 
   /**
    * Generates a query string from an object.
-   * 
+   *
    * @private
    * @param {object} params - Object to convert to a query string.
    * @returns {string} Query string.
@@ -188,7 +189,7 @@ class OpenReviewClient {
 
   /**
    * Logs in a user.
-   * 
+   *
    * @async
    * @param {string} username - Username or email of the user.
    * @param {string} password - Password of the user.
@@ -214,7 +215,7 @@ class OpenReviewClient {
 
   /**
    * Resets the password of a user.
-   * 
+   *
    * @async
    * @param {string} token - Token used to reset the password.
    * @param {string} password - New password.
@@ -233,7 +234,7 @@ class OpenReviewClient {
 
   /**
    * Registers a new user.
-   * 
+   *
    * @async
    * @param {string} email - Email that will be used as ID to log in after the user is registered.
    * @param {string} first - First name of the user.
@@ -248,24 +249,24 @@ class OpenReviewClient {
       name: { first, last, middle },
       password
     };
-    
+
     const data = await this._handleResponse(fetch(this.registerUrl, {
-      method: 'POST',                 
-      headers: this.headers,               
-      body: JSON.stringify(registerPayload)  
+      method: 'POST',
+      headers: this.headers,
+      body: JSON.stringify(registerPayload)
     }), { user: {} }, 'user');
-    
+
     return data;
   }
 
   /**
    * Activates a newly registered user.
-   * 
+   *
    * @async
    * @param {string} token - Activation token. If running in localhost, use email as token.
    * @param {object} content - Content of the profile to activate.
    * @returns {Promise<object>} Dictionary containing user information and the authentication token.
-   * 
+   *
    * @example
    * const res = await activateUser('new@user.com', {
    *   names: [
@@ -281,20 +282,20 @@ class OpenReviewClient {
    */
   async activateUser(token, content) {
     const url = `${this.baseurl}/activate/${token}`;
-    
+
     const data = await this._handleResponse(fetch(url, {
-      method: 'PUT',                  
-      headers: this.headers,               
-      body: JSON.stringify({ content })  
+      method: 'PUT',
+      headers: this.headers,
+      body: JSON.stringify({ content })
     }), { user: {}, token: '' });
-    
+
     this._handleToken(data);
     return data;
   }
 
   /**
    * Gets the user profile of the currently logged in user.
-   * 
+   *
    * @async
    * @param {string} token - Authentication token.
    * @returns {Promise<object>} Dictionary containing user information and the authentication token.
@@ -306,14 +307,14 @@ class OpenReviewClient {
       method: 'GET',
       headers: this.headers
     }), { user: {}, token: '' });
-    
+
     this._handleToken(data);
     return data;
   }
 
   /**
    * Searches profiles based on the given parameters.
-   * 
+   *
    * @async
    * @param {string[]} confirmedEmails - List of profile confirmed emails.
    * @param {string[]} emails - List of profile emails.
@@ -444,7 +445,7 @@ class OpenReviewClient {
 
   /**
    * Gets a file from a Note or a Note Edit
-   * 
+   *
    * @async
    * @param {object} params - An object containing the filters to apply.
    * @param {string} [params.noteId] - ID of the Note.
@@ -452,7 +453,7 @@ class OpenReviewClient {
    * @param {string} [params.fieldName] - Name of the field that contains the file.
    * @param {string} destination - Path to the destination file.
    * @returns {Promise<string>} Path to the destination file.
-   * 
+   *
    * @example
    * const fileBuffer = await client.getAttachment({
    *  noteId: 'OpenReview.net/2023/Conference/-/Blind_Submission',
@@ -481,7 +482,7 @@ class OpenReviewClient {
     await pipeline(response.body, fs.createWriteStream(destination));
     return destination;
   }
-  
+
   /**
    * Uploads a file
    *
@@ -506,7 +507,7 @@ class OpenReviewClient {
 
     return data;
   }
-  
+
   /**
    * Updates a Profile
    *
@@ -537,13 +538,13 @@ class OpenReviewClient {
       headers: this.headers,
       body: JSON.stringify({ to: profileTo, from: profileFrom }),
     }), { profile: {} }, 'profile');
-    
+
     return data;
   }
 
   /**
    * Moderates a Profile
-   * 
+   *
    * @async
    * @param {string} profileId - ID of the Profile
    * @param {string} decision - Decision to take on the Profile
@@ -588,7 +589,7 @@ class OpenReviewClient {
 
   /**
    * Gets a list of Group objects based on the filters provided. The Groups that will be returned match all the criteria passed in the parameters.
-   * 
+   *
    * @async
    * @param {object} params - An object containing the filters to apply.
    * @param {string} [params.id] - id of the Group
@@ -734,7 +735,7 @@ class OpenReviewClient {
       delete params.content;
     }
     const queryString = this._generateQueryString(params);
-  
+
     const data = await this._handleResponse(fetch(`${this.notesUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers,
@@ -742,7 +743,7 @@ class OpenReviewClient {
 
     return data;
   }
-  
+
   /**
    * Gets list of Note objects based on the filters provided. The Notes that will be returned match all the criteria passed in the parameters.
    *
@@ -1084,7 +1085,7 @@ class OpenReviewClient {
    * @param {string} [params.replyTo] - e-mail address used when recipients reply to this message
    * @param {string} [params.parentGroup] - parent group recipients of e-mail belong to
    * @param {string} [params.useJob] - If true, the message will be sent in the background and the response will contain a jobId
-   * 
+   *
    * @returns {Promise<object>} - Contains the message that was sent to each Group
    */
   async postMessage(params) {
@@ -1101,7 +1102,7 @@ class OpenReviewClient {
 
   /**
    * Adds members to a group
-   * 
+   *
    * @async
    * @param {string} groupId - Group ID to which the members will be added
    * @param {string[]} members - Members that will be added to the group.
@@ -1145,7 +1146,7 @@ class OpenReviewClient {
           members: uniqueMembers
         })
       }), { group: {} }, 'group');
-      
+
       return data;
     }
   }
@@ -1221,7 +1222,7 @@ class OpenReviewClient {
     }
 
     const queryString = this._generateQueryString(params);
-  
+
     const data = await this._handleResponse(fetch(`${this.notesUrl}/search?${queryString}`, {
       method: 'GET',
       headers: this.headers
@@ -1229,10 +1230,10 @@ class OpenReviewClient {
 
     return data;
   }
-  
+
   /**
    * Gets next possible tilde user name corresponding to the specified first, middle and last name
-   * 
+   *
    * @async
    * @param {string} first - First name of the user
    * @param {string} last - Last name of the user
@@ -1270,7 +1271,7 @@ class OpenReviewClient {
 
     return data;
   }
-  
+
   /**
    * Retrieves the logs of the process function executed by an Invitation.
    *
@@ -1383,7 +1384,7 @@ class OpenReviewClient {
     if (expertiseSelectionId) {
       entityA.expertise = { invitation: expertiseSelectionId };
     }
-  
+
     // Build entityB from alternateMatchGroup
     let entityB;
     if (alternateMatchGroup) {
@@ -1400,14 +1401,14 @@ class OpenReviewClient {
         withVenueid: venueId
       };
     }
-  
+
     const body = {
       name,
       entityA,
       entityB,
       model: { name: model }
     };
-  
+
     const data = await this._handleResponse(fetch(this.expertiseUrl, {
       method: 'POST',
       headers: this.headers,
@@ -1416,7 +1417,7 @@ class OpenReviewClient {
 
     return data;
   }
-  
+
   /**
    * Sends a request to get expertise information for a single paper.
    *
@@ -1490,7 +1491,9 @@ class OpenReviewClient {
       let statusResponse = await this.getExpertiseStatus(jobId, this.baseUrl);
       let status = statusResponse.status;
       while (status !== 'Completed' && status !== 'Error' && callCount < callMax) {
-        await new Promise((resolve) => setTimeout(resolve, 60000));
+        await new Promise((resolve) => {
+          setTimeout(resolve, 60000);
+        });
         statusResponse = await this.getExpertiseStatus(jobId, this.baseUrl);
         status = statusResponse.status;
         callCount++;
@@ -1517,6 +1520,6 @@ class OpenReviewClient {
     }
   }
 
-};
+}
 
-module.exports = { OpenReviewClient }
+module.exports = { OpenReviewClient };
