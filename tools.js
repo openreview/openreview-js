@@ -45,7 +45,7 @@ class Tools {
 
   /**
    * Takes an Invitation or Group ID and returns a pretty version of it.
-   * 
+   *
    * @param {string} id - Invitation or Group ID.
    * @param {boolean} onlyLast - If true, only the last part of the ID will be returned.
    * @returns {string} Pretty version of the ID.
@@ -91,9 +91,9 @@ class Tools {
         .replace(/_/g, ' '); // replace undescores with spaces
 
       // if the letters in the token are all lowercase, replace it with empty string
-      const lettersOnly = token.replace(/\d|\W/g, '')
+      const lettersOnly = token.replace(/\d|\W/g, '');
       if (lettersOnly && lettersOnly === lettersOnly.toLowerCase()) {
-        token = ''
+        token = '';
       }
 
       return token;
