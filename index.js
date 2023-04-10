@@ -45,6 +45,7 @@ class OpenReviewClient {
     this.messagesDirectUrl = `${this.baseUrl}/messages/direct`;
     this.tildeusernameUrl = `${this.baseUrl}/tildeusername`;
     this.processLogsUrl = `${this.baseUrl}/logs/process`;
+    this.duplicateDomainsUrl = `${this.baseUrl}/settings/duplicateDomains`;
     this.expertiseUrl = `${this.baseUrl}/expertise`;
     this.expertiseStatusUrl = `${this.baseUrl}/expertise/status`;
     this.expertiseResultsUrl = `${this.baseUrl}/expertise/results`;
@@ -1287,6 +1288,31 @@ class OpenReviewClient {
       method: 'GET',
       headers: this.headers
     }), { logs: [], count: 0 });
+
+    return data;
+  }
+
+  /**
+   * Maps domains that belong to the same institution to the same domain.
+   *
+   * @async
+   * @returns {Promise<object>} - Object containing the domains that were mapped
+   * @example
+   * {
+   *  "duplicates": {
+   *   "gmail.com": "gmail.com",
+   *   "googlemail.com": "gmail.com",
+   *   "hotmail.com": "hotmail.com",
+   *   "live.com": "hotmail.com",
+   *   ...
+   *  }
+   * }
+   */
+  async getDuplicateDomains() {
+    const data = await this._handleResponse(fetch(this.duplicateDomainsUrl, {
+      method: 'GET',
+      headers: this.headers
+    }), { duplicates: {} });
 
     return data;
   }
