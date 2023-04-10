@@ -1,8 +1,108 @@
 'use strict';
 
+const dns = require('dns');
+const { OpenReviewError } = require('./errors');
+
 class Tools {
   constructor(client) {
     this.client = client;
+    this.commonDomains = [
+      'gmail.com',
+      'qq.com',
+      '126.com',
+      '163.com',
+      'outlook.com',
+      'hotmail.com',
+      'yahoo.com',
+      'foxmail.com',
+      'aol.com',
+      'msn.com',
+      'ymail.com',
+      'googlemail.com',
+      'live.com'
+    ];
+    this.validatedSubdomains = {};
+  }
+
+  /**
+   * Checks if subdomain is valid
+   *
+   * @private
+   * @async
+   * @param {string} subdomain - subdomain to check
+   * @returns {boolean} true if subdomain is valid, false otherwise
+   */
+  async _isValidSubdomain(subdomain) {
+    if (this.validatedSubdomains[subdomain] === true) {
+      return true;
+    } else if (this.validatedSubdomains[subdomain] === false) {
+      return false;
+    }
+    return new Promise((resolve, reject) => {
+      dns.lookup(subdomain, (err, address, family) => {
+        if (err && err.code === 'ENOTFOUND') {
+          // Subdomain not found
+          this.validatedSubdomains[subdomain] = false;
+          resolve(false);
+        } else if (err) {
+          // Other error
+          reject(err);
+        } else {
+          // Subdomain found
+          this.validatedSubdomains[subdomain] = true;
+          resolve(true);
+        }
+      });
+    });
+  }
+
+  /**
+   * Given an email address, returns a list with the domains and subdomains.
+   *
+   * @private
+   * @async
+   * @param {string} domain - e-mail address or domain of the e-mail address
+   *
+   * @return {string[]} List of domains and subdomains
+   *
+   * @example
+   *
+   * subdomains('johnsmith@iesl.cs.umass.edu')
+   * // returns ['iesl.cs.umass.edu', 'cs.umass.edu', 'umass.edu']
+   */
+  async _getSubdomains(domain) {
+    if (!this.duplicateDomains) {
+      const { duplicates } = await this.client.getDuplicateDomains();
+      this.duplicateDomains = duplicates;
+    }
+    let fullDomain;
+    if (domain.includes('@')) {
+      fullDomain = domain.split('@')[1];
+    } else {
+      fullDomain = domain;
+    }
+    // Separate domains like cs.umass.edu to ['cs', 'umass', 'edu']
+    const domainComponents = fullDomain.split('.').filter((domainPart) => domainPart && !domainPart.includes(' '));
+    // Create all possible subdomains from the domain components.
+    // For example, ['cs', 'umass', 'edu'] -> ['cs.umass.edu', 'umass.edu', 'edu']
+    const domains = domainComponents.map((_, index) => domainComponents.slice(index).join('.'));
+    const validDomains = new Set();
+    // for (const domain of domains) {
+    //   if (await this._isValidSubdomain(domain)) {
+    //     validDomains.add(this.duplicateDomains[domain] || domain);
+    //   }
+    // }
+    // await Promise.all(domains.map(async domain => {
+    //   if (await this._isValidSubdomain(domain)) {
+    //     validDomains.add(this.duplicateDomains[domain] || domain);
+    //   }
+    // }));
+    for (const domain of domains) {
+      if (domain.includes('.')) {
+        validDomains.add(this.duplicateDomains[domain] || domain);
+      }
+    }
+    return Array.from(validDomains);
   }
 
   /**
@@ -313,6 +413,309 @@ class Tools {
     }
 
     return Object.values(profileById);
+  }
+
+  /**
+   * Gets the conflicts of a profile with a list of author profiles.
+   *
+   * @async
+   * @param {object[]} authorProfiles - An array of author profiles.
+   * @param {object} userProfile - The profile of the user.
+   * @param {string} [policy='default'] - The conflict policy. It can be 'default' or 'neurips'.
+   * @param {number} [nYears=5] - The number of years to consider for the conflict policy.
+   * @returns {Promise<array>} - An array with the conflicts.
+   */
+  async getConflicts(authorProfiles, userProfile, policy, nYears) {
+    policy ??= 'default';
+    let infoFunction;
+    if (policy === 'neurips') {
+      nYears ??= 3;
+      infoFunction = this.getNeuripsProfileInfo.bind(this);
+    } else {
+      nYears ??= 5;
+      infoFunction = this.getProfileInfo.bind(this);
+    }
+
+    const authorDomains = new Set();
+    const authorEmails = new Set();
+    const authorRelations = new Set();
+    const authorPublications = new Set();
+    const concurrency = 10;
+
+    const authorsInfo = [];
+    let tempAuthorsInfo = [];
+    for (const profile of authorProfiles) {
+      tempAuthorsInfo.push(infoFunction(profile, nYears));
+      if (tempAuthorsInfo.length === concurrency) {
+        authorsInfo.push(...await Promise.all(tempAuthorsInfo));
+        tempAuthorsInfo = [];
+      }
+    }
+    if (tempAuthorsInfo.length > 0) {
+      authorsInfo.push(...await Promise.all(tempAuthorsInfo));
+    }
+
+    for (const authorInfo of authorsInfo) {
+      for (const authorDomain of authorInfo.domains) {
+        authorDomains.add(authorDomain);
+      }
+      for (const authorEmail of authorInfo.emails) {
+        authorEmails.add(authorEmail);
+      }
+      for (const authorRelation of authorInfo.relations) {
+        authorRelations.add(authorRelation);
+      }
+      for (const authorPublication of authorInfo.publications) {
+        authorPublications.add(authorPublication);
+      }
+    }
+
+    const userInfo = await infoFunction(userProfile, nYears);
+
+    const conflicts = new Set();
+
+    for (const domain of userInfo.domains) {
+      if (authorDomains.has(domain)) {
+        conflicts.add(domain);
+      }
+    }
+
+    for (const email of userInfo.emails) {
+      if (authorRelations.has(email)) {
+        conflicts.add(email);
+      }
+      if (authorEmails.has(email)) {
+        conflicts.add(email);
+      }
+    }
+
+    for (const relation of userInfo.relations) {
+      if (authorEmails.has(relation)) {
+        conflicts.add(relation);
+      }
+    }
+
+    for (const publication of userInfo.publications) {
+      if (authorPublications.has(publication)) {
+        conflicts.add(publication);
+      }
+    }
+
+    return Array.from(conflicts);
+  }
+
+  /**
+   * Get the profile information for a given profile that includes the domains, emails, relations and publications.
+   *
+   * @param {object} profile - The profile object.
+   * @param {number} nYears - The number of years to consider for the profile.
+   * @returns {object} The profile information.
+   * @throws {OpenReviewError} If the profile has obfuscated emails.
+   */
+  async getProfileInfo(profile, nYears) {
+    let domains = new Set();
+    let emails = new Set();
+    let publications = new Set();
+
+    if (profile.content?.emails?.[0]?.startsWith('****@')) {
+      throw new OpenReviewError({
+        message: 'You do not have the required permissions as some emails are obfuscated. Please login with the correct account or contact support.'
+      });
+    }
+
+    // Emails section
+    // for (const email of (profile.content?.emails || [])) {
+    //   const subdomains = await this._getSubdomains(email);
+    //   for (const subdomain of subdomains) {
+    //     domains.add(subdomain);
+    //   }
+    //   emails.add(email);
+    // }
+
+    // Emails section
+    await Promise.all((profile.content?.emails || []).map(async email => {
+      const subdomains = await this._getSubdomains(email);
+      for (const subdomain of subdomains) {
+        domains.add(subdomain);
+      }
+      emails.add(email);
+    }));
+
+    // Institution section
+    // for (const history of (profile.content?.history || [])) {
+    //   const domain = history?.institution?.domain;
+    //   if (domain) {
+    //     const subdomains = await this._getSubdomains(domain);
+    //     for (const subdomain of subdomains) {
+    //       domains.add(subdomain);
+    //     }
+    //   }
+    // }
+
+    // Institution section
+    await Promise.all((profile.content?.history || []).map(async history => {
+      const domain = history?.institution?.domain;
+      if (domain) {
+        const subdomains = await this._getSubdomains(domain);
+        for (const subdomain of subdomains) {
+          domains.add(subdomain);
+        }
+      }
+    }));
+
+    // Relations section
+    const relations = new Set((profile.content?.relations || []).map(relation => relation.email));
+
+    // Publications section: get publications within last n years, default is all publications from previous years
+    if (nYears) {
+      const cutoffDate = new Date();
+      cutoffDate.setFullYear(cutoffDate.getFullYear() - nYears);
+      for (const publication of (profile.content?.publications || [])) {
+        const publicationDate = publication?.pdate || publication?.cdate || publication?.tcdate || 0;
+        if (new Date(publicationDate).getFullYear() > cutoffDate.getFullYear()) {
+          publications.add(publication.id);
+        }
+      }
+    } else {
+      for (const publication of (profile.content?.publications || [])) {
+        publications.add(publication.id);
+      }
+    }
+
+    // Filter common domains
+    for (let commonDomain of this.commonDomains) {
+      domains.delete(commonDomain);
+    }
+
+    return {
+      id: profile.id,
+      domains,
+      emails,
+      relations,
+      publications
+    };
+  }
+
+  /**
+   * Get the profile information for a given profile using NeurIPS restrictions that includes the domains, emails, relations and publications.
+   *
+   * @param {object} profile - The profile object.
+   * @param {number} nYears - The number of years to consider for the profile.
+   * @returns {object} The profile information.
+   * @throws {OpenReviewError} If the profile has obfuscated emails.
+   */
+  async getNeuripsProfileInfo(profile, nYears=3) {
+    const domains = new Set();
+    const emails = new Set();
+    const relations = new Set();
+    const publications = new Set();
+    const currentYear = new Date().getFullYear();
+    const cutoffDate = new Date();
+    cutoffDate.setFullYear(cutoffDate.getFullYear() - nYears);
+    const cutOffYear = cutoffDate.getFullYear();
+
+    if (profile.content?.emails?.[0]?.startsWith('****@')) {
+      throw new OpenReviewError({
+        message: 'You do not have the required permissions as some emails are obfuscated. Please login with the correct account or contact support.'
+      });
+    }
+
+    // Institution section, get history within the last n years, excluding internships
+    // for (const history of (profile.content.history || [])) {
+    //   const position = history.position;
+    //   if (!position || (typeof position === 'string' && !position.toLowerCase().includes('intern'))) {
+    //     const end = parseInt(history.end || 0, 10);
+    //     if (!end || end > cutOffYear) {
+    //       const domain = history.institution?.domain || '';
+    //       const subdomains = await this._getSubdomains(domain);
+    //       for (const subdomain of subdomains) {
+    //         domains.add(subdomain);
+    //       }
+    //     }
+    //   }
+    // }
+
+    // Institution section, get history within the last n years, excluding internships
+    await Promise.all((profile.content?.history || []).map(async history => {
+      const position = history.position;
+      if (!position || (typeof position === 'string' && !position.toLowerCase().includes('intern'))) {
+        const end = parseInt(history.end || 0, 10);
+        if (!end || end > cutOffYear) {
+          const domain = history.institution?.domain || '';
+          const subdomains = await this._getSubdomains(domain);
+          for (const subdomain of subdomains) {
+            domains.add(subdomain);
+          }
+        }
+      }
+    }));
+
+    // Relations section, get coauthor/coworker relations within the last n years + all the other relations
+    for (const relObj of profile.content?.relations || []) {
+      const relation = (relObj.relation || '').toLowerCase();
+      const relationEnd = parseInt(relObj.end || 0, 10);
+      const relationEmail = relObj.email;
+      if (relation === 'coauthor' || relation === 'coworker') {
+        if (relationEnd > cutOffYear) {
+          relations.add(relationEmail);
+        }
+      } else {
+        relations.add(relationEmail);
+      }
+    }
+
+    // Emails section
+    // if institution section is empty, add email domains
+    if (domains.size === 0) {
+      // for (const email of (profile.content?.emails || [])) {
+      //   const subdomains = await this._getSubdomains(email);
+      //   for (const subdomain of subdomains) {
+      //     domains.add(subdomain);
+      //   }
+      //   emails.add(email);
+      // }
+      await Promise.all((profile.content?.emails || []).map(async email => {
+        const subdomains = await this._getSubdomains(email);
+        for (const subdomain of subdomains) {
+          domains.add(subdomain);
+        }
+        emails.add(email);
+      }));
+    } else {
+      for (const email of (profile.content?.emails || [])) {
+        emails.add(email);
+      }
+    }
+
+    // Publications section: get publications within last n years
+    for (const publication of (profile.content?.publications || [])) {
+      let year;
+      if (publication.content?.year) {
+        const convertedYear = parseInt(publication.content.year, 10);
+        if (convertedYear <= currentYear) {
+          year = convertedYear;
+        }
+      } else {
+        const timestamp = publication.pdate || publication.cdate || publication.tcdate;
+        year = new Date(timestamp).getFullYear();
+      }
+      if (year > cutOffYear) {
+        publications.add(publication.id);
+      }
+    }
+
+    // Filter common domains
+    for (const commonDomain of this.commonDomains) {
+      domains.delete(commonDomain);
+    }
+
+    return {
+      id: profile.id,
+      domains,
+      emails,
+      relations,
+      publications
+    };
   }
 
 }
