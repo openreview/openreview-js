@@ -87,18 +87,8 @@ class Tools {
     // For example, ['cs', 'umass', 'edu'] -> ['cs.umass.edu', 'umass.edu', 'edu']
     const domains = domainComponents.map((_, index) => domainComponents.slice(index).join('.'));
     const validDomains = new Set();
-    // for (const domain of domains) {
-    //   if (await this._isValidSubdomain(domain)) {
-    //     validDomains.add(this.duplicateDomains[domain] || domain);
-    //   }
-    // }
-    // await Promise.all(domains.map(async domain => {
-    //   if (await this._isValidSubdomain(domain)) {
-    //     validDomains.add(this.duplicateDomains[domain] || domain);
-    //   }
-    // }));
     for (const domain of domains) {
-      if (domain.includes('.')) {
+      if (!this._isTLD(domain)) {
         validDomains.add(this.duplicateDomains[domain] || domain);
       }
     }
@@ -524,15 +514,6 @@ class Tools {
     }
 
     // Emails section
-    // for (const email of (profile.content?.emails || [])) {
-    //   const subdomains = await this._getSubdomains(email);
-    //   for (const subdomain of subdomains) {
-    //     domains.add(subdomain);
-    //   }
-    //   emails.add(email);
-    // }
-
-    // Emails section
     await Promise.all((profile.content?.emails || []).map(async email => {
       const subdomains = await this._getSubdomains(email);
       for (const subdomain of subdomains) {
@@ -540,17 +521,6 @@ class Tools {
       }
       emails.add(email);
     }));
-
-    // Institution section
-    // for (const history of (profile.content?.history || [])) {
-    //   const domain = history?.institution?.domain;
-    //   if (domain) {
-    //     const subdomains = await this._getSubdomains(domain);
-    //     for (const subdomain of subdomains) {
-    //       domains.add(subdomain);
-    //     }
-    //   }
-    // }
 
     // Institution section
     await Promise.all((profile.content?.history || []).map(async history => {
@@ -621,21 +591,6 @@ class Tools {
     }
 
     // Institution section, get history within the last n years, excluding internships
-    // for (const history of (profile.content.history || [])) {
-    //   const position = history.position;
-    //   if (!position || (typeof position === 'string' && !position.toLowerCase().includes('intern'))) {
-    //     const end = parseInt(history.end || 0, 10);
-    //     if (!end || end > cutOffYear) {
-    //       const domain = history.institution?.domain || '';
-    //       const subdomains = await this._getSubdomains(domain);
-    //       for (const subdomain of subdomains) {
-    //         domains.add(subdomain);
-    //       }
-    //     }
-    //   }
-    // }
-
-    // Institution section, get history within the last n years, excluding internships
     await Promise.all((profile.content?.history || []).map(async history => {
       const position = history.position;
       if (!position || (typeof position === 'string' && !position.toLowerCase().includes('intern'))) {
@@ -667,13 +622,6 @@ class Tools {
     // Emails section
     // if institution section is empty, add email domains
     if (domains.size === 0) {
-      // for (const email of (profile.content?.emails || [])) {
-      //   const subdomains = await this._getSubdomains(email);
-      //   for (const subdomain of subdomains) {
-      //     domains.add(subdomain);
-      //   }
-      //   emails.add(email);
-      // }
       await Promise.all((profile.content?.emails || []).map(async email => {
         const subdomains = await this._getSubdomains(email);
         for (const subdomain of subdomains) {
