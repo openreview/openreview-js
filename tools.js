@@ -1,6 +1,6 @@
 'use strict';
 
-const dns = require('dns');
+const { isValid, getDomain } = require('tldjs');
 const { OpenReviewError } = require('./errors');
 
 class Tools {
@@ -25,35 +25,14 @@ class Tools {
   }
 
   /**
-   * Checks if subdomain is valid
+   * Checks if domain is a TLD
    *
    * @private
-   * @async
-   * @param {string} subdomain - subdomain to check
-   * @returns {boolean} true if subdomain is valid, false otherwise
+   * @param {string} domain - domain to check
+   * @returns {boolean} true if domain is a TLD, false otherwise
    */
-  async _isValidSubdomain(subdomain) {
-    if (this.validatedSubdomains[subdomain] === true) {
-      return true;
-    } else if (this.validatedSubdomains[subdomain] === false) {
-      return false;
-    }
-    return new Promise((resolve, reject) => {
-      dns.lookup(subdomain, (err, address, family) => {
-        if (err && err.code === 'ENOTFOUND') {
-          // Subdomain not found
-          this.validatedSubdomains[subdomain] = false;
-          resolve(false);
-        } else if (err) {
-          // Other error
-          reject(err);
-        } else {
-          // Subdomain found
-          this.validatedSubdomains[subdomain] = true;
-          resolve(true);
-        }
-      });
-    });
+  _isTLD(domain) {
+    return isValid(domain) && !getDomain(domain);
   }
 
   /**
@@ -67,8 +46,8 @@ class Tools {
    *
    * @example
    *
-   * subdomains('johnsmith@iesl.cs.umass.edu')
-   * // returns ['iesl.cs.umass.edu', 'cs.umass.edu', 'umass.edu']
+   * _getSubdomains('johnsmith@iesl.cs.umass.edu')
+   *    returns ['iesl.cs.umass.edu', 'cs.umass.edu', 'umass.edu']
    */
   async _getSubdomains(domain) {
     if (!this.duplicateDomains) {
