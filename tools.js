@@ -501,7 +501,7 @@ class Tools {
       emails.add(email);
     }));
 
-    let cutOffYear = 0;
+    let cutOffYear = -1;
     if (nYears) {
       const cutoffDate = new Date();
       cutoffDate.setFullYear(cutoffDate.getFullYear() - nYears);
