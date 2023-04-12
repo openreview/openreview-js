@@ -625,7 +625,7 @@ class Tools {
 
     // Publications section: get publications within last n years
     for (const publication of (profile.content?.publications || [])) {
-      let year;
+      let year = -1;
       if (publication.content?.year) {
         const convertedYear = parseInt(publication.content.year, 10);
         if (convertedYear <= currentYear) {
