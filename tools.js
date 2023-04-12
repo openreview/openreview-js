@@ -391,17 +391,15 @@ class Tools {
    * @param {object[]} authorProfiles - An array of author profiles.
    * @param {object} userProfile - The profile of the user.
    * @param {string} [policy='default'] - The conflict policy. It can be 'default' or 'neurips'.
-   * @param {number} [nYears=5] - The number of years to consider for the conflict policy.
+   * @param {number} [nYears] - The number of years to consider for the conflict policy.
    * @returns {Promise<array>} - An array with the conflicts.
    */
   async getConflicts(authorProfiles, userProfile, policy, nYears) {
     policy ??= 'default';
     let infoFunction;
     if (policy === 'neurips') {
-      nYears ??= 3;
       infoFunction = this.getNeuripsProfileInfo.bind(this);
     } else {
-      nYears ??= 5;
       infoFunction = this.getProfileInfo.bind(this);
     }
 
