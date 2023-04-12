@@ -568,15 +568,19 @@ class Tools {
    * @returns {object} The profile information.
    * @throws {OpenReviewError} If the profile has obfuscated emails.
    */
-  async getNeuripsProfileInfo(profile, nYears=3) {
+  async getNeuripsProfileInfo(profile, nYears) {
     const domains = new Set();
     const emails = new Set();
     const relations = new Set();
     const publications = new Set();
     const currentYear = new Date().getFullYear();
-    const cutoffDate = new Date();
-    cutoffDate.setFullYear(cutoffDate.getFullYear() - nYears);
-    const cutOffYear = cutoffDate.getFullYear();
+
+    let cutOffYear = -1;
+    if (nYears) {
+      const cutoffDate = new Date();
+      cutoffDate.setFullYear(cutoffDate.getFullYear() - nYears);
+      cutOffYear = cutoffDate.getFullYear();
+    }
 
     if (profile.content?.emails?.[0]?.startsWith('****@')) {
       throw new OpenReviewError({
