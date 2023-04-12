@@ -529,17 +529,9 @@ class Tools {
     }
 
     // Publications section: get publications within last n years, default is all publications from previous years
-    if (nYears) {
-      const cutoffDate = new Date();
-      cutoffDate.setFullYear(cutoffDate.getFullYear() - nYears);
-      for (const publication of (profile.content?.publications || [])) {
-        const publicationDate = publication?.pdate || publication?.cdate || publication?.tcdate || 0;
-        if (new Date(publicationDate).getFullYear() > cutoffDate.getFullYear()) {
-          publications.add(publication.id);
-        }
-      }
-    } else {
-      for (const publication of (profile.content?.publications || [])) {
+    for (const publication of (profile.content?.publications || [])) {
+      const publicationDate = publication?.pdate || publication?.cdate || publication?.tcdate || 0;
+      if (new Date(publicationDate).getFullYear() > cutOffYear) {
         publications.add(publication.id);
       }
     }
