@@ -501,10 +501,18 @@ class Tools {
       emails.add(email);
     }));
 
+    let cutOffYear = 0;
+    if (nYears) {
+      const cutoffDate = new Date();
+      cutoffDate.setFullYear(cutoffDate.getFullYear() - nYears);
+      cutOffYear = cutoffDate.getFullYear();
+    }
+
     // Institution section
     await Promise.all((profile.content?.history || []).map(async history => {
-      const domain = history?.institution?.domain;
-      if (domain) {
+      const end = parseInt(history.end || 0, 10);
+      const domain = history?.institution?.domain || '';
+      if ((!end || end > cutOffYear) && domain) {
         const subdomains = await this._getSubdomains(domain);
         for (const subdomain of subdomains) {
           domains.add(subdomain);
@@ -513,7 +521,14 @@ class Tools {
     }));
 
     // Relations section
-    const relations = new Set((profile.content?.relations || []).map(relation => relation.email));
+    const relations = new Set();
+    for (const relObj of profile.content?.relations || []) {
+      const relationEnd = parseInt(relObj.end || 0, 10);
+      if (relationEnd > cutOffYear) {
+        const relationEmail = relObj.email;
+        relations.add(relationEmail);
+      }
+    }
 
     // Publications section: get publications within last n years, default is all publications from previous years
     if (nYears) {
