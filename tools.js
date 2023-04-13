@@ -21,7 +21,7 @@ class Tools {
       'googlemail.com',
       'live.com'
     ];
-    this.validatedSubdomains = {};
+    this.subdomainsCache = {};
   }
 
   /**
@@ -50,6 +50,9 @@ class Tools {
    *    returns ['iesl.cs.umass.edu', 'cs.umass.edu', 'umass.edu']
    */
   _getSubdomains(domain) {
+    if (this.subdomainsCache[domain]) {
+      return this.subdomainsCache[domain];
+    }
     // Separate domains like cs.umass.edu to ['cs', 'umass', 'edu']
     const domainComponents = domain.split('.').filter((domainPart) => domainPart && !domainPart.includes(' '));
     // Create all possible subdomains from the domain components.
@@ -61,7 +64,9 @@ class Tools {
         validDomains.add(this.duplicateDomains[domain] || domain);
       }
     }
-    return Array.from(validDomains);
+    const subdomains = Array.from(validDomains);
+    this.subdomainsCache[domain] = subdomains;
+    return subdomains;
   }
 
   /**
