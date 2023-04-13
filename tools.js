@@ -46,22 +46,12 @@ class Tools {
    *
    * @example
    *
-   * _getSubdomains('johnsmith@iesl.cs.umass.edu')
+   * _getSubdomains('iesl.cs.umass.edu')
    *    returns ['iesl.cs.umass.edu', 'cs.umass.edu', 'umass.edu']
    */
-  async _getSubdomains(domain) {
-    if (!this.duplicateDomains) {
-      const { duplicates } = await this.client.getDuplicateDomains();
-      this.duplicateDomains = duplicates;
-    }
-    let fullDomain;
-    if (domain.includes('@')) {
-      fullDomain = domain.split('@')[1];
-    } else {
-      fullDomain = domain;
-    }
+  _getSubdomains(domain) {
     // Separate domains like cs.umass.edu to ['cs', 'umass', 'edu']
-    const domainComponents = fullDomain.split('.').filter((domainPart) => domainPart && !domainPart.includes(' '));
+    const domainComponents = domain.split('.').filter((domainPart) => domainPart && !domainPart.includes(' '));
     // Create all possible subdomains from the domain components.
     // For example, ['cs', 'umass', 'edu'] -> ['cs.umass.edu', 'umass.edu', 'edu']
     const domains = domainComponents.map((_, index) => domainComponents.slice(index).join('.'));
@@ -392,15 +382,44 @@ class Tools {
    * @param {object} userProfile - The profile of the user.
    * @param {string} [policy='default'] - The conflict policy. It can be 'default' or 'neurips'.
    * @param {number} [nYears] - The number of years to consider for the conflict policy.
+   * @param {function} [policyFunction] - The conflict policy function. It must return an object with the domains and the conflicts.
    * @returns {Promise<array>} - An array with the conflicts.
    */
-  async getConflicts(authorProfiles, userProfile, policy, nYears) {
+  async getConflicts(authorProfiles, userProfile, nYears, policy, policyFunction) {
     policy ??= 'default';
+
+    // Get duplicates only once
+    if (!this.duplicateDomains) {
+      const { duplicates } = await this.client.getDuplicateDomains();
+      this.duplicateDomains = duplicates;
+    }
+
+    const infoFunctionBuilder = policyFunction => (profile, nYears) => {
+      const result = policyFunction(profile, nYears);
+      const domains = new Set();
+      for (const domain of result.domains) {
+        const subdomains = this._getSubdomains(domain);
+        for (const subdomain of subdomains) {
+          domains.add(subdomain);
+        }
+      }
+
+      // Filter common domains
+      for (const commonDomain of this.commonDomains) {
+        domains.delete(commonDomain);
+      }
+
+      result.domains = Array.from(domains);
+      return result;
+    };
+
     let infoFunction;
-    if (policy === 'neurips') {
-      infoFunction = this.getNeuripsProfileInfo.bind(this);
+    if (policyFunction) {
+      infoFunction = infoFunctionBuilder(policyFunction);
+    } else if (policy === 'neurips') {
+      infoFunction = infoFunctionBuilder(this.getNeuripsProfileInfo);
     } else {
-      infoFunction = this.getProfileInfo.bind(this);
+      infoFunction = infoFunctionBuilder(this.getProfileInfo);
     }
 
     const authorDomains = new Set();
@@ -479,7 +498,7 @@ class Tools {
    * @returns {object} The profile information.
    * @throws {OpenReviewError} If the profile has obfuscated emails.
    */
-  async getProfileInfo(profile, nYears) {
+  getProfileInfo(profile, nYears) {
     let domains = new Set();
     let emails = new Set();
     let publications = new Set();
@@ -491,13 +510,11 @@ class Tools {
     }
 
     // Emails section
-    await Promise.all((profile.content?.emails || []).map(async email => {
-      const subdomains = await this._getSubdomains(email);
-      for (const subdomain of subdomains) {
-        domains.add(subdomain);
-      }
+    for (const email of (profile.content?.emails || [])) {
+      const domain = email.split('@')[1];
+      domains.add(domain);
       emails.add(email);
-    }));
+    }
 
     let cutOffYear = -1;
     if (nYears) {
@@ -507,16 +524,13 @@ class Tools {
     }
 
     // Institution section
-    await Promise.all((profile.content?.history || []).map(async history => {
+    for (const history of (profile.content?.history || [])) {
       const end = parseInt(history.end || 0, 10);
       const domain = history?.institution?.domain || '';
       if ((!end || end > cutOffYear) && domain) {
-        const subdomains = await this._getSubdomains(domain);
-        for (const subdomain of subdomains) {
-          domains.add(subdomain);
-        }
+        domains.add(domain);
       }
-    }));
+    }
 
     // Relations section
     const relations = new Set();
@@ -536,11 +550,6 @@ class Tools {
       }
     }
 
-    // Filter common domains
-    for (let commonDomain of this.commonDomains) {
-      domains.delete(commonDomain);
-    }
-
     return {
       id: profile.id,
       domains,
@@ -558,7 +567,7 @@ class Tools {
    * @returns {object} The profile information.
    * @throws {OpenReviewError} If the profile has obfuscated emails.
    */
-  async getNeuripsProfileInfo(profile, nYears) {
+  getNeuripsProfileInfo(profile, nYears) {
     const domains = new Set();
     const emails = new Set();
     const relations = new Set();
@@ -579,19 +588,16 @@ class Tools {
     }
 
     // Institution section, get history within the last n years, excluding internships
-    await Promise.all((profile.content?.history || []).map(async history => {
+    for (const history of (profile.content?.history || [])) {
       const position = history.position;
       if (!position || (typeof position === 'string' && !position.toLowerCase().includes('intern'))) {
         const end = parseInt(history.end || 0, 10);
         if (!end || end > cutOffYear) {
           const domain = history.institution?.domain || '';
-          const subdomains = await this._getSubdomains(domain);
-          for (const subdomain of subdomains) {
-            domains.add(subdomain);
-          }
+          domains.add(domain);
         }
       }
-    }));
+    }
 
     // Relations section, get coauthor/coworker relations within the last n years + all the other relations
     for (const relObj of profile.content?.relations || []) {
@@ -610,13 +616,11 @@ class Tools {
     // Emails section
     // if institution section is empty, add email domains
     if (domains.size === 0) {
-      await Promise.all((profile.content?.emails || []).map(async email => {
-        const subdomains = await this._getSubdomains(email);
-        for (const subdomain of subdomains) {
-          domains.add(subdomain);
-        }
+      for (const email of (profile.content?.emails || [])) {
+        const domain = email.split('@')[1];
+        domains.add(domain);
         emails.add(email);
-      }));
+      }
     } else {
       for (const email of (profile.content?.emails || [])) {
         emails.add(email);
@@ -638,11 +642,6 @@ class Tools {
       if (year > cutOffYear) {
         publications.add(publication.id);
       }
-    }
-
-    // Filter common domains
-    for (const commonDomain of this.commonDomains) {
-      domains.delete(commonDomain);
     }
 
     return {
