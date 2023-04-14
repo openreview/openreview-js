@@ -69,6 +69,27 @@ class Tools {
     return subdomains;
   }
 
+  _infoFunctionBuilder(policyFunction) {
+    return (profile, nYears) => {
+      const result = policyFunction(profile, nYears);
+      const domains = new Set();
+      for (const domain of result.domains) {
+        const subdomains = this._getSubdomains(domain);
+        for (const subdomain of subdomains) {
+          domains.add(subdomain);
+        }
+      }
+
+      // Filter common domains
+      for (const commonDomain of this.commonDomains) {
+        domains.delete(commonDomain);
+      }
+
+      result.domains = Array.from(domains);
+      return result;
+    };
+  }
+
   /**
    * Splits an array into chunks of a given size.
    *
@@ -385,12 +406,11 @@ class Tools {
    * @async
    * @param {object[]} authorProfiles - An array of author profiles.
    * @param {object} userProfile - The profile of the user.
-   * @param {string} [policy='default'] - The conflict policy. It can be 'default' or 'neurips'.
+   * @param {string|function} [policy='default'] - The conflict policy. It can be a string with the name of the policy or a function.
    * @param {number} [nYears] - The number of years to consider for the conflict policy.
-   * @param {function} [policyFunction] - The conflict policy function. It must return an object with the domains and the conflicts.
    * @returns {Promise<array>} - An array with the conflicts.
    */
-  async getConflicts(authorProfiles, userProfile, nYears, policy, policyFunction) {
+  async getConflicts(authorProfiles, userProfile, policy, nYears) {
     policy ??= 'default';
 
     // Get duplicates only once
@@ -399,32 +419,13 @@ class Tools {
       this.duplicateDomains = duplicates;
     }
 
-    const infoFunctionBuilder = policyFunction => (profile, nYears) => {
-      const result = policyFunction(profile, nYears);
-      const domains = new Set();
-      for (const domain of result.domains) {
-        const subdomains = this._getSubdomains(domain);
-        for (const subdomain of subdomains) {
-          domains.add(subdomain);
-        }
-      }
-
-      // Filter common domains
-      for (const commonDomain of this.commonDomains) {
-        domains.delete(commonDomain);
-      }
-
-      result.domains = Array.from(domains);
-      return result;
-    };
-
     let infoFunction;
-    if (policyFunction) {
-      infoFunction = infoFunctionBuilder(policyFunction);
+    if (typeof policy === 'function') {
+      infoFunction = this._infoFunctionBuilder(policy);
     } else if (policy === 'neurips') {
-      infoFunction = infoFunctionBuilder(this.getNeuripsProfileInfo);
+      infoFunction = this._infoFunctionBuilder(this.getNeuripsProfileInfo);
     } else {
-      infoFunction = infoFunctionBuilder(this.getProfileInfo);
+      infoFunction = this._infoFunctionBuilder(this.getProfileInfo);
     }
 
     const authorDomains = new Set();
