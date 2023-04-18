@@ -1,6 +1,6 @@
 {
   "name": "@openreview/client",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "Node.js client library for OpenReview's academic publishing API",
   "main": "index.js",
   "scripts": {
@@ -27,7 +27,8 @@
   "dependencies": {
     "form-data-encoder": "^1.7.2",
     "formdata-node": "^4.4.1",
-    "node-fetch": "^2.6.9"
+    "node-fetch": "^2.6.9",
+    "tldjs": "^2.3.1"
   },
   "devDependencies": {
     "eslint": "^8.37.0",
