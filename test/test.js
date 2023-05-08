@@ -4,7 +4,7 @@ const { OpenReviewClient } = require('../index');
 describe('OpenReview Client', function () {
   this.beforeAll(async function () {
     this.superUser = 'OpenReview.net';
-    this.superUserPassword = '1234';
+    this.superUserPassword = 'Or$3cur3P@ssw0rd';
     this.superClient = new OpenReviewClient('http://localhost:3001');
     await this.superClient.resetPassword(this.superUser, this.superUserPassword);
 
@@ -22,7 +22,7 @@ describe('OpenReview Client', function () {
       email: 'new_user@email.com',
       first: 'New',
       last: 'User',
-      password: '1234'
+      password: 'Or$3cur3P@ssw0rd'
     });
     assert.equal(user.id.startsWith('~New_User'), true);
     assert.equal(user.state, 'Inactive');
@@ -34,7 +34,7 @@ describe('OpenReview Client', function () {
       email: 'searchable_user@email.com',
       first: 'Searchable',
       last: 'User',
-      password: '1234'
+      password: 'Or$3cur3P@ssw0rd'
     });
     assert.equal(user.id.startsWith('~Searchable_User'), true);
     assert.equal(user.state, 'Inactive');
@@ -482,6 +482,23 @@ describe('OpenReview Client', function () {
     assert.equal(res.error, null);
     assert.equal(res.messages.length, 1);
     assert.equal(res.count, 1);
+
+    const recipient2 = 'recipient2@email.com';
+    res = await this.superClient.postMessage({
+      subject: 'test 2',
+      groups: [ recipient2 ],
+      message: 'test message 2'
+    });
+    assert.equal(res.error, null);
+    assert.equal(res.groups.length, 1);
+    assert.equal(res.groups[0].id, recipient2);
+
+    res = await this.superClient.getMessages({
+      subject: 'test 2'
+    });
+    assert.equal(res.error, null);
+    assert.equal(res.messages.length, 1);
+    assert.equal(res.count, 1);
   });
 
   it('should compute the venue from venueid and decision', async function () {
@@ -539,7 +556,7 @@ describe('OpenReview Client', function () {
       email: 'moderated_profile@email.com',
       first: 'Moderate',
       last: 'User',
-      password: '1234'
+      password: 'Or$3cur3P@ssw0rd'
     });
     assert.equal(user.id.startsWith('~Moderate_User'), true);
     assert.equal(user.state, 'Inactive');
