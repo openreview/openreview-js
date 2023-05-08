@@ -282,7 +282,7 @@ class OpenReviewClient {
    * });
    */
   async activateUser(token, content) {
-    const url = `${this.baseurl}/activate/${token}`;
+    const url = `${this.baseUrl}/activate/${token}`;
 
     const data = await this._handleResponse(fetch(url, {
       method: 'PUT',
