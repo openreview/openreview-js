@@ -1102,6 +1102,32 @@ class OpenReviewClient {
   }
 
   /**
+   * Posts a message to the recipients and consequently sends them emails
+   *
+   * @async
+   * @param {Object} params - Parameters to post a message
+   * @param {string} [params.subject] - Subject of the e-mail
+   * @param {Array<string>} [params.groups] - Recipients of the e-mail. Valid inputs would be tilde username or emails registered in OpenReview
+   * @param {string} [params.message] - Message in the e-mail
+   * @param {Array<string>} [params.ignoreGroups] - List of groups ids to be ignored from the recipient list
+   * @param {string} [params.replyTo] - e-mail address used when recipients reply to this message
+   * @param {string} [params.parentGroup] - parent group recipients of e-mail belong to
+   *
+   * @returns {Promise<object>} - Contains the message that was sent to each Group
+   */
+  async postDirectMessage(params) {
+    const body = this._removeNilValues(params);
+
+    const data = await this._handleResponse(fetch(`${this.messagesUrl}/direct`, {
+      method: 'POST',
+      headers: this.headers,
+      body: JSON.stringify(body)
+    }), params?.useJob ? { status: 'error', jobId: '' } : { groups: [] });
+
+    return data;
+  }
+
+  /**
    * Adds members to a group
    *
    * @async
