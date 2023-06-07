@@ -4,13 +4,13 @@ const { OpenReviewClient } = require('../index');
 describe('OpenReview Client', function () {
   this.beforeAll(async function () {
     this.superUser = 'OpenReview.net';
-    this.superUserPassword = 'Or$3cur3P@ssw0rd';
+    this.strongPassword = 'Or$3cur3P@ssw0rd';
     this.superClient = new OpenReviewClient('http://localhost:3001');
-    await this.superClient.resetPassword(this.superUser, this.superUserPassword);
+    await this.superClient.resetPassword(this.superUser, this.strongPassword);
 
     const data = await this.superClient.connect({
       username: this.superUser,
-      password: this.superUserPassword
+      password: this.strongPassword
     });
     assert.equal(!!data.token, true);
     assert.equal(!!data.user, true);
@@ -22,7 +22,7 @@ describe('OpenReview Client', function () {
       email: 'new_user@email.com',
       first: 'New',
       last: 'User',
-      password: 'Or$3cur3P@ssw0rd'
+      password: this.strongPassword
     });
     assert.equal(user.id.startsWith('~New_User'), true);
     assert.equal(user.state, 'Inactive');
@@ -34,7 +34,7 @@ describe('OpenReview Client', function () {
       email: 'searchable_user@email.com',
       first: 'Searchable',
       last: 'User',
-      password: 'Or$3cur3P@ssw0rd'
+      password: this.strongPassword
     });
     assert.equal(user.id.startsWith('~Searchable_User'), true);
     assert.equal(user.state, 'Inactive');
@@ -556,7 +556,7 @@ describe('OpenReview Client', function () {
       email: 'moderated_profile@email.com',
       first: 'Moderate',
       last: 'User',
-      password: 'Or$3cur3P@ssw0rd'
+      password: this.strongPassword
     });
     assert.equal(user.id.startsWith('~Moderate_User'), true);
     assert.equal(user.state, 'Inactive');
@@ -679,5 +679,36 @@ describe('OpenReview Client', function () {
 
     res = this.superClient.tools.prettyId('');
     assert.equal(res, '');
+  });
+
+  it('should calculate conflicts between profiles', async function () {
+    let { user, error } = await this.superClient.registerUser({
+      email: 'conflict_user_one@fb.com',
+      first: 'Conflict',
+      last: 'User One',
+      password: this.strongPassword
+    });
+    assert.equal(user.id.startsWith('~Conflict_User_One'), true);
+    assert.equal(user.state, 'Inactive');
+    assert.equal(error, null);
+    const profileId1 = user.id;
+
+    ({ user, error } = await this.superClient.registerUser({
+      email: 'conflict_user_two@facebook.com',
+      first: 'Conflict',
+      last: 'User Two',
+      password: this.strongPassword
+    }));
+    assert.equal(user.id.startsWith('~Conflict_User_Two'), true);
+    assert.equal(user.state, 'Inactive');
+    assert.equal(error, null);
+    const profileId2 = user.id;
+
+    const { profiles: [ profile1 ] } = await this.superClient.getProfiles({ id: profileId1 });
+    const { profiles: [ profile2 ] } = await this.superClient.getProfiles({ id: profileId2 });
+
+    const conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile2);
+    assert.equal(conflicts.length, 1);
+    assert.equal(conflicts[0], 'facebook.com');
   });
 });
