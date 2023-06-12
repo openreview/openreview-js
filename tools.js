@@ -1,5 +1,6 @@
 'use strict';
 
+const fs = require('fs').promises;
 const { isValid, getDomain } = require('tldjs');
 const { OpenReviewError } = require('./errors');
 
@@ -415,8 +416,7 @@ class Tools {
 
     // Get duplicates only once
     if (!this.duplicateDomains) {
-      const { duplicates } = await this.client.getDuplicateDomains();
-      this.duplicateDomains = duplicates;
+      this.duplicateDomains = JSON.parse(await fs.readFile('./data/duplicate-domains.json', 'utf8'));
     }
 
     let infoFunction;
