@@ -1,6 +1,6 @@
 class OpenReviewError extends Error {
   constructor({ cause, message, name, status, details, options }) {
-    super(message);
+    super(message, { cause });
     this.name = name || 'Error';
     this.status = status || 400;
 
@@ -9,7 +9,6 @@ class OpenReviewError extends Error {
     }
 
     if (cause) {
-      this.cause = cause;
       this.message = !options?.skipCauseMessage ? `${message}: ${cause.message}` : message;
     }
 
