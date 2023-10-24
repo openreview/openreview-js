@@ -711,4 +711,96 @@ describe('OpenReview Client', function () {
     assert.equal(conflicts.length, 1);
     assert.equal(conflicts[0], 'facebook.com');
   });
+
+  it('should convert DBLP xml to Note Edit', async function () {
+    const dblpXmls = [
+      '<inproceedings key="conf/acl/KimBL16" mdate="2018-09-12">\n<author>Seokhwan Kim</author>\n<author>Rafael E. Banchs</author>\n<author>Haizhou Li 0001</author>\n<title>Exploring Convolutional and Recurrent Neural Networks in Sequential Labelling for Dialogue Topic Tracking.</title>\n<year>2016</year>\n<booktitle>ACL (1)</booktitle>\n<ee>http://aclweb.org/anthology/P/P16/P16-1091.pdf</ee>\n<crossref>conf/acl/2016-1</crossref>\n<url>db/conf/acl/acl2016-1.html#KimBL16</url>\n</inproceedings>',
+      '<proceedings key="conf/acl/1987" mdate="2017-05-10">\n<editor>Candy L. Sidner</editor>\n<title>25th Annual Meeting of the Association for Computational Linguistics, Stanford University, Stanford, California, USA, July 6-9, 1987.</title>\n<booktitle>ACL</booktitle>\n<publisher>ACL</publisher>\n<year>1987</year>\n<ee>http://aclweb.org/anthology/P/P87/</ee>\n<url>db/conf/acl/acl1987.html</url>\n</proceedings>\n\n',
+      '<inproceedings key="conf/acl/Rajasekaran95" mdate="2016-12-19">\n<author>Sanguthevar Rajasekaran</author>\n<title>TAL Recognition in O(M(n<sup>2</sup>)) Time.</title>\n<pages>166-173</pages>\n<year>1995</year>\n<crossref>conf/acl/1995</crossref>\n<booktitle>ACL</booktitle>\n<url>db/conf/acl/acl95.html#Rajasekaran95</url>\n<ee>http://aclweb.org/anthology/P/P95/P95-1023.pdf</ee>\n</inproceedings>',
+      '<inproceedings key="conf/aaai/TanYWHTS16" mdate="2018-11-20">\n<author>Mingkui Tan</author>\n<author>Yan Yan 0006</author>\n<author>Li Wang 0033</author>\n<author>Anton van den Hengel</author>\n<author>Ivor W. Tsang</author>\n<author>Qinfeng (Javen) Shi</author>\n<title>Learning Sparse Confidence-Weighted Classifier on Very High Dimensional Data.</title>\n<pages>2080-2086</pages>\n<year>2016</year>\n<booktitle>AAAI</booktitle>\n<ee>http://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/view/12329</ee>\n<crossref>conf/aaai/2016</crossref>\n<url>db/conf/aaai/aaai2016.html#TanYWHTS16</url>\n</inproceedings>',
+    ];
+
+    const resolved = [
+      {
+        cdate: 1451606400000,
+        content: {
+          venue: { value: 'ACL (1) 2016' },
+          venueid: { value: 'dblp.org/conf/ACL/2016' },
+          _bibtex: { value: '@inproceedings{DBLP:conf/acl/KimBL16,\n  author={Seokhwan Kim and Rafael E. Banchs and Haizhou Li},\n  title={Exploring Convolutional and Recurrent Neural Networks in Sequential Labelling for Dialogue Topic Tracking},\n  year={2016},\n  cdate={1451606400000},\n  url={http://aclweb.org/anthology/P/P16/P16-1091.pdf},\n  booktitle={ACL (1)},\n  crossref={conf/acl/2016-1}\n}\n' },
+          authors: { value: [ 'Seokhwan Kim', 'Rafael E. Banchs', 'Haizhou Li' ] },
+          authorids: { value: [
+            'https://dblp.org/search/pid/api?q=author:Seokhwan_Kim:',
+            'https://dblp.org/search/pid/api?q=author:Rafael_E._Banchs:',
+            'https://dblp.org/search/pid/api?q=author:Haizhou_Li_0001:'
+          ] },
+          'pdf': { value: 'http://aclweb.org/anthology/P/P16/P16-1091.pdf' },
+          'title': { value: 'Exploring Convolutional and Recurrent Neural Networks in Sequential Labelling for Dialogue Topic Tracking' }
+        }
+      },
+      {
+        cdate: 536457600000,
+        content: {
+          venue: { value: 'ACL 1987' },
+          venueid: { value: 'dblp.org/conf/ACL/1987' },
+          _bibtex: { value: '@proceedings{DBLP:conf/acl/1987,\n  author={},\n  title={25th Annual Meeting of the Association for Computational Linguistics, Stanford University, Stanford, California, USA, July 6-9, 1987},\n  year={1987},\n  cdate={536457600000},\n  url={http://aclweb.org/anthology/P/P87/},\n  booktitle={ACL},\n  publisher={ACL}\n}\n' },
+          authors: { value: [] },
+          authorids: { value: [] },
+          html: { value: 'http://aclweb.org/anthology/P/P87/' },
+          title: { value: '25th Annual Meeting of the Association for Computational Linguistics, Stanford University, Stanford, California, USA, July 6-9, 1987' }
+        }
+      },
+      {
+        cdate: 788918400000,
+        content: {
+          venue: { value: 'ACL 1995' },
+          venueid: { value: 'dblp.org/conf/ACL/1995' },
+          _bibtex: { value: '@inproceedings{DBLP:conf/acl/Rajasekaran95,\n  author={Sanguthevar Rajasekaran},\n  title={TAL Recognition in O(M(n)) Time},\n  year={1995},\n  cdate={788918400000},\n  pages={166-173},\n  url={http://aclweb.org/anthology/P/P95/P95-1023.pdf},\n  booktitle={ACL},\n  crossref={conf/acl/1995}\n}\n' },
+          authors: { value: [ 'Sanguthevar Rajasekaran' ] },
+          authorids: { value: [ 'https://dblp.org/search/pid/api?q=author:Sanguthevar_Rajasekaran:' ] },
+          pdf: { value: 'http://aclweb.org/anthology/P/P95/P95-1023.pdf' },
+          title: { value: 'TAL Recognition in O(M(n)) Time' }
+        }
+      },
+      {
+        cdate: 1451606400000,
+        content: {
+          venue: { value: 'AAAI 2016' },
+          venueid: { value: 'dblp.org/conf/AAAI/2016' },
+          _bibtex: { value: '@inproceedings{DBLP:conf/aaai/TanYWHTS16,\n  author={Mingkui Tan and Yan Yan and Li Wang and Anton van den Hengel and Ivor W. Tsang and Qinfeng Javen Shi},\n  title={Learning Sparse Confidence-Weighted Classifier on Very High Dimensional Data},\n  year={2016},\n  cdate={1451606400000},\n  pages={2080-2086},\n  url={http://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/view/12329},\n  booktitle={AAAI},\n  crossref={conf/aaai/2016}\n}\n' },
+          authors: { value: [ 'Mingkui Tan', 'Yan Yan', 'Li Wang', 'Anton van den Hengel', 'Ivor W. Tsang', 'Qinfeng Javen Shi' ] },
+          authorids: { value: [
+            'https://dblp.org/search/pid/api?q=author:Mingkui_Tan:',
+            'https://dblp.org/search/pid/api?q=author:Yan_Yan_0006:',
+            'https://dblp.org/search/pid/api?q=author:Li_Wang_0033:',
+            'https://dblp.org/search/pid/api?q=author:Anton_van_den_Hengel:',
+            'https://dblp.org/search/pid/api?q=author:Ivor_W._Tsang:',
+            'https://dblp.org/search/pid/api?q=author:Qinfeng_(Javen)_Shi:'
+          ]},
+          html: { value: 'http://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/view/12329' },
+          title: { value: 'Learning Sparse Confidence-Weighted Classifier on Very High Dimensional Data' }
+        }
+      }
+    ];
+
+    for (let i = 0; i < dblpXmls.length; i++) {
+      const note = this.superClient.tools.covertDblpXmlToNote(dblpXmls[i]);
+      const resolvedNote = resolved[i];
+      if (resolvedNote.pdate) {
+        assert.equal(note.pdate, resolvedNote.pdate);
+      }
+      if (resolvedNote.cdate) {
+        assert.equal(note.cdate, resolvedNote.cdate);
+      }
+      for (const [ key, { value } ] of Object.entries(resolvedNote.content)) {
+        if (Array.isArray(value)) {
+          assert.equal(note.content[key].value.length, value.length);
+          for (let i = 0; i < value.length; i++) {
+            assert.equal(note.content[key].value[i], value[i]);
+          }
+        } else {
+          assert.equal(note.content[key].value, value);
+        }
+      }
+    }
+  });
 });
