@@ -670,7 +670,7 @@ class Tools {
     return typeof variable;
   }
 
-  covertDblpXmlToNote(dblpXml) {
+  convertDblpXmlToNote(dblpXml) {
     const removeDigitsRegEx = /\s\d{4}$/;
     const removeTrailingPeriod = /\.$/;
 
