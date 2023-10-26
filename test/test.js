@@ -783,7 +783,7 @@ describe('OpenReview Client', function () {
     ];
 
     for (let i = 0; i < dblpXmls.length; i++) {
-      const note = this.superClient.tools.covertDblpXmlToNote(dblpXmls[i]);
+      const note = this.superClient.tools.convertDblpXmlToNote(dblpXmls[i]);
       const resolvedNote = resolved[i];
       if (resolvedNote.pdate) {
         assert.equal(note.pdate, resolvedNote.pdate);
