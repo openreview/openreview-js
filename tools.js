@@ -2,6 +2,7 @@
 
 const path = require('path');
 const fs = require('fs').promises;
+const { XMLParser } = require('fast-xml-parser');
 const { isValid, getDomain } = require('tldjs');
 const { OpenReviewError } = require('./errors');
 
@@ -661,6 +662,206 @@ class Tools {
     };
   }
 
+  #variableType(variable) {
+    if (variable === null) return 'null';
+    if (Array.isArray(variable)) {
+      return 'array';
+    }
+    return typeof variable;
+  }
+
+  convertDblpXmlToNote(dblpXml) {
+    const removeDigitsRegEx = /\s\d{4}$/;
+    const removeTrailingPeriod = /\.$/;
+
+    if (!this.xmlParser) {
+      this.xmlParser = new XMLParser({ ignoreAttributes: false });
+    }
+
+    if (!this.entryTypes) {
+      this.entryTypes = [
+        'article',
+        'book',
+        'booklet',
+        'conference',
+        'inbook',
+        'incollection',
+        'inproceedings',
+        'manual',
+        'mastersthesis',
+        'misc',
+        'phdthesis',
+        'proceedings',
+        'techreport',
+        'unpublished'
+      ];
+    }
+
+    const getRawDataValue = rawData => {
+      const rawDataType = this.#variableType(rawData);
+      if (rawDataType === 'object') {
+        return rawData['#text'];
+      } else {
+        return rawData;
+      }
+    };
+
+    const getAuthorData = authorData => {
+      const author = getRawDataValue(authorData);
+      return {
+        author: author.replace(removeDigitsRegEx, '').replaceAll('(', '').replaceAll(')', ''),
+        authorid: `https://dblp.org/search/pid/api?q=author:${author.split(' ').join('_')}:`
+      };
+    };
+
+    const entryToData = entryElement => {
+      const data = {};
+      data.type = this.entryTypes.find(type => entryElement[type]) || 'misc';
+      const rawData = entryElement[data.type];
+      data.key = rawData['@_key'];
+      data.publtype = rawData['@_publtype'];
+      data.authors = [];
+      data.authorids = [];
+      // TODO: Check if we want to include rawData.editor too or keep empty authors
+      if (Array.isArray(rawData.author)) {
+        for (const authorData of rawData.author) {
+          const { author, authorid } = getAuthorData(authorData);
+          data.authors.push(author);
+          data.authorids.push(authorid);
+        }
+      } else if (typeof rawData.author === 'string') {
+        const { author, authorid } = getAuthorData(rawData.author);
+        data.authors.push(author);
+        data.authorids.push(authorid);
+      }
+
+      // TODO: What do we do with titles like: Learning Perceptually-Grounded Semantics in The L<sub>0</sub> Project?
+      // Multiple Kernel <i>k</i>-Means Clustering with Matrix-Induced Regularization.
+      data.title = getRawDataValue(rawData.title)?.trim()?.replace('\n', '')?.replace(removeTrailingPeriod, '');
+      data.year = parseInt(getRawDataValue(rawData.year), 10);
+      data.month = getRawDataValue(rawData.month);
+
+      if (data.year) {
+        const cdateString = data.month ? `${data.month} ${data.year}` : data.year;
+        data.cdate = Date.parse(cdateString);
+      }
+
+      data.journal = getRawDataValue(rawData.journal);
+      data.volume = getRawDataValue(rawData.volume);
+      data.number = getRawDataValue(rawData.number);
+      data.chapter = getRawDataValue(rawData.chapter);
+      data.pages = getRawDataValue(rawData.pages);
+      data.url = Array.isArray(rawData.ee) ? getRawDataValue(rawData.ee[0]) : getRawDataValue(rawData.ee);
+      data.isbn = Array.isArray(rawData.isbn) ? getRawDataValue(rawData.isbn[0]) : getRawDataValue(rawData.isbn); // TODO: Check if we want to concatenate this with ands
+      data.booktitle = getRawDataValue(rawData.booktitle);
+      data.crossref = getRawDataValue(rawData.crossref);
+      data.publisher = getRawDataValue(rawData.publisher);
+      data.school = getRawDataValue(rawData.school);
+
+      for (const key of Object.keys(data)) {
+        if (data[key] === undefined || data[key] === null) {
+          delete data[key];
+        }
+      }
+      return data;
+    };
+
+    const dataToBibtex = data => {
+      const bibtexIndent = '  ';
+      const bibtexComponents = [ '@', data.type, '{', 'DBLP:', data.key, ',\n' ];
+
+      const omittedFields = ['type', 'key', 'authorids'];
+
+      for (let [ field, value ] of Object.entries(data)) {
+        if (!value || omittedFields.includes(field)) {
+          continue;
+        }
+
+        let valueString;
+        if (Array.isArray(value)) {
+          valueString = value.join(' and ');
+          if (field.endsWith('s')) {
+            field = field.substring(0, field.length - 1);
+          }
+        } else {
+          valueString = String(value);
+        }
+
+        bibtexComponents.push(...[ bibtexIndent, field, '={', valueString, '},\n' ]);
+      }
+
+      bibtexComponents[bibtexComponents.length - 1] = bibtexComponents[bibtexComponents.length - 1].replace(',\n', '\n');
+      bibtexComponents.push('}\n');
+      return bibtexComponents.join('');
+    };
+
+    let dblpJson;
+    try {
+      dblpJson = this.xmlParser.parse(dblpXml);
+    } catch (err) {
+      throw new OpenReviewError({
+        message: 'Something went wrong parsing the dblp xml',
+        cause: err
+      });
+    }
+
+    if (Object.keys(dblpJson).length === 0) {
+      throw new OpenReviewError({
+        message: 'Something went wrong parsing the dblp xml'
+      });
+    }
+
+    const data = entryToData(dblpJson);
+
+    const note = {
+      cdate: data.cdate,
+      pdate: new Date(data.year, 0, 1).getTime(),
+      content: {
+        title: { value: data.title },
+        _bibtex: { value: dataToBibtex(data) },
+        authors: { value: data.authors },
+        authorids: { value: data.authorids }
+      }
+    };
+
+    const venue = data.journal || data.booktitle;
+    if (venue) {
+      note.content.venue = { value: venue };
+    }
+
+    if (data.key) {
+      const keyParts = data.key.split('/');
+      const venueidParts = [ 'dblp.org' ];
+      // get all but the last part of the key\n
+      for (let i = 0; i < keyParts.length - 1; i++) {
+        let keyPart = keyParts[i];
+        if (i === keyParts.length - 2) {
+          keyPart = keyPart.toUpperCase();
+        }
+        venueidParts.push(keyPart);
+      }
+
+      // we might not want this later
+      if (data.year) {
+        venueidParts.push(data.year);
+        // new addition at Andrew's request
+        if (venue) {
+          note.content.venue.value += ` ${data.year}`;
+        }
+      }
+      note.content.venueid = { value: venueidParts.join('/') };
+    }
+
+    if (data.url) {
+      if (data.url.endsWith('.pdf')) {
+        note.content.pdf = { value: data.url };
+      } else {
+        note.content.html = { value: data.url };
+      }
+    }
+
+    return note;
+  }
 }
 
 module.exports = Tools;
