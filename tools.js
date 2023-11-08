@@ -358,7 +358,7 @@ class Tools {
     };
 
     // Get profiles by ID and add them to the profiles list
-    for (const batch of this.splitArray(ids, this.client.RESPONSE_SIZE)) {
+    for (const batch of Tools.splitArray(ids, this.client.RESPONSE_SIZE)) {
       const { profiles } = await this.client.searchProfiles({ ids: batch });
       for (const profile of profiles) {
         processProfile(profile);
@@ -366,7 +366,7 @@ class Tools {
     }
 
     // Get profiles by email and add them to the profiles list
-    for (const batch of this.splitArray(emails, this.client.RESPONSE_SIZE)) {
+    for (const batch of Tools.splitArray(emails, this.client.RESPONSE_SIZE)) {
       const { profiles } = await this.client.searchProfiles({ confirmedEmails: batch });
       for (const profile of profiles) {
         processProfile(profile);
@@ -393,7 +393,7 @@ class Tools {
       // Get publications for all the profiles
       const profiles = Object.values(profileById);
 
-      for (const batch of this.splitArray(profiles, 10)) {
+      for (const batch of Tools.splitArray(profiles, 10)) {
         await Promise.all(batch.map(async (profile) => {
           const [ { notes: notesV1 }, { notes: notesV2 } ] = await Promise.all([
             this.client.getAllV1Notes({ content: { authorids: profile.id } }),
