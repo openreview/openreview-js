@@ -514,16 +514,12 @@ describe('OpenReview Client', function () {
       content: {
         names: [
           {
-            first: 'First',
-            middle: 'Middle',
-            last: 'Last',
+            fullname: 'First Middle Last',
             username: '~First_Middle_Last1',
             preferred: false
           },
           {
-            first: 'AnotherFirst',
-            middle: 'AnotherMiddle',
-            last: 'AnotherLast',
+            fullname: 'AnotherFirst AnotherMiddle AnotherLast',
             username: '~AnotherFirst_AnotherMiddle_AnotherLast1',
             preferred: true
           }
@@ -534,8 +530,6 @@ describe('OpenReview Client', function () {
     let res = Tools.getPreferredName(fakeProfile);
     assert.equal(res, 'AnotherFirst AnotherMiddle AnotherLast');
 
-    res = Tools.getPreferredName(fakeProfile, true);
-    assert.equal(res, 'AnotherLast');
   });
 
   it('should GET a profile with no params', async function () {
