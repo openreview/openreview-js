@@ -240,21 +240,11 @@ class Tools {
    * @param {boolean} [lastNameOnly=false] - A boolean indicating whether to return only the last name or the full name.
    * @returns {string} - The user's preferred name or the first listed name.
    */
-  static getPreferredName(profile, lastNameOnly=false) {
+  static getPreferredName(profile) {
     const names = profile.content.names;
     const preferredNames = names.filter(name => name.preferred);
     const preferredName = preferredNames.length > 0 ? preferredNames[0] : names[0];
-    let nameParts = [];
-    if (preferredName.first) {
-      nameParts.push(preferredName.first);
-    }
-    if (preferredName.middle) {
-      nameParts.push(preferredName.middle);
-    }
-    if (preferredName.last) {
-      nameParts.push(preferredName.last);
-    }
-    return lastNameOnly ? preferredName.last : nameParts.join(' ');
+    return preferredName.fullname;
   }
 
   /**
