@@ -28,13 +28,28 @@ class Tools {
   }
 
   /**
+   * Returns the type of a variable
+   *
+   * @static
+   * @param {any} variable - The variable to get the type of
+   * @returns {string} The type of the variable
+   */
+  static variableType(variable) {
+    if (variable === null) return 'null';
+    if (Array.isArray(variable)) {
+      return 'array';
+    }
+    return typeof variable;
+  }
+
+  /**
    * Checks if domain is a TLD
    *
    * @private
    * @param {string} domain - domain to check
    * @returns {boolean} true if domain is a TLD, false otherwise
    */
-  _isTLD(domain) {
+  #isTLD(domain) {
     return isValid(domain) && !getDomain(domain);
   }
 
@@ -49,10 +64,10 @@ class Tools {
    *
    * @example
    *
-   * _getSubdomains('iesl.cs.umass.edu')
+   * #getSubdomains('iesl.cs.umass.edu')
    *    returns ['iesl.cs.umass.edu', 'cs.umass.edu', 'umass.edu']
    */
-  _getSubdomains(domain) {
+  #getSubdomains(domain) {
     if (this.subdomainsCache[domain]) {
       return this.subdomainsCache[domain];
     }
@@ -63,7 +78,7 @@ class Tools {
     const domains = domainComponents.map((_, index) => domainComponents.slice(index).join('.'));
     const validDomains = new Set();
     for (const domain of domains) {
-      if (!this._isTLD(domain)) {
+      if (!this.#isTLD(domain)) {
         validDomains.add(this.duplicateDomains[domain] || domain);
       }
     }
@@ -72,12 +87,12 @@ class Tools {
     return subdomains;
   }
 
-  _infoFunctionBuilder(policyFunction) {
+  #infoFunctionBuilder(policyFunction) {
     return (profile, nYears) => {
       const result = policyFunction(profile, nYears);
       const domains = new Set();
       for (const domain of result.domains) {
-        const subdomains = this._getSubdomains(domain);
+        const subdomains = this.#getSubdomains(domain);
         for (const subdomain of subdomains) {
           domains.add(subdomain);
         }
@@ -96,12 +111,12 @@ class Tools {
   /**
    * Splits an array into chunks of a given size.
    *
-   * @private
+   * @static
    * @param {Array} arr - Array to split.
    * @param {number} size - Size of the chunks.
    * @returns {Array} Array of chunks.
    */
-  splitArray(arr, size) {
+  static splitArray(arr, size) {
     const result = [];
     for (let i = 0; i < arr.length; i += size) {
       result.push(arr.slice(i, i + size));
@@ -134,11 +149,12 @@ class Tools {
   /**
    * Takes an Invitation or Group ID and returns a pretty version of it.
    *
+   * @static
    * @param {string} id - Invitation or Group ID.
    * @param {boolean} onlyLast - If true, only the last part of the ID will be returned.
    * @returns {string} Pretty version of the ID.
    */
-  prettyId(id, onlyLast) {
+  static prettyId(id, onlyLast) {
     if (!id) {
       return '';
     } else if (id.indexOf('~') === 0 && id.length > 1) {
@@ -219,11 +235,12 @@ class Tools {
   /**
    * Accepts an OpenReview profile object and retrieves the user's preferred name or the first listed name.
    *
+   * @static
    * @param {object} profile - The OpenReview profile object.
    * @param {boolean} [lastNameOnly=false] - A boolean indicating whether to return only the last name or the full name.
    * @returns {string} - The user's preferred name or the first listed name.
    */
-  getPreferredName(profile, lastNameOnly=false) {
+  static getPreferredName(profile, lastNameOnly=false) {
     const names = profile.content.names;
     const preferredNames = names.filter(name => name.preferred);
     const preferredName = preferredNames.length > 0 ? preferredNames[0] : names[0];
@@ -424,11 +441,11 @@ class Tools {
 
     let infoFunction;
     if (typeof policy === 'function') {
-      infoFunction = this._infoFunctionBuilder(policy);
+      infoFunction = this.#infoFunctionBuilder(policy);
     } else if (policy === 'neurips') {
-      infoFunction = this._infoFunctionBuilder(this.getNeuripsProfileInfo);
+      infoFunction = this.#infoFunctionBuilder(this.getNeuripsProfileInfo);
     } else {
-      infoFunction = this._infoFunctionBuilder(this.getProfileInfo);
+      infoFunction = this.#infoFunctionBuilder(this.getProfileInfo);
     }
 
     const authorDomains = new Set();
@@ -662,43 +679,39 @@ class Tools {
     };
   }
 
-  #variableType(variable) {
-    if (variable === null) return 'null';
-    if (Array.isArray(variable)) {
-      return 'array';
-    }
-    return typeof variable;
-  }
-
-  convertDblpXmlToNote(dblpXml) {
+  /**
+   * Converts a dblp xml to a note object.
+   *
+   * @static
+   * @param {string} dblpXml - The dblp xml.
+   * @returns {object} The note object.
+   *
+   */
+  static convertDblpXmlToNote(dblpXml) {
     const removeDigitsRegEx = /\s\d{4}$/;
     const removeTrailingPeriod = /\.$/;
 
-    if (!this.xmlParser) {
-      this.xmlParser = new XMLParser({ ignoreAttributes: false });
-    }
+    const xmlParser = new XMLParser({ ignoreAttributes: false });
 
-    if (!this.entryTypes) {
-      this.entryTypes = [
-        'article',
-        'book',
-        'booklet',
-        'conference',
-        'inbook',
-        'incollection',
-        'inproceedings',
-        'manual',
-        'mastersthesis',
-        'misc',
-        'phdthesis',
-        'proceedings',
-        'techreport',
-        'unpublished'
-      ];
-    }
+    const entryTypes = [
+      'article',
+      'book',
+      'booklet',
+      'conference',
+      'inbook',
+      'incollection',
+      'inproceedings',
+      'manual',
+      'mastersthesis',
+      'misc',
+      'phdthesis',
+      'proceedings',
+      'techreport',
+      'unpublished'
+    ];
 
     const getRawDataValue = rawData => {
-      const rawDataType = this.#variableType(rawData);
+      const rawDataType = this.variableType(rawData);
       if (rawDataType === 'object') {
         return rawData['#text'];
       } else {
@@ -716,7 +729,7 @@ class Tools {
 
     const entryToData = entryElement => {
       const data = {};
-      data.type = this.entryTypes.find(type => entryElement[type]) || 'misc';
+      data.type = entryTypes.find(type => entryElement[type]) || 'misc';
       const rawData = entryElement[data.type];
       data.key = rawData['@_key'];
       data.publtype = rawData['@_publtype'];
@@ -797,7 +810,7 @@ class Tools {
 
     let dblpJson;
     try {
-      dblpJson = this.xmlParser.parse(dblpXml);
+      dblpJson = xmlParser.parse(dblpXml);
     } catch (err) {
       throw new OpenReviewError({
         message: 'Something went wrong parsing the dblp xml',

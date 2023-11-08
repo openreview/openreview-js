@@ -338,7 +338,7 @@ class OpenReviewClient {
 
     if (emails) {
       const fullResponse = { profiles: [], count: 0 };
-      const batches = this.tools.splitArray(emails, this.RESPONSE_SIZE);
+      const batches = Tools.splitArray(emails, this.RESPONSE_SIZE);
       let data;
       for (let emailBatch of batches) {
         data = await this._handleResponse(fetch(this.profilesSearchUrl, {
@@ -380,7 +380,7 @@ class OpenReviewClient {
 
     if (ids) {
       const fullResponse = { profiles: [], count: 0 };
-      const batches = this.tools.splitArray(ids, this.RESPONSE_SIZE);
+      const batches = Tools.splitArray(ids, this.RESPONSE_SIZE);
       let data;
       for (let batch of batches) {
         data = await this._handleResponse(fetch(this.profilesSearchUrl, {
@@ -1574,4 +1574,4 @@ class OpenReviewClient {
 
 }
 
-module.exports = { OpenReviewClient };
+module.exports = { OpenReviewClient, Tools };
