@@ -359,7 +359,7 @@ class OpenReviewClient {
 
     if (confirmedEmails) {
       const fullResponse = { profiles: [], count: 0 };
-      const batches = this.tools.splitArray(confirmedEmails, this.RESPONSE_SIZE);
+      const batches = Tools.splitArray(confirmedEmails, this.RESPONSE_SIZE);
       let data;
       for (let emailBatch of batches) {
         data = await this._handleResponse(fetch(this.profilesSearchUrl, {
