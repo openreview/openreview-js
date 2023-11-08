@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { OpenReviewClient } = require('../index');
+const { OpenReviewClient, Tools } = require('../index');
 
 describe('OpenReview Client', function () {
   this.beforeAll(async function () {
@@ -531,10 +531,10 @@ describe('OpenReview Client', function () {
       }
     };
 
-    let res = this.superClient.tools.getPreferredName(fakeProfile);
+    let res = Tools.getPreferredName(fakeProfile);
     assert.equal(res, 'AnotherFirst AnotherMiddle AnotherLast');
 
-    res = this.superClient.tools.getPreferredName(fakeProfile, true);
+    res = Tools.getPreferredName(fakeProfile, true);
     assert.equal(res, 'AnotherLast');
   });
 
@@ -665,19 +665,19 @@ describe('OpenReview Client', function () {
   });
 
   it('should test prettyId', async function () {
-    let res = this.superClient.tools.prettyId('ICLR.cc/2023/Conference');
+    let res = Tools.prettyId('ICLR.cc/2023/Conference');
     assert.equal(res, 'ICLR 2023 Conference');
 
-    res = this.superClient.tools.prettyId('ICLR.cc/2023/Conference/-/Blind_Submission');
+    res = Tools.prettyId('ICLR.cc/2023/Conference/-/Blind_Submission');
     assert.equal(res, 'ICLR 2023 Conference Blind Submission');
 
-    res = this.superClient.tools.prettyId('ICLR.cc/2023/Conference/-/Revision');
+    res = Tools.prettyId('ICLR.cc/2023/Conference/-/Revision');
     assert.equal(res, 'ICLR 2023 Conference Revision');
 
-    res = this.superClient.tools.prettyId('ICLR.cc/2023/Conference/-/Meta_Review', true);
+    res = Tools.prettyId('ICLR.cc/2023/Conference/-/Meta_Review', true);
     assert.equal(res, 'Meta Review');
 
-    res = this.superClient.tools.prettyId('');
+    res = Tools.prettyId('');
     assert.equal(res, '');
   });
 
@@ -783,7 +783,7 @@ describe('OpenReview Client', function () {
     ];
 
     for (let i = 0; i < dblpXmls.length; i++) {
-      const note = this.superClient.tools.convertDblpXmlToNote(dblpXmls[i]);
+      const note = Tools.convertDblpXmlToNote(dblpXmls[i]);
       const resolvedNote = resolved[i];
       if (resolvedNote.pdate) {
         assert.equal(note.pdate, resolvedNote.pdate);
