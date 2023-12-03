@@ -602,7 +602,10 @@ export default class OpenReviewClient {
    * @returns {Promise<{groups: Array<Object>, count: number}>} - Object containing an array of Groups and the count of all Groups.
    */
   async getAllGroups(params) {
-    return this.tools.getAll(this.getGroups.bind(this), params);
+    delete params.limit;
+    delete params.offset;
+    params.stream = true;
+    return this.getGroups(params);
   }
 
   /**
