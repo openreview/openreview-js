@@ -954,7 +954,7 @@ class Tools {
     puppeteer.use(AnonPlugin());
 
     const browserInstance = await puppeteer.launch({
-      headless: true,
+      headless: 'new',
     });
 
     const page = await browserInstance.newPage();

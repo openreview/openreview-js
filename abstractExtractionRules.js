@@ -345,6 +345,7 @@ const cleanAbstract = (abstract) => {
 const arxivOrgRule = {
   shouldApplyRule: (url) => /export.arxiv.org/.test(url),
   executeRule: async(html) => {
+    console.log(' run arxiv rule');
     const xmlObject = await xml2js.parseStringPromise(html);
     const summary = get(xmlObject, 'feed.entry.0.summary')?.toString();
     const title = get(xmlObject, 'feed.entry.0.title')?.toString();
@@ -370,6 +371,7 @@ const arxivOrgRule = {
 const scienceDirectRule = {
   shouldApplyRule: (url) => /sciencedirect.com/.test(url),
   executeRule: async (html, page) => {
+    console.log(' run sciencedirect rule');
     const highwirePressTags = await gatherHighwirePressTags(page);
     const openGraphTags = await gatherOpenGraphTags(page);
     const abstractClass = await selectElemTextEvidence(page, '.abstract');
@@ -391,9 +393,136 @@ const scienceDirectRule = {
   },
 };
 
+const aaaiOrgRule = {
+  shouldApplyRule: (url) => /\/aaai.org/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run aaai rule');
+    const sections = await page.$$('h4');
+
+    let abstract = null;
+    let pdf = null;
+    for (let index = 0; index < sections.length; index++) {
+      const textContent = await page.evaluate((p) => p.textContent, sections[index]);
+      if (textContent==='Abstract:'){
+        const abstractContentElement = await sections[index].evaluateHandle(el => el.nextElementSibling);
+        abstract = await page.evaluate((p) => p.textContent, abstractContentElement);
+
+      }
+      if (textContent==='Downloads:'){
+        const pdfElement = await sections[index].evaluateHandle(el => el.nextElementSibling.firstChild);
+        pdf = await page.evaluate((p) => p.href, pdfElement);
+      }
+    }
+
+    const allEvidence = [
+      { type: 'abstract', value: abstract },
+      { type: 'pdf', value: pdf }
+    ];
+    return {
+      abstract:allEvidence.find(
+      (p) => p?.type === 'abstract' && p.value
+    )?.value,
+    pdf:allEvidence.find(
+      (p) => p?.type === 'pdf' && p.value
+    )?.value};
+  },
+};
+
+const aclanthologyRule = {
+  shouldApplyRule: (url) => /aclanthology.org/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run aclanthology rule');
+    const highwirePressTags = await gatherHighwirePressTags(page);
+    const openGraphTags = await gatherOpenGraphTags(page);
+    const abstractClass = await selectElemTextEvidence(page, '.acl-abstract');
+    const pdf = await selectElemAttrEvidence(page, '.pdf-link', 'href');
+
+    const allEvidence = [
+      ...highwirePressTags,
+      ...openGraphTags,
+      { type: 'abstract', value: abstractClass },
+      { type: 'pdf', value: pdf }
+    ];
+
+    const abstractEvidences = allEvidence.filter(
+      (p) => p?.type === 'abstract' && p.value
+    );
+
+    const longestAbstractEvidence = maxBy(abstractEvidences, 'value.length');
+    return {
+      abstract:longestAbstractEvidence?.value,
+      pdf:allEvidence.find(
+        (p) => p?.type === 'pdf' && p.value
+      )?.value};
+  }
+};
+
+const nipsCCRule = {
+  shouldApplyRule: (url) => /nips.cc/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run nips rule');
+
+    const highwirePressTags = await gatherHighwirePressTags(page);
+    const abstract = await selectElemTextEvidence(page, 'h4 + p');
+
+    const allEvidence = [
+      ...highwirePressTags,
+      { type: 'abstract', value: abstract }
+    ];
+
+    const abstractEvidences = allEvidence.filter(
+      (p) => p?.type === 'abstract' && p.value
+    );
+
+    const longestAbstractEvidence = maxBy(abstractEvidences, 'value.length');
+    return {
+      abstract:longestAbstractEvidence?.value,
+      pdf:allEvidence.find(
+        (p) => p?.type === 'pdf' && p.value
+      )?.value};
+  }
+};
+
+const neuripsCCRule = {
+  shouldApplyRule: (url) => /neurips.cc/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run neurips.cc rule');
+    const highwirePressTags = await gatherHighwirePressTags(page);
+
+    const sections = await page.$$('h4');
+
+    let abstract = null;
+    for (let index = 0; index < sections.length; index++) {
+      const textContent = await page.evaluate((p) => p.textContent, sections[index]);
+      if (textContent==='Abstract'){
+        const abstractContentElement = await sections[index].evaluateHandle(el => el.nextElementSibling.nextElementSibling);
+        abstract = await page.evaluate((p) => p.textContent, abstractContentElement);
+
+      }
+    }
+
+    const allEvidence = [
+      ...highwirePressTags,
+      { type: 'abstract', value: abstract }
+    ];
+
+    const abstractEvidences = allEvidence.filter(
+      (p) => p?.type === 'abstract' && p.value
+    );
+
+    const longestAbstractEvidence = maxBy(abstractEvidences, 'value.length');
+    return {
+      abstract:longestAbstractEvidence?.value,
+      pdf:allEvidence.find(
+        (p) => p?.type === 'pdf' && p.value
+      )?.value};
+  }
+};
+
 const generalRule = {
   shouldApplyRule: (url) => true,
   executeRule: async (html, page) => {
+    console.log(' run general rule');
     const highwirePressTags = await gatherHighwirePressTags(page);
     const openGraphTags = await gatherOpenGraphTags(page);
     const dublinCoreTags = await gatherDublinCoreTags(page);
@@ -417,6 +546,7 @@ const generalRule = {
       { type: 'abstract', value: abstractInFullClass },
     ];
 
+
     const abstractEvidences = allEvidence.filter(
       (p) => p?.type === 'abstract' && p.value
     );
@@ -433,11 +563,11 @@ const generalRule = {
 
 const runAllRules = async (html, page, url) => {
   // run through all rules if should apply
-  const rules = [arxivOrgRule, scienceDirectRule, generalRule];
+  const rules = [arxivOrgRule, scienceDirectRule, aaaiOrgRule, aclanthologyRule, nipsCCRule, neuripsCCRule, generalRule];
   const applicableRules = rules.filter((rule) => rule.shouldApplyRule(url));
   for (const rule of applicableRules) {
     const {abstract, pdf} = await rule.executeRule(html, page);
-    if (abstract) {
+    if (abstract || pdf) {
       return {
       abstract: cleanAbstract(abstract),
       pdf

@@ -825,6 +825,56 @@ describe.only('Abstract Extraction', function (){
     assert.equal(pdf,pdfExpected);
   });
 
+  it('should extract abstract using general rule (ojs.aaai.org)',async function (){
+    const abstractExpected = 'We study how political polarization is reflected in the social media posts used by media outlets to promote their content online. In particular, we track the Twitter posts of several media outlets over the course of more than three years (566K tweets), and the engagement with these tweets from other users (104M retweets), modeling the relationship between the tweet text and the political diversity of the audience. We build a tool that integrates our model and helps journalists craft tweets that are engaging to a politically diverse audience, guided by the model predictions. To test the real-world impact of the tool, we partner with the PBS documentary series Frontline and run a series of advertising experiments on Twitter. We find that in seven out of the ten experiments, the tweets selected by our model were indeed engaging to a more politically diverse audience, reducing the gap in engagement between left- and right-leaning users by 20.3%, on average, and illustrating the effectiveness of our approach.';
+    const pdfExpected = 'https://ojs.aaai.org/index.php/ICWSM/article/download/19342/19114';
+    const {abstract, pdf} = await Tools.extractAbstract('https://ojs.aaai.org/index.php/ICWSM/article/view/19342');
+    assert.equal(abstract,abstractExpected);
+    assert.equal(pdf,pdfExpected);
+  });
+
+  it('should extract abstract and pdf using aaai rule (aaai.org)',async function (){
+    const abstractExpected = 'We propose a system for the derivation of algorithms which allows us to use "factual knowledge" for the development of concurrent programs. From preliminary program versions the system can derive new versions which have higher performances and can be evaluated by communicating agents in a parallel architecture. The knowledge about the facts or properties of the programs is also used for the improvement of the system itself.';
+    const pdfExpected = 'https://cdn.aaai.org/AAAI/1986/AAAI86-005.pdf';
+    const {abstract, pdf} = await Tools.extractAbstract('http://www.aaai.org/Library/AAAI/1986/aaai86-005.php');
+    assert.equal(abstract,abstractExpected);
+    assert.equal(pdf,pdfExpected);
+  });
+
+  it('should extract pdf using aaai rule (aaai.org)',async function (){
+    const abstractExpected = null; // no abstract available on the webpage
+    const pdfExpected = 'https://cdn.aaai.org/ojs/10167/10167-13-13695-1-2-20201228.pdf';
+    const {abstract, pdf} = await Tools.extractAbstract('http://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/view/12177');
+    assert.equal(abstract,abstractExpected);
+    assert.equal(pdf,pdfExpected);
+  });
+
+  it('should extract abstract and pdf using general rule (openaccess.thecvf.com)',async function (){
+    const abstractExpected = 'Despite the great success of GANs in images translation with different conditioned inputs such as semantic segmentation and edge map, generating high-fidelity images with reference styles from exemplars remains a grand challenge in conditional image-to-image translation. This paper presents a general image translation framework that incorporates optimal transport for feature alignment between conditional inputs and style exemplars in translation. The introduction of optimal transport mitigates the constraint of many-to-one feature matching significantly while building up semantic correspondences between conditional inputs and exemplars. We design a novel unbalanced optimal transport to address the transport between features with deviational distributions which exists widely between conditional inputs and exemplars. In addition, we design a semantic-aware normalization scheme that injects style and semantic features of exemplars into the image translation process successfully. Extensive experiments over multiple image translation tasks show that our proposed technique achieves superior image translation qualitatively and quantitatively as compared with the state-of-the-art.';
+    const pdfExpected = 'https://openaccess.thecvf.com/content/CVPR2021/papers/Zhan_Unbalanced_Feature_Transport_for_Exemplar-Based_Image_Translation_CVPR_2021_paper.pdf';
+    const {abstract, pdf} = await Tools.extractAbstract('https://openaccess.thecvf.com/content/CVPR2021/html/Zhan_Unbalanced_Feature_Transport_for_Exemplar-Based_Image_Translation_CVPR_2021_paper.html');
+    assert.equal(abstract,abstractExpected);
+    assert.equal(pdf,pdfExpected);
+  });
+
+  it('should extract abstract and pdf using aclanthology rule (aclanthology.org)',async function (){
+    const abstractExpected = 'Training a Named Entity Recognition (NER) model often involves fixing a taxonomy of entity types. However, requirements evolve and we might need the NER model to recognize additional entity types. A simple approach is to re-annotate entire dataset with both existing and additional entity types and then train the model on the re-annotated dataset. However, this is an extremely laborious task. To remedy this, we propose a novel approach called Partial Label Model (PLM) that uses only partially annotated datasets. We experiment with 6 diverse datasets and show that PLM consistently performs better than most other approaches (0.5 - 2.5 F1), including in novel settings for taxonomy expansion not considered in prior work. The gap between PLM and all other approaches is especially large in settings where there is limited data available for the additional entity types (as much as 11 F1), thus suggesting a more cost effective approaches to taxonomy expansion.';
+    const pdfExpected = 'https://aclanthology.org/2023.emnlp-main.426.pdf';
+    const {abstract, pdf} = await Tools.extractAbstract('https://aclanthology.org/2023.emnlp-main.426');
+    assert.equal(abstract,abstractExpected);
+    assert.equal(pdf,pdfExpected);
+  });
+
+  it('should extract abstract and pdf using neuripsCC rule (proceedings.neurips.cc)',async function (){
+    const abstractExpected = 'Semi-supervised learning (SSL) improves model generalization by leveraging massive unlabeled data to augment limited labeled samples. However, currently, popular SSL evaluation protocols are often constrained to computer vision (CV) tasks. In addition, previous work typically trains deep neural networks from scratch, which is time-consuming and environmentally unfriendly. To address the above issues, we construct a Unified SSL Benchmark (USB) for classification by selecting 15 diverse, challenging, and comprehensive tasks from CV, natural language processing (NLP), and audio processing (Audio), on which we systematically evaluate the dominant SSL methods, and also open-source a modular and extensible codebase for fair evaluation of these SSL methods. We further provide the pre-trained versions of the state-of-the-art neural models for CV tasks to make the cost affordable for further tuning. USB enables the evaluation of a single SSL algorithm on more tasks from multiple domains but with less cost. Specifically, on a single NVIDIA V100, only 39 GPU days are required to evaluate FixMatch on 15 tasks in USB while 335 GPU days (279 GPU days on 4 CV datasets except for ImageNet) are needed on 5 CV tasks with TorchSSL.';
+    const pdfExpected = 'https://proceedings.neurips.cc/paper_files/paper/2022/file/190dd6a5735822f05646dc27decff19b-Paper-Datasets_and_Benchmarks.pdf';
+
+    // redirect to neurips.cc
+    const {abstract, pdf} = await Tools.extractAbstract('http://papers.nips.cc/paper_files/paper/2022/hash/190dd6a5735822f05646dc27decff19b-Abstract-Datasets_and_Benchmarks.html');
+    assert.equal(abstract,abstractExpected);
+    assert.equal(pdf,pdfExpected);
+  });
+
   it('should extract abstract using scienceDirect rule',async function (){
     const abstractExpected = 'With the increasing use of research paper search engines, such as CiteSeer, for both literature search and hiring decisions, the accuracy of such systems is of paramount importance. This article employs conditional random fields (CRFs) for the task of extracting various common fields from the headers and citation of research papers. CRFs provide a principled way for incorporating various local features, external lexicon features and globle layout features. The basic theory of CRFs is becoming well-understood, but best-practices for applying them to real-world data requires additional exploration. We make an empirical exploration of several factors, including variations on Gaussian, Laplace and hyperbolic-L1 priors for improved regularization, and several classes of features. Based on CRFs, we further present a novel approach for constraint co-reference information extraction; i.e., improving extraction performance given that we know some citations refer to the same publication. On a standard benchmark dataset, we achieve new state-of-the-art performance, reducing error in average F1 by 36%, and word error rate by 78% in comparison with the previous best SVM results. Accuracy compares even more favorably against HMMs. On four co-reference IE datasets, our system significantly improves extraction performance, with an error rate reduction of 6–14%.';
     const {abstract} = await Tools.extractAbstract('https://www.sciencedirect.com/science/article/pii/S0306457305001172');
