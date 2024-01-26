@@ -797,4 +797,37 @@ describe('OpenReview Client', function () {
       }
     }
   });
+
+});
+
+describe.only('Abstract Extraction', function (){
+  // add timeout 5 seconds for this suite
+  this.timeout(5000);
+  it('should extract abstract using general rule',async function (){
+    const abstractExpected = 'Unimanual interaction allows the user to operate the mobile device in a distracted, multitasking scenario and frees the other hand for tasks like carrying a bag, writing a relevant note etc. In such scenarios, the thumb of the hand holding the device is normally the only available finger for touch input [Boring et al. 2012]. However, mainly due to biomechanical limitations of the thumb, only a subregion of the touch screen is comfortable to access by the thumb [Karlson and Bederson 2007], causing awkward hand postures to reach the rest of the screen. This problem of limited screen accessibility by the thumb deteriorates with screens of increasingly bigger sizes, which, however, are getting more and more popular [Fingas 2012].';
+    const {abstract} = await Tools.extractAbstract('https://doi.org/10.1145/2543651.2543680');
+    assert.equal(abstract,abstractExpected);
+  });
+
+  it('should extract abstract using general rule (proceedings.mlr.press)',async function (){
+    const abstractExpected = 'In order for a robot to be a generalist that can perform a wide range of jobs, it must be able to acquire a wide variety of skills quickly and efficiently in complex unstructured environments. High-capacity models such as deep neural networks can enable a robot to represent complex skills, but learning each skill from scratch then becomes infeasible. In this work, we present a meta-imitation learning method that enables a robot to learn how to learn more efficiently, allowing it to acquire new skills from just a single demonstration. Unlike prior methods for one-shot imitation, our method can scale to raw pixel inputs and requires data from significantly fewer prior tasks for effective learning of new skills. Our experiments on both simulated and real robot platforms demonstrate the ability to learn new tasks, end-to-end, from a single visual demonstration.';
+    const pdfExpected = 'http://proceedings.mlr.press/v78/finn17a/finn17a.pdf';
+    const {abstract, pdf} = await Tools.extractAbstract('http://proceedings.mlr.press/v78/finn17a.html');
+    assert.equal(abstract,abstractExpected);
+    assert.equal(pdf,pdfExpected);
+  });
+
+  it('should extract abstract using arxiv rule',async function (){
+    const abstractExpected = 'While medical images such as computed tomography (CT) are stored in DICOM format in hospital PACS, it is still quite routine in many countries to print a film as a transferable medium for the purposes of self-storage and secondary consultation. Also, with the ubiquitousness of mobile phone cameras, it is quite common to take pictures of the CT films, which unfortunately suffer from geometric deformation and illumination variation. In this work, we study the problem of recovering a CT film, which marks the first attempt in the literature, to the best of our knowledge. We start with building a large-scale head CT film database CTFilm20K, consisting of approximately 20,000 pictures, using the widely used computer graphics software Blender. We also record all accompanying information related to the geometric deformation (such as 3D coordinate, depth, normal, and UV maps) and illumination variation (such as albedo map). Then we propose a deep framework to disentangle geometric deformation and illumination variation using the multiple maps extracted from the CT films to collaboratively guide the recovery process. Extensive experiments on simulated and real images demonstrate the superiority of our approach over the previous approaches. We plan to open source the simulated images and deep models for promoting the research on CT film recovery (https://anonymous.4open.science/r/e6b1f6e3-9b36-423f-a225-55b7d0b55523/).';
+    const pdfExpected = 'http://arxiv.org/pdf/2012.09491v1';
+    const {abstract,pdf} = await Tools.extractAbstract('https://arxiv.org/abs/2012.09491');
+    assert.equal(abstract,abstractExpected);
+    assert.equal(pdf,pdfExpected);
+  });
+
+  it('should extract abstract using scienceDirect rule',async function (){
+    const abstractExpected = 'With the increasing use of research paper search engines, such as CiteSeer, for both literature search and hiring decisions, the accuracy of such systems is of paramount importance. This article employs conditional random fields (CRFs) for the task of extracting various common fields from the headers and citation of research papers. CRFs provide a principled way for incorporating various local features, external lexicon features and globle layout features. The basic theory of CRFs is becoming well-understood, but best-practices for applying them to real-world data requires additional exploration. We make an empirical exploration of several factors, including variations on Gaussian, Laplace and hyperbolic-L1 priors for improved regularization, and several classes of features. Based on CRFs, we further present a novel approach for constraint co-reference information extraction; i.e., improving extraction performance given that we know some citations refer to the same publication. On a standard benchmark dataset, we achieve new state-of-the-art performance, reducing error in average F1 by 36%, and word error rate by 78% in comparison with the previous best SVM results. Accuracy compares even more favorably against HMMs. On four co-reference IE datasets, our system significantly improves extraction performance, with an error rate reduction of 6–14%.';
+    const {abstract} = await Tools.extractAbstract('https://www.sciencedirect.com/science/article/pii/S0306457305001172');
+    assert.equal(abstract,abstractExpected);
+  });
 });
