@@ -71,6 +71,8 @@ const selectElemTextEvidence = async (page, selector) => {
 };
 
 const selectElemAttrEvidence = async (page, selector, contentAttr) => {
+  const html = await page.content();
+  console.log('selector',html);
   try {
     const maybeAttr = await page.$eval(
       selector,
