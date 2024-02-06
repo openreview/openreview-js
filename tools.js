@@ -59,7 +59,6 @@ const initRequestInterception = (page, enableJavaScript, isRewritable) => {
       ? ['document', 'script']
       : ['document'];
     if (!allowedResources.includes(resType)) {
-      // console.log(`Blocking request for resource ${url}`)
       interceptedRequest.abort('aborted' /* = ErrorCode*/);
       return;
     }
