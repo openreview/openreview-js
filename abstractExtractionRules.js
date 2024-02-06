@@ -342,6 +342,16 @@ const cleanAbstract = (abstract) => {
   return cleanAbstract;
 };
 
+const cleanPdf = (pdf,page) => {
+  if (!pdf) return null;
+  const cleanPdf = pdf.trim();
+  if (cleanPdf.startsWith('/')) {
+    const fullUrl = new URL(cleanPdf, page.url());
+    return fullUrl.href;
+  }
+  return cleanPdf;
+};
+
 const arxivOrgRule = {
   shouldApplyRule: (url) => /export.arxiv.org/.test(url),
   executeRule: async(html) => {
@@ -519,6 +529,37 @@ const neuripsCCRule = {
   }
 };
 
+const openreviewRule = {
+  shouldApplyRule: (url) => /openreview.net/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run openreview.net rule');
+    return {result:'stop'};
+  }
+};
+
+const dlAcmOrgRule = {
+  shouldApplyRule: (url) => /dl.acm.org/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run dl.acm.org rule');
+    const dublinCoreTags = await gatherDublinCoreTags(page);
+    const abstractInFull = await selectElemTextEvidence(page, '.abstractInFull');
+    const pdf = await selectElemAttrEvidence(page, 'a[title="PDF"]', 'href');
+
+    const allEvidence = [
+      ...dublinCoreTags,
+      { type: 'abstract', value: abstractInFull },
+      { type: 'pdf', value: pdf }
+    ];
+    return {
+      abstract:allEvidence.find(
+      (p) => p?.type === 'abstract' && p.value
+    )?.value,
+    pdf:allEvidence.find(
+      (p) => p?.type === 'pdf' && p.value
+    )?.value};
+  }
+};
+
 const generalRule = {
   shouldApplyRule: (url) => true,
   executeRule: async (html, page) => {
@@ -563,16 +604,22 @@ const generalRule = {
 
 const runAllRules = async (html, page, url) => {
   // run through all rules if should apply
-  const rules = [arxivOrgRule, scienceDirectRule, aaaiOrgRule, aclanthologyRule, nipsCCRule, neuripsCCRule, generalRule];
+  const rules = [openreviewRule, arxivOrgRule, scienceDirectRule, aaaiOrgRule, aclanthologyRule, nipsCCRule, neuripsCCRule, dlAcmOrgRule, generalRule];
   const applicableRules = rules.filter((rule) => rule.shouldApplyRule(url));
+
   for (const rule of applicableRules) {
-    const {abstract, pdf} = await rule.executeRule(html, page);
+    const { abstract, pdf, result } = await rule.executeRule(html, page);
+
+    if (result === 'stop') {
+      return {};
+    }
+
     if (abstract || pdf) {
       return {
-      abstract: cleanAbstract(abstract),
-      pdf
-    };
-}
+        abstract: cleanAbstract(abstract),
+        pdf: cleanPdf(pdf, page)
+      };
+    }
   }
 
   return {};

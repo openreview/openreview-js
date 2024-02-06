@@ -875,6 +875,31 @@ describe.only('Abstract Extraction', function (){
     assert.equal(pdf,pdfExpected);
   });
 
+  it('should extract abstract and pdf using aclanthology rule (www.aclweb.org)',async function (){
+    const abstractExpected = 'This paper presents the ArabicProcessors team’s deep learning system designed for the NADI 2020 Subtask 1 (country-level dialect identification) and Subtask 2 (province-level dialect identification). We used Arabic-Bert in combination with data augmentation and ensembling methods. Unlabeled data provided by task organizers (10 Million tweets) was split into multiple subparts, to which we applied semi-supervised learning method, and finally ran a specific ensembling process on the resulting models. This system ranked 3rd in Subtask 1 with 23.26% F1-score and 2nd in Subtask 2 with 5.75% F1-score.';
+    const pdfExpected = 'https://aclanthology.org/2020.wanlp-1.28.pdf';
+    const {abstract, pdf} = await Tools.extractAbstract('https://www.aclweb.org/anthology/2020.wanlp-1.28/');
+    assert.equal(abstract,abstractExpected);
+    assert.equal(pdf,pdfExpected);
+  });
+
+  it('should extract abstract and pdf using dlAcmOrgRule rule (dl.acm.org)',async function (){
+    // eslint-disable-next-line quotes
+    const abstractExpected = `n today's information era, every day more and more information is generated and people, on the one hand, have advantages due the increasing support in decision processes and, on the other hand, are experiencing difficulties in the selection of the right data to use. That is, users may leverage on more data but at the same time they may not be able to fully value such data since they lack the necessary knowledge about their provenance and quality. The data quality research area provides quality assessment and improvement methods that can be a valuable support for users that have to deal with the complexity of Web content. In fact, such methods help users to identify the suitability of information for their purposes. Most of the methods and techniques proposed, however, address issues for structured data and/or for defined contexts. Clearly, they cannot be easily used on the Web, where data come from heterogeneous sources and the context of use is most of the times unknown. In this keynote, the need for new assessment techniques is highlighted together with the importance of tracking data provenance as well as the reputation and trustworthiness of the sources. In fact, it is well known that the increase of data volume often corresponds to an increase of value, but to maximize such value the data sources to be used have to carefully analyzed, selected and integrated depending on the specific context of use. The talk discusses the data quality dimensions necessary to analyze different Web data sources and provides a set of illustrative examples that show how to maximize the quality of gathered information.`;
+    const pdfExpected = 'https://dl.acm.org/doi/pdf/10.1145/2740908.2778845';
+    const {abstract, pdf} = await Tools.extractAbstract('http://dl.acm.org/citation.cfm?id=2778845');
+    assert.equal(abstract,abstractExpected);
+    assert.equal(pdf,pdfExpected);
+  });
+
+  it('should return empty using openreview rule (openreview.net)',async function (){
+    const abstractExpected = undefined;
+    const pdfExpected = undefined;
+    const {abstract, pdf} = await Tools.extractAbstract('https://openreview.net/forum?id=Rty5g9imm7H');
+    assert.equal(abstract,abstractExpected);
+    assert.equal(pdf,pdfExpected);
+  });
+
   it('should extract abstract using scienceDirect rule',async function (){
     const abstractExpected = 'With the increasing use of research paper search engines, such as CiteSeer, for both literature search and hiring decisions, the accuracy of such systems is of paramount importance. This article employs conditional random fields (CRFs) for the task of extracting various common fields from the headers and citation of research papers. CRFs provide a principled way for incorporating various local features, external lexicon features and globle layout features. The basic theory of CRFs is becoming well-understood, but best-practices for applying them to real-world data requires additional exploration. We make an empirical exploration of several factors, including variations on Gaussian, Laplace and hyperbolic-L1 priors for improved regularization, and several classes of features. Based on CRFs, we further present a novel approach for constraint co-reference information extraction; i.e., improving extraction performance given that we know some citations refer to the same publication. On a standard benchmark dataset, we achieve new state-of-the-art performance, reducing error in average F1 by 36%, and word error rate by 78% in comparison with the previous best SVM results. Accuracy compares even more favorably against HMMs. On four co-reference IE datasets, our system significantly improves extraction performance, with an error rate reduction of 6–14%.';
     const {abstract} = await Tools.extractAbstract('https://www.sciencedirect.com/science/article/pii/S0306457305001172');
