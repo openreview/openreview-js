@@ -60,7 +60,6 @@ const selectAllMetaEvidence = async (page, name, attrName = 'name') => {
 };
 
 const selectElemTextEvidence = async (page, selector) => {
-  //   const evidenceName = `select:$(${queryString})`
   const elements = await page.$$(selector);
   const element = elements[0];
   if (!element) return null;
@@ -342,7 +341,7 @@ const cleanAbstract = (abstract) => {
 const cleanPdf = (pdf,page) => {
   if (!pdf) return null;
   const cleanPdf = pdf.trim();
-  if (cleanPdf.startsWith('/')) {
+  if (cleanPdf.startsWith('/') || /^[^/]*\.pdf$/.test(cleanPdf)) {
     const fullUrl = new URL(cleanPdf, page.url());
     return fullUrl.href;
   }
@@ -587,6 +586,25 @@ const ieeeXploreOrgRule = {
   }
 };
 
+const iscaSpeechOrgRule = {
+  shouldApplyRule: (url) => /isca-speech.org/.test(url) || /isca-archive.org/.test(url),
+  executeRule: async (html, page) => {
+    const abstract = await selectElemTextEvidence(page, 'div.w3-card>p');
+    const pdf = await selectElemAttrEvidence(page, 'div.w3-card>a', 'href');
+    const allEvidence = [
+      { type: 'abstract', value: abstract },
+      { type: 'pdf', value: pdf }
+    ];
+    return {
+      abstract:allEvidence.find(
+      (p) => p?.type === 'abstract' && p.value
+    )?.value,
+    pdf:allEvidence.find(
+      (p) => p?.type === 'pdf' && p.value
+    )?.value};
+  }
+};
+
 const generalRule = {
   shouldApplyRule: (url) => true,
   executeRule: async (html, page) => {
@@ -631,7 +649,7 @@ const generalRule = {
 
 const runAllRules = async (html, page, url) => {
   // run through all rules if should apply
-  const rules = [openreviewRule, arxivOrgRule, scienceDirectRule, aaaiOrgRule, aclanthologyRule, nipsCCRule, neuripsCCRule, dlAcmOrgRule, ieeeXploreOrgRule, generalRule];
+  const rules = [openreviewRule, arxivOrgRule, scienceDirectRule, aaaiOrgRule, aclanthologyRule, nipsCCRule, neuripsCCRule, dlAcmOrgRule, ieeeXploreOrgRule, iscaSpeechOrgRule, generalRule];
   const applicableRules = rules.filter((rule) => rule.shouldApplyRule(url));
 
   for (const rule of applicableRules) {

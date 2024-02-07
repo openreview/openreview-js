@@ -11,7 +11,7 @@ const { tidy: htmlTidy } = require('htmltidy2');
 const { OpenReviewError } = require('./errors');
 const runAllRules = require('./abstractExtractionRules');
 
-const shouldEnableJavaScript = (url) => [/linkinghub.elsevier.com/, /aaai.org/].some((regex) => regex.test(url));
+const shouldEnableJavaScript = (url) => [/linkinghub.elsevier.com/, /aaai.org/, /isca-speech.org/].some((regex) => regex.test(url));
 
 const htmlTidyOptions = [
   'clean: no',
