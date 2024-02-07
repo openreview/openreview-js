@@ -557,6 +557,36 @@ const dlAcmOrgRule = {
   }
 };
 
+const ieeeXploreOrgRule = {
+  shouldApplyRule: (url) => /ieeexplore.ieee.org/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run ieeexplore.ieee.org rule');
+    try {
+      const globalMetaMark = 'Global.document.metadata={';
+      const lines = html.split('\n');
+      const globalMetaLine = lines.find((p) => p.includes(globalMetaMark));
+      const startIndex = globalMetaLine.indexOf('{');
+      const endIndex = globalMetaLine.lastIndexOf('}');
+
+      const globalMetadataString = globalMetaLine.slice(startIndex, endIndex + 1);
+      const globalMetadata = JSON.parse(globalMetadataString);
+      const abstract = globalMetadata?.abstract;
+      const pdf = globalMetadata?.pdfPath;
+      const allEvidence = [
+        { type: 'abstract', value: abstract },
+        { type: 'pdf', value: pdf }
+      ];
+      return {
+        abstract: allEvidence.find((p) => p?.type === 'abstract' && p.value)?.value,
+        pdf: allEvidence.find((p) => p?.type === 'pdf' && p.value)?.value
+      };
+    } catch (error) {
+      console.log(error.message);
+      return {};
+    }
+  }
+};
+
 const generalRule = {
   shouldApplyRule: (url) => true,
   executeRule: async (html, page) => {
@@ -601,7 +631,7 @@ const generalRule = {
 
 const runAllRules = async (html, page, url) => {
   // run through all rules if should apply
-  const rules = [openreviewRule, arxivOrgRule, scienceDirectRule, aaaiOrgRule, aclanthologyRule, nipsCCRule, neuripsCCRule, dlAcmOrgRule, generalRule];
+  const rules = [openreviewRule, arxivOrgRule, scienceDirectRule, aaaiOrgRule, aclanthologyRule, nipsCCRule, neuripsCCRule, dlAcmOrgRule, ieeeXploreOrgRule, generalRule];
   const applicableRules = rules.filter((rule) => rule.shouldApplyRule(url));
 
   for (const rule of applicableRules) {
