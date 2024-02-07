@@ -40,7 +40,6 @@ const selectMetaEvidence = async (page, name, attrName = 'name') => {
     if (maybeAttr === null || attrValue === null) console.log('empty selection');
     return attrValue;
   } catch (error) {
-    console.log(error.message);
     return null;
   }
 };
@@ -56,7 +55,6 @@ const selectAllMetaEvidence = async (page, name, attrName = 'name') => {
     );
     return contents;
   } catch (error) {
-    console.log(error.message);
     return null;
   }
 };
@@ -71,8 +69,6 @@ const selectElemTextEvidence = async (page, selector) => {
 };
 
 const selectElemAttrEvidence = async (page, selector, contentAttr) => {
-  const html = await page.content();
-  console.log('selector',html);
   try {
     const maybeAttr = await page.$eval(
       selector,
@@ -89,7 +85,6 @@ const selectElemAttrEvidence = async (page, selector, contentAttr) => {
     if (maybeAttr === null || attrValue === null) console.log('empty selection');
     return attrValue;
   } catch (error) {
-    console.log(error.message);
     return null;
   }
 };
