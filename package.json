@@ -5,7 +5,7 @@
   "description": "Node.js packages to interact with the OpenReview API and data",
   "main": "index.js",
   "scripts": {
-    "test": "lerna run test",
+    "test": "npm install && lerna run test",
     "version": "lerna version --no-private"
   },
   "repository": {

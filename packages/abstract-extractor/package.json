@@ -8,7 +8,11 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "eslint": "^8.50.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.1"
+  },
   "scripts": {
     "test": "npm install && npm run lint",
     "lint": "eslint ."
