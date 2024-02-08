@@ -1,17 +1,17 @@
 'use strict';
 
-const fetch = require('node-fetch');
-const fs = require('fs');
-const { FormData } = require('formdata-node');
+import fetch from 'node-fetch';
+import fs from 'fs';
+import { FormData } from 'formdata-node';
 // eslint-disable-next-line import/no-unresolved
-const { fileFromPath } = require('formdata-node/file-from-path');
-const { Readable } = require('stream');
-const { FormDataEncoder } = require('form-data-encoder');
-const { pipeline } = require('stream/promises');
-const Tools = require('./tools');
-const { OpenReviewError, MultiOpenReviewError } = require('./errors');
+import { fileFromPath } from 'formdata-node/file-from-path';
+import { Readable } from 'stream';
+import { FormDataEncoder } from 'form-data-encoder';
+import { pipeline } from 'stream/promises';
+import Tools from './tools.js';
+import OpenReviewError from './errors.js';
 
-class OpenReviewClient {
+export default class OpenReviewClient {
   constructor(baseUrl, options = {}) {
     this.baseUrl = baseUrl || 'https://api2.openreview.net';
     this.headers = {
@@ -96,7 +96,7 @@ class OpenReviewClient {
     if (this.throwErrors) {
       if (response.status !== 200) {
         if (data.errors) {
-          throw new MultiOpenReviewError(data);
+          throw new AggregateError(data.errors.map(error => new OpenReviewError(error)), data.errors?.[0]?.message ?? 'Error');
         } else {
           throw new OpenReviewError(data);
         }
@@ -1573,5 +1573,3 @@ class OpenReviewClient {
   }
 
 }
-
-module.exports = { OpenReviewClient, Tools };

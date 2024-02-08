@@ -1,11 +1,12 @@
 {
-  "name": "@openreview/client",
-  "version": "0.0.23",
-  "description": "Node.js client library for OpenReview's academic publishing API",
+  "name": "openreview",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Node.js packages to interact with the OpenReview API and data",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint .",
-    "test": "npm install && npm run lint && mocha"
+    "test": "lerna run test",
+    "version": "lerna version --no-private"
   },
   "repository": {
     "type": "git",
@@ -13,27 +14,22 @@
   },
   "keywords": [
     "openreview",
-    "research"
+    "research",
+    "abstract",
+    "extractor"
   ],
-  "author": "Zach Bialecki <zach@openreview.net>, Carlos Mondragon <carlos@openreview.net>",
+  "author": "OpenReview <info@openreview.net>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/openreview/openreview-js/issues"
   },
   "homepage": "https://github.com/openreview/openreview-js#readme",
-  "engines": {
-    "node": ">=16.0.0"
-  },
-  "dependencies": {
-    "fast-xml-parser": "^4.3.2",
-    "form-data-encoder": "^1.9.0",
-    "formdata-node": "^4.4.1",
-    "node-fetch": "^2.7.0",
-    "tldjs": "^2.3.1"
-  },
+  "workspaces": [
+    "packages/client",
+    "packages/abstract-extractor"
+  ],
+  "dependencies": {},
   "devDependencies": {
-    "eslint": "^8.50.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "mocha": "^10.2.0"
+    "lerna": "^8.1.2"
   }
 }

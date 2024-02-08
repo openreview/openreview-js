@@ -1,0 +1,31 @@
+{
+  "name": "@openreview/abstract-extractor",
+  "version": "0.0.0",
+  "description": "Extract abstracts for DBLP papers",
+  "main": "src/index.js",
+  "type": "module",
+  "directories": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "npm install && npm run lint",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openreview/openreview-js.git"
+  },
+  "keywords": [
+    "abstract",
+    "extractor",
+    "dblp"
+  ],
+  "author": "OpenReview <info@openreview.net>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/openreview/openreview-js/issues"
+  },
+  "homepage": "https://github.com/openreview/openreview-js#readme"
+}

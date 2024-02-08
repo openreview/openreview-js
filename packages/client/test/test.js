@@ -1,5 +1,5 @@
-const assert = require('assert');
-const { OpenReviewClient, Tools } = require('../index');
+import assert from 'assert';
+import { OpenReviewClient, Tools } from '../src/index.js';
 
 describe('OpenReview Client', function () {
   this.beforeAll(async function () {
@@ -642,9 +642,8 @@ describe('OpenReview Client', function () {
         }
       });
     } catch (error) {
-      assert.equal(error.name, 'MultiError');
-      assert.equal(error.message, 'First of 2: The property invalidField must NOT be present');
-      assert.equal(error.status, 400);
+      assert.equal(error.name, 'AggregateError');
+      assert.equal(error.message, 'The property invalidField must NOT be present');
       assert.equal(error.errors[0].name, 'AdditionalPropertiesError');
       assert.equal(error.errors[0].message, 'The property invalidField must NOT be present');
       assert.equal(error.errors[0].status, 400);

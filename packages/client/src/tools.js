@@ -1,12 +1,14 @@
 'use strict';
 
-const path = require('path');
-const fs = require('fs').promises;
-const { XMLParser } = require('fast-xml-parser');
-const { isValid, getDomain } = require('tldjs');
-const { OpenReviewError } = require('./errors');
+import { join, dirname } from 'path';
+import { promises as fs } from 'fs';
+import { fileURLToPath } from 'url';
+import { XMLParser } from 'fast-xml-parser';
+import pkg from 'tldjs';
 
-class Tools {
+const { isValid, getDomain } = pkg;
+
+export default class Tools {
   constructor(client) {
     this.client = client;
     this.commonDomains = [
@@ -425,7 +427,9 @@ class Tools {
 
     // Get duplicates only once
     if (!this.duplicateDomains) {
-      const filePath = path.join(__dirname, './data/duplicate-domains.json');
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = dirname(__filename);
+      const filePath = join(__dirname, '../data/duplicate-domains.json');
       this.duplicateDomains = JSON.parse(await fs.readFile(filePath));
     }
 
@@ -512,7 +516,7 @@ class Tools {
    * @param {object} profile - The profile object.
    * @param {number} nYears - The number of years to consider for the profile.
    * @returns {object} The profile information.
-   * @throws {OpenReviewError} If the profile has obfuscated emails.
+   * @throws {Error} If the profile has obfuscated emails.
    */
   getProfileInfo(profile, nYears) {
     let domains = new Set();
@@ -520,9 +524,7 @@ class Tools {
     let publications = new Set();
 
     if (profile.content?.emails?.[0]?.startsWith('****@')) {
-      throw new OpenReviewError({
-        message: 'You do not have the required permissions as some emails are obfuscated. Please login with the correct account or contact support.'
-      });
+      throw new Error('You do not have the required permissions as some emails are obfuscated. Please login with the correct account or contact support.');
     }
 
     // Emails section
@@ -581,7 +583,7 @@ class Tools {
    * @param {object} profile - The profile object.
    * @param {number} nYears - The number of years to consider for the profile.
    * @returns {object} The profile information.
-   * @throws {OpenReviewError} If the profile has obfuscated emails.
+   * @throws {Error} If the profile has obfuscated emails.
    */
   getNeuripsProfileInfo(profile, nYears) {
     const domains = new Set();
@@ -598,9 +600,7 @@ class Tools {
     }
 
     if (profile.content?.emails?.[0]?.startsWith('****@')) {
-      throw new OpenReviewError({
-        message: 'You do not have the required permissions as some emails are obfuscated. Please login with the correct account or contact support.'
-      });
+      throw new Error('You do not have the required permissions as some emails are obfuscated. Please login with the correct account or contact support.');
     }
 
     // Institution section, get history within the last n years, excluding internships
@@ -802,16 +802,11 @@ class Tools {
     try {
       dblpJson = xmlParser.parse(dblpXml);
     } catch (err) {
-      throw new OpenReviewError({
-        message: 'Something went wrong parsing the dblp xml',
-        cause: err
-      });
+      throw new Error('Something went wrong parsing the dblp xml', { cause: err });
     }
 
     if (Object.keys(dblpJson).length === 0) {
-      throw new OpenReviewError({
-        message: 'Something went wrong parsing the dblp xml'
-      });
+      throw new Error('Something went wrong parsing the dblp xml');
     }
 
     const data = entryToData(dblpJson);
@@ -866,5 +861,3 @@ class Tools {
     return note;
   }
 }
-
-module.exports = Tools;
