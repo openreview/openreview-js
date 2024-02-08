@@ -909,10 +909,18 @@ describe.only('Abstract Extraction', function (){
     assert.equal(pdf,pdfExpected);
   });
 
-  it('should return abstract and pdf using openreview rule (openreview.net)',async function (){
+  it('should return abstract and pdf using iscaSpeechOrgRule rule (isca-archive.org)',async function (){
     const abstractExpected = 'In this paper, we describe a system for recording of mood di aries in the context of an ambient assisted living and intelli gent coaching environment, which ensures privacy by design. The system performs affect recognition in speech features with out recording speech content in any form. We demonstrate re sults of affect recognition models tested on data collected in care-home settings during the SAAM project (Supporting Ac tive Ageing through Multimodal Coaching) using our custom designed audio collection hardware. The proposed system was trained using Bulgarian speech augmented with training data obtained from comparable mood diaries recorded in Scottish English. A degree of transfer learning of Scottish English speech to Bulgarian speech was demonstrated.';
     const pdfExpected = 'https://www.isca-archive.org/interspeech_2022/haider22_interspeech.pdf';
-    const {abstract, pdf} = await Tools.extractAbstract('https://www.isca-speech.org/archive/interspeech_2022/haider22_interspeech.html');
+    const {abstract, pdf} = await Tools.extractAbstract('https://www.isca-speech.org/archive/interspeech_2022/haider22_interspeech.html'); // redirect to isca-archive.org
+    assert.equal(abstract,abstractExpected);
+    assert.equal(pdf,pdfExpected);
+  });
+
+  it('should return abstract and pdf using lrecConfOrgRule rule (lrec-conf.org)',async function (){
+    const abstractExpected = 'In order to help improve the quality, coverage and performance of automated translation solutions in the context of current and future Connecting Europe Facility (CEF) digital services, the European Language Resource Coordination (ELRC) consortium was set up through a service contract operating under the European Commission’s CEF SMART 2014/1074 programme to initiate a number of actions to support the collection of Language Resources (LRs) within the public sector. The first action consisted in raising awareness in the public sector through the organisation of dedicated events: 2 conferences and 29 country-specific workshops to meet with national or regional/municipal governmental organisations, language competence centres, relevant European institutions and other potential holders of LRs from the public service administrations. In order to gather resources shared by the contributors, the ELRC-SHARE Repository was built up together with services to support the sharing of LRs, such as the ELRC Helpdesk and Intellectual property Rights (IPR) clearance support. All collected LRs should pass a validation process whose guidelines were developed within the project. The collected LRs cover all official EU languages, plus Icelandic and Norwegian.';
+    const pdfExpected = 'http://www.lrec-conf.org/proceedings/lrec2018/pdf/1119.pdf';
+    const {abstract, pdf} = await Tools.extractAbstract('http://www.lrec-conf.org/proceedings/lrec2018/summaries/1119.html');
     assert.equal(abstract,abstractExpected);
     assert.equal(pdf,pdfExpected);
   });

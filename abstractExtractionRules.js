@@ -415,7 +415,7 @@ const aaaiOrgRule = {
 
       }
       if (textContent==='Downloads:'){
-        const pdfElement = await sections[index].evaluateHandle(el => el.nextElementSibling.firstChild);
+        const pdfElement = await sections[index].evaluateHandle(el => el.nextElementSibling.firstElementChild);
         pdf = await page.evaluate((p) => p.href, pdfElement);
       }
     }
@@ -605,6 +605,40 @@ const iscaSpeechOrgRule = {
   }
 };
 
+const lrecConfOrgRule = {
+  shouldApplyRule: (url) => /lrec-conf.org/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run lrec-conf.org rule');
+    const tableCells = await page.$$('td');
+    let abstract = null;
+    let pdf = null;
+    for (let index = 0; index < tableCells.length; index++) {
+      const textContent = await page.evaluate((p) => p.textContent, tableCells[index]);
+      if (textContent==='Abstract'){
+        const abstractContentElement = await tableCells[index].evaluateHandle(el => el.nextElementSibling);
+        abstract = await page.evaluate((p) => p.textContent, abstractContentElement);
+
+      }
+      if (textContent==='Full paper'){
+        const pdfElement = await tableCells[index].evaluateHandle(el => el.nextElementSibling.firstElementChild);
+        pdf = await page.evaluate((p) => p.href, pdfElement);
+      }
+    }
+
+    const allEvidence = [
+      { type: 'abstract', value: abstract },
+      { type: 'pdf', value: pdf }
+    ];
+    return {
+      abstract:allEvidence.find(
+      (p) => p?.type === 'abstract' && p.value
+    )?.value,
+    pdf:allEvidence.find(
+      (p) => p?.type === 'pdf' && p.value
+    )?.value};
+  }
+};
+
 const generalRule = {
   shouldApplyRule: (url) => true,
   executeRule: async (html, page) => {
@@ -649,7 +683,7 @@ const generalRule = {
 
 const runAllRules = async (html, page, url) => {
   // run through all rules if should apply
-  const rules = [openreviewRule, arxivOrgRule, scienceDirectRule, aaaiOrgRule, aclanthologyRule, nipsCCRule, neuripsCCRule, dlAcmOrgRule, ieeeXploreOrgRule, iscaSpeechOrgRule, generalRule];
+  const rules = [openreviewRule, arxivOrgRule, scienceDirectRule, aaaiOrgRule, aclanthologyRule, nipsCCRule, neuripsCCRule, dlAcmOrgRule, ieeeXploreOrgRule, iscaSpeechOrgRule, lrecConfOrgRule, generalRule];
   const applicableRules = rules.filter((rule) => rule.shouldApplyRule(url));
 
   for (const rule of applicableRules) {
