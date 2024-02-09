@@ -11,7 +11,7 @@ import {
   rewriteUrl
 } from './helpers.js';
 
-const extractAbstract = async (url,skipTidy = false) => {
+const extractAbstract = async (url, skipTidy = false) => {
   let extractionResult = {abstract:null,pdf:null};
   const enableJavaScript = shouldEnableJavaScript(url);
   const isRewritable = urlWriteRegexMap.some((p) => p.regex.test(url));
@@ -35,7 +35,7 @@ const extractAbstract = async (url,skipTidy = false) => {
       if (rewrittenUrl) {
         console.log(`Rewriting ${url} to ${rewrittenUrl}`);
         await browserInstance.close();
-        return this.extractAbstract(rewrittenUrl, true);
+        return extractAbstract(rewrittenUrl, true);
       }
     }
 

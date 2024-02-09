@@ -685,7 +685,20 @@ const generalRule = {
 
 const runAllRules = async (html, page, url) => {
   // run through all rules if should apply
-  const rules = [openreviewRule, arxivOrgRule, scienceDirectRule, aaaiOrgRule, aclanthologyRule, nipsCCRule, neuripsCCRule, dlAcmOrgRule, ieeeXploreOrgRule, iscaSpeechOrgRule, lrecConfOrgRule, generalRule];
+  const rules = [
+    openreviewRule,
+    arxivOrgRule,
+    scienceDirectRule,
+    aaaiOrgRule,
+    aclanthologyRule,
+    nipsCCRule,
+    neuripsCCRule,
+    dlAcmOrgRule,
+    ieeeXploreOrgRule,
+    iscaSpeechOrgRule,
+    lrecConfOrgRule,
+    generalRule
+  ];
   const applicableRules = rules.filter((rule) => rule.shouldApplyRule(url));
 
   for (const rule of applicableRules) {
