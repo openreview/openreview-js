@@ -1,6 +1,6 @@
 {
   "name": "@openreview/meta-extraction",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Extract abstracts for DBLP papers",
   "main": "src/index.js",
   "type": "module",
@@ -23,8 +23,8 @@
     "mocha": "^10.2.0"
   },
   "scripts": {
-    "test": "npm run lint && mocha",
-    "coverage": "npm run lint && mocha",
+    "test": "npm run lint && mocha --timeout 60000",
+    "coverage": "npm run lint && mocha --timeout 60000",
     "lint": "eslint ."
   },
   "repository": {

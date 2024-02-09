@@ -44,22 +44,22 @@ jobs:
         with:
           stack-version: 7.6.0
       - name: Checkout openreview-py
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: openreview/openreview-py
           path: openreview-py
       - name: Checkout openreview-api
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: openreview/openreview-api
           token: ${{ secrets.PAT_OPENREVIEW_IESL }}
           path: openreview-api
       - name: Checkout openreview-js
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: openreview-js
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
