@@ -40,5 +40,6 @@
   "bugs": {
     "url": "https://github.com/openreview/openreview-js/issues"
   },
-  "homepage": "https://github.com/openreview/openreview-js#readme"
+  "homepage": "https://github.com/openreview/openreview-js#readme",
+  "gitHead": "e83fe20886ca81f61c67c1884941b8df937c24c3"
 }
