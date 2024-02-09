@@ -5,11 +5,11 @@
   "main": "src/index.js",
   "type": "module",
   "directories": {
-    "test": "test",
-    "lint": "eslint ."
+    "test": "test"
   },
   "scripts": {
     "test": "mocha --timeout 60000",
+    "coverage": "mocha --timeout 60000",
     "lint": "eslint ."
   },
   "repository": {

@@ -24,6 +24,7 @@
   },
   "scripts": {
     "test": "mocha",
+    "coverage": "mocha",
     "lint": "eslint ."
   },
   "repository": {
