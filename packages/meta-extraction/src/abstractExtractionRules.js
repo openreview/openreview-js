@@ -1,6 +1,8 @@
-const get = require('lodash/get');
-const maxBy = require('lodash/maxBy');
-const xml2js = require('xml2js');
+// import get from 'lodash/get';
+// import maxBy from 'lodash/maxBy';
+
+import _ from 'lodash';
+import xml2js from 'xml2js';
 
 const expandCaseVariations = (seed, sub) => {
   const variations = [...seed].reduce(
@@ -353,10 +355,10 @@ const arxivOrgRule = {
   executeRule: async(html) => {
     console.log(' run arxiv rule');
     const xmlObject = await xml2js.parseStringPromise(html);
-    const summary = get(xmlObject, 'feed.entry.0.summary')?.toString();
-    const title = get(xmlObject, 'feed.entry.0.title')?.toString();
+    const summary = _.get(xmlObject, 'feed.entry.0.summary')?.toString();
+    const title = _.get(xmlObject, 'feed.entry.0.title')?.toString();
 
-    const links = get(xmlObject, ['feed', 'entry', '0', 'link']);
+    const links = _.get(xmlObject, ['feed', 'entry', '0', 'link']);
     const pdfLink = links?.find((p) => p?.$?.type === 'application/pdf')?.$?.href;
 
     const allEvidence = [
@@ -454,7 +456,7 @@ const aclanthologyRule = {
       (p) => p?.type === 'abstract' && p.value
     );
 
-    const longestAbstractEvidence = maxBy(abstractEvidences, 'value.length');
+    const longestAbstractEvidence = _.maxBy(abstractEvidences, 'value.length');
     return {
       abstract:longestAbstractEvidence?.value,
       pdf:allEvidence.find(
@@ -480,7 +482,7 @@ const nipsCCRule = {
       (p) => p?.type === 'abstract' && p.value
     );
 
-    const longestAbstractEvidence = maxBy(abstractEvidences, 'value.length');
+    const longestAbstractEvidence = _.maxBy(abstractEvidences, 'value.length');
     return {
       abstract:longestAbstractEvidence?.value,
       pdf:allEvidence.find(
@@ -516,7 +518,7 @@ const neuripsCCRule = {
       (p) => p?.type === 'abstract' && p.value
     );
 
-    const longestAbstractEvidence = maxBy(abstractEvidences, 'value.length');
+    const longestAbstractEvidence = _.maxBy(abstractEvidences, 'value.length');
     return {
       abstract:longestAbstractEvidence?.value,
       pdf:allEvidence.find(
@@ -671,7 +673,7 @@ const generalRule = {
       (p) => p?.type === 'abstract' && p.value
     );
 
-    const longestAbstractEvidence = maxBy(abstractEvidences, 'value.length');
+    const longestAbstractEvidence = _.maxBy(abstractEvidences, 'value.length');
     return {
       abstract:longestAbstractEvidence?.value,
       pdf:allEvidence.find(
@@ -683,7 +685,20 @@ const generalRule = {
 
 const runAllRules = async (html, page, url) => {
   // run through all rules if should apply
-  const rules = [openreviewRule, arxivOrgRule, scienceDirectRule, aaaiOrgRule, aclanthologyRule, nipsCCRule, neuripsCCRule, dlAcmOrgRule, ieeeXploreOrgRule, iscaSpeechOrgRule, lrecConfOrgRule, generalRule];
+  const rules = [
+    openreviewRule,
+    arxivOrgRule,
+    scienceDirectRule,
+    aaaiOrgRule,
+    aclanthologyRule,
+    nipsCCRule,
+    neuripsCCRule,
+    dlAcmOrgRule,
+    ieeeXploreOrgRule,
+    iscaSpeechOrgRule,
+    lrecConfOrgRule,
+    generalRule
+  ];
   const applicableRules = rules.filter((rule) => rule.shouldApplyRule(url));
 
   for (const rule of applicableRules) {
@@ -704,4 +719,6 @@ const runAllRules = async (html, page, url) => {
   return {};
 };
 
-module.exports = runAllRules;
+export {
+  runAllRules
+};

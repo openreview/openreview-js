@@ -1,0 +1,46 @@
+{
+  "name": "@openreview/client",
+  "version": "0.0.26",
+  "description": "Node.js client library for OpenReview's academic publishing API",
+  "main": "src/index.js",
+  "type": "module",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "npm run lint && mocha --timeout 60000",
+    "coverage": "npm run lint && mocha --timeout 60000",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openreview/openreview-js.git"
+  },
+  "keywords": [
+    "openreview",
+    "client"
+  ],
+  "author": "OpenReview <info@openreview.net>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/openreview/openreview-js/issues"
+  },
+  "homepage": "https://github.com/openreview/openreview-js#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^4.3.2",
+    "form-data-encoder": "^1.9.0",
+    "formdata-node": "^4.4.1",
+    "node-fetch": "^2.7.0",
+    "tldjs": "^2.3.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.50.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.1",
+    "mocha": "^10.2.0"
+  },
+  "gitHead": "e83fe20886ca81f61c67c1884941b8df937c24c3"
+}

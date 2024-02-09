@@ -1,91 +1,14 @@
 'use strict';
 
-const path = require('path');
-const fs = require('fs').promises;
-const { XMLParser } = require('fast-xml-parser');
-const { isValid, getDomain } = require('tldjs');
-const puppeteer = require('puppeteer-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-const AnonPlugin = require('puppeteer-extra-plugin-anonymize-ua');
-const { tidy: htmlTidy } = require('htmltidy2');
-const { OpenReviewError } = require('./errors');
-const runAllRules = require('./abstractExtractionRules');
+import { join, dirname } from 'path';
+import { promises as fs } from 'fs';
+import { fileURLToPath } from 'url';
+import { XMLParser } from 'fast-xml-parser';
+import pkg from 'tldjs';
 
-const shouldEnableJavaScript = (url) => [/linkinghub.elsevier.com/, /aaai.org/, /isca-speech.org/].some((regex) => regex.test(url));
+const { isValid, getDomain } = pkg;
 
-const htmlTidyOptions = [
-  'clean: no',
-  'custom-tags: blocklevel',
-  'drop-empty-elements: no',
-  'drop-empty-paras: no',
-  'force-output: yes',
-  'indent-cdata: yes',
-  'indent-spaces: 4',
-  'indent: yes',
-  'join-styles: no',
-  'markup: yes',
-  'merge-divs: no',
-  'merge-spans: no',
-  'output-xhtml: yes',
-  'tab-size: 4',
-  'tidy-mark: no',
-  'wrap-asp: no',
-  'wrap-attributes: no',
-  'wrap-jste: no',
-  'wrap-php: no',
-  'wrap-script-literals: no',
-  'wrap-sections: no',
-  'wrap: 0',
-];
-
-const urlWriteRegexMap = [
-  {
-    regex: /\/arxiv.org\/abs/,
-    rewriteRegex: /arxiv.org\/abs\/(.*)$/,
-  },
-  {
-    regex: /\/doi.org\/.+\/arXiv/,
-    rewriteRegex: /arXiv.(.*)$/,
-  },
-];
-
-const initRequestInterception = (page, enableJavaScript, isRewritable) => {
-  if (!page.browser().process()?.pid) return;
-  page.on('request', async (interceptedRequest) => {
-    if (interceptedRequest.isInterceptResolutionHandled()) return;
-    const url = interceptedRequest.url();
-    const resType = interceptedRequest.resourceType();
-    const allowedResources = enableJavaScript
-      ? ['document', 'script']
-      : ['document'];
-    if (!allowedResources.includes(resType)) {
-      interceptedRequest.abort('aborted' /* = ErrorCode*/);
-      return;
-    }
-
-    if (isRewritable) {
-      console.log(`Aborting rewritable url ${url}`);
-      interceptedRequest.abort('blockedbyclient');
-      return;
-    }
-
-    await interceptedRequest.continue(
-      interceptedRequest.continueRequestOverrides(),
-      0
-    );
-  });
-};
-
-const rewriteUrl = (srcUrl) => {
-  const rewriteRegex = urlWriteRegexMap.find((p) => p.regex.test(srcUrl)
-  )?.rewriteRegex;
-  if (!rewriteRegex) return;
-  const matches = srcUrl.match(rewriteRegex);
-  if (matches === null || matches.length < 2) return;
-  const arxivId = matches[1];
-  return `http://export.arxiv.org/api/query?id_list=${arxivId}`;
-};
-class Tools {
+export default class Tools {
   constructor(client) {
     this.client = client;
     this.commonDomains = [
@@ -504,7 +427,9 @@ class Tools {
 
     // Get duplicates only once
     if (!this.duplicateDomains) {
-      const filePath = path.join(__dirname, './data/duplicate-domains.json');
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = dirname(__filename);
+      const filePath = join(__dirname, '../data/duplicate-domains.json');
       this.duplicateDomains = JSON.parse(await fs.readFile(filePath));
     }
 
@@ -591,7 +516,7 @@ class Tools {
    * @param {object} profile - The profile object.
    * @param {number} nYears - The number of years to consider for the profile.
    * @returns {object} The profile information.
-   * @throws {OpenReviewError} If the profile has obfuscated emails.
+   * @throws {Error} If the profile has obfuscated emails.
    */
   getProfileInfo(profile, nYears) {
     let domains = new Set();
@@ -599,9 +524,7 @@ class Tools {
     let publications = new Set();
 
     if (profile.content?.emails?.[0]?.startsWith('****@')) {
-      throw new OpenReviewError({
-        message: 'You do not have the required permissions as some emails are obfuscated. Please login with the correct account or contact support.'
-      });
+      throw new Error('You do not have the required permissions as some emails are obfuscated. Please login with the correct account or contact support.');
     }
 
     // Emails section
@@ -660,7 +583,7 @@ class Tools {
    * @param {object} profile - The profile object.
    * @param {number} nYears - The number of years to consider for the profile.
    * @returns {object} The profile information.
-   * @throws {OpenReviewError} If the profile has obfuscated emails.
+   * @throws {Error} If the profile has obfuscated emails.
    */
   getNeuripsProfileInfo(profile, nYears) {
     const domains = new Set();
@@ -677,9 +600,7 @@ class Tools {
     }
 
     if (profile.content?.emails?.[0]?.startsWith('****@')) {
-      throw new OpenReviewError({
-        message: 'You do not have the required permissions as some emails are obfuscated. Please login with the correct account or contact support.'
-      });
+      throw new Error('You do not have the required permissions as some emails are obfuscated. Please login with the correct account or contact support.');
     }
 
     // Institution section, get history within the last n years, excluding internships
@@ -881,16 +802,11 @@ class Tools {
     try {
       dblpJson = xmlParser.parse(dblpXml);
     } catch (err) {
-      throw new OpenReviewError({
-        message: 'Something went wrong parsing the dblp xml',
-        cause: err
-      });
+      throw new Error('Something went wrong parsing the dblp xml', { cause: err });
     }
 
     if (Object.keys(dblpJson).length === 0) {
-      throw new OpenReviewError({
-        message: 'Something went wrong parsing the dblp xml'
-      });
+      throw new Error('Something went wrong parsing the dblp xml');
     }
 
     const data = entryToData(dblpJson);
@@ -944,61 +860,4 @@ class Tools {
 
     return note;
   }
-
-  static async extractAbstract (url,skipTidy = false) {
-    let extractionResult = {abstract:null,pdf:null};
-    const enableJavaScript = shouldEnableJavaScript(url);
-    const isRewritable = urlWriteRegexMap.some((p) => p.regex.test(url));
-    puppeteer.use(StealthPlugin());
-    puppeteer.use(AnonPlugin());
-
-    const browserInstance = await puppeteer.launch({
-      headless: 'new',
-    });
-
-    const page = await browserInstance.newPage();
-    page.setDefaultNavigationTimeout(10_000);
-    page.setDefaultTimeout(10_000);
-    page.setJavaScriptEnabled(enableJavaScript);
-    await page.setRequestInterception(true);
-    initRequestInterception(page, enableJavaScript, isRewritable);
-
-    try {
-      if (isRewritable) {
-        const rewrittenUrl = rewriteUrl(url);
-        if (rewrittenUrl) {
-          console.log(`Rewriting ${url} to ${rewrittenUrl}`);
-          await browserInstance.close();
-          return this.extractAbstract(rewrittenUrl, true);
-        }
-      }
-
-      const response = await page.goto(url, {
-        waitUntil: enableJavaScript ? 'networkidle0' : 'domcontentloaded',
-      });
-      if (response === null) {
-        console.log(`null HTTPResponse to ${url}`);
-        // eslint-disable-next-line no-throw-literal
-        throw { message: 'rewrite', responseUrl: response.url() };
-      }
-      // status filter
-      const status = response.status().toString();
-      console.log(`HTTP status code: ${status}`);
-      // normalizeHtmls
-      const rawHtml = await response.text();
-      const tidyHtml = skipTidy? rawHtml: await new Promise((resolve, reject) => {
-        htmlTidy(rawHtml, htmlTidyOptions, (err, html) => {
-          if (err) reject(err);
-          else resolve(html);
-        });
-      });
-      extractionResult = await runAllRules(tidyHtml, page, response.url());
-    } catch (error) {
-      console.log(`${error.name}: ${error.message}`);
-    }
-    await browserInstance.close();
-    return extractionResult;
-  }
 }
-
-module.exports = Tools;

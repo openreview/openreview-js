@@ -1,0 +1,46 @@
+{
+  "name": "@openreview/meta-extraction",
+  "version": "0.0.1",
+  "description": "Extract abstracts for DBLP papers",
+  "main": "src/index.js",
+  "type": "module",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "htmltidy2": "^1.1.1",
+    "lodash": "^4.17.21",
+    "puppeteer": "^22.0.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-anonymize-ua": "^2.4.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.50.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.1",
+    "mocha": "^10.2.0"
+  },
+  "scripts": {
+    "test": "npm run lint && mocha",
+    "coverage": "npm run lint && mocha",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openreview/openreview-js.git"
+  },
+  "keywords": [
+    "abstract",
+    "extractor",
+    "dblp"
+  ],
+  "author": "OpenReview <info@openreview.net>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/openreview/openreview-js/issues"
+  },
+  "homepage": "https://github.com/openreview/openreview-js#readme",
+  "gitHead": "e83fe20886ca81f61c67c1884941b8df937c24c3"
+}
