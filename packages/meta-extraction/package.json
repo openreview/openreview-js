@@ -10,7 +10,7 @@
   "dependencies": {
     "htmltidy2": "^1.1.1",
     "lodash": "^4.17.21",
-    "puppeteer": "^21.7.0",
+    "puppeteer": "^22.0.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-anonymize-ua": "^2.4.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",

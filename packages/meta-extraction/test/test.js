@@ -72,6 +72,7 @@ describe.only('Abstract Extraction', function () {
 
     // redirect to neurips.cc
     const {abstract, pdf} = await extractAbstract('http://papers.nips.cc/paper_files/paper/2022/hash/190dd6a5735822f05646dc27decff19b-Abstract-Datasets_and_Benchmarks.html');
+    // const {abstract, pdf} = await extractAbstract('https://papers.neurips.cc/paper_files/paper/2022/hash/190dd6a5735822f05646dc27decff19b-Abstract-Datasets_and_Benchmarks.html');
     assert.equal(abstract,abstractExpected);
     assert.equal(pdf,pdfExpected);
   });
