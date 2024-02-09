@@ -1,6 +1,6 @@
 {
   "name": "@openreview/meta-extraction",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Extract abstracts for DBLP papers",
   "main": "src/index.js",
   "type": "module",
