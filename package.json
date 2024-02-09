@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "test": "lerna run test",
-    "version": "lerna version --no-private"
+    "version": "lerna version --no-private",
+    "npm-publish": "lerna publish from-package"
   },
   "repository": {
     "type": "git",
