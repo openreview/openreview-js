@@ -8,8 +8,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "mocha --timeout 60000",
-    "coverage": "mocha --timeout 60000",
+    "test": "npm run lint && mocha --timeout 60000",
+    "coverage": "npm run lint && mocha --timeout 60000",
     "lint": "eslint ."
   },
   "repository": {

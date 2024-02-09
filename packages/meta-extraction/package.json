@@ -23,8 +23,8 @@
     "mocha": "^10.2.0"
   },
   "scripts": {
-    "test": "mocha",
-    "coverage": "mocha",
+    "test": "npm run lint && mocha",
+    "coverage": "npm run lint && mocha",
     "lint": "eslint ."
   },
   "repository": {
