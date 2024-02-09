@@ -5,9 +5,9 @@
   "description": "Node.js packages to interact with the OpenReview API and data",
   "main": "index.js",
   "scripts": {
-    "test": "npm ci && lerna run test",
-    "version": "lerna version --no-private",
-    "npm-publish": "lerna publish from-package"
+    "test": "npx lerna run test",
+    "version": "npx lerna version --no-private",
+    "npm-publish": "npx lerna publish from-package"
   },
   "repository": {
     "type": "git",
