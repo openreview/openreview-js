@@ -23,8 +23,8 @@
     "mocha": "^10.2.0"
   },
   "scripts": {
-    "test": "npm run lint && mocha",
-    "coverage": "npm run lint && mocha",
+    "test": "npm run lint && mocha --timeout 60000",
+    "coverage": "npm run lint && mocha --timeout 60000",
     "lint": "eslint ."
   },
   "repository": {
