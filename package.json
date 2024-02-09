@@ -7,7 +7,6 @@
   "scripts": {
     "test": "npm install && lerna run test",
     "coverage": "npm install --include=optional && lerna run coverage",
-    "version": "lerna version --no-private",
     "npm-publish": "lerna publish from-package"
   },
   "repository": {
