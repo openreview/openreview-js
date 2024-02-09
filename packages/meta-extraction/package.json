@@ -23,7 +23,7 @@
     "mocha": "^10.2.0"
   },
   "scripts": {
-    "test": "npm run lint && mocha",
+    "test": "mocha",
     "lint": "eslint ."
   },
   "repository": {

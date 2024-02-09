@@ -9,7 +9,7 @@
     "lint": "eslint ."
   },
   "scripts": {
-    "test": "npm run lint && mocha --timeout 60000",
+    "test": "mocha --timeout 60000",
     "lint": "eslint ."
   },
   "repository": {
