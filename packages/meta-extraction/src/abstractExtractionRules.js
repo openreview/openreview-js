@@ -641,6 +641,29 @@ const lrecConfOrgRule = {
   }
 };
 
+const ePrintIacrRule = {
+  shouldApplyRule: (url) => /eprint.iacr.org/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run eprint.iacr.org rule');
+    const highwirePressTags = await gatherHighwirePressTags(page);
+
+    // eslint-disable-next-line quotes
+    const abstractTitleElement = await page.$x(`//*[contains(text(), 'Abstract')]`);
+    const abstractElement = await abstractTitleElement?.[0]?.$x('./following-sibling::p[1]');
+    const abstract = await abstractElement?.[0].evaluate(p => p.textContent);
+
+    const allEvidence = [
+      ...highwirePressTags,
+      { type: 'abstract', value: abstract },
+    ];
+
+    return {
+      abstract: allEvidence.find((p) => p?.type === 'abstract' && p.value)?.value,
+      pdf: allEvidence.find((p) => p?.type === 'pdf' && p.value)?.value,
+    };
+  },
+};
+
 const generalRule = {
   shouldApplyRule: (url) => true,
   executeRule: async (html, page) => {
@@ -697,6 +720,7 @@ const runAllRules = async (html, page, url) => {
     ieeeXploreOrgRule,
     iscaSpeechOrgRule,
     lrecConfOrgRule,
+    ePrintIacrRule,
     generalRule
   ];
   const applicableRules = rules.filter((rule) => rule.shouldApplyRule(url));
