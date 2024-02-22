@@ -465,34 +465,8 @@ const aclanthologyRule = {
   }
 };
 
-const nipsCCRule = {
-  shouldApplyRule: (url) => /nips.cc/.test(url),
-  executeRule: async (html, page) => {
-    console.log(' run nips rule');
-
-    const highwirePressTags = await gatherHighwirePressTags(page);
-    const abstract = await selectElemTextEvidence(page, 'h4 + p');
-
-    const allEvidence = [
-      ...highwirePressTags,
-      { type: 'abstract', value: abstract }
-    ];
-
-    const abstractEvidences = allEvidence.filter(
-      (p) => p?.type === 'abstract' && p.value
-    );
-
-    const longestAbstractEvidence = _.maxBy(abstractEvidences, 'value.length');
-    return {
-      abstract:longestAbstractEvidence?.value,
-      pdf:allEvidence.find(
-        (p) => p?.type === 'pdf' && p.value
-      )?.value};
-  }
-};
-
 const neuripsCCRule = {
-  shouldApplyRule: (url) => /neurips.cc/.test(url),
+  shouldApplyRule: (url) => /nips.cc/.test(url) || /neurips.cc/.test(url),
   executeRule: async (html, page) => {
     console.log(' run neurips.cc rule');
     const highwirePressTags = await gatherHighwirePressTags(page);
@@ -691,7 +665,6 @@ const runAllRules = async (html, page, url) => {
     scienceDirectRule,
     aaaiOrgRule,
     aclanthologyRule,
-    nipsCCRule,
     neuripsCCRule,
     dlAcmOrgRule,
     ieeeXploreOrgRule,
