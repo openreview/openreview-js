@@ -465,34 +465,8 @@ const aclanthologyRule = {
   }
 };
 
-const nipsCCRule = {
-  shouldApplyRule: (url) => /nips.cc/.test(url),
-  executeRule: async (html, page) => {
-    console.log(' run nips rule');
-
-    const highwirePressTags = await gatherHighwirePressTags(page);
-    const abstract = await selectElemTextEvidence(page, 'h4 + p');
-
-    const allEvidence = [
-      ...highwirePressTags,
-      { type: 'abstract', value: abstract }
-    ];
-
-    const abstractEvidences = allEvidence.filter(
-      (p) => p?.type === 'abstract' && p.value
-    );
-
-    const longestAbstractEvidence = _.maxBy(abstractEvidences, 'value.length');
-    return {
-      abstract:longestAbstractEvidence?.value,
-      pdf:allEvidence.find(
-        (p) => p?.type === 'pdf' && p.value
-      )?.value};
-  }
-};
-
 const neuripsCCRule = {
-  shouldApplyRule: (url) => /neurips.cc/.test(url),
+  shouldApplyRule: (url) => /nips.cc/.test(url) || /neurips.cc/.test(url),
   executeRule: async (html, page) => {
     console.log(' run neurips.cc rule');
     const highwirePressTags = await gatherHighwirePressTags(page);
@@ -641,29 +615,6 @@ const lrecConfOrgRule = {
   }
 };
 
-const ePrintIacrRule = {
-  shouldApplyRule: (url) => /eprint.iacr.org/.test(url),
-  executeRule: async (html, page) => {
-    console.log(' run eprint.iacr.org rule');
-    const highwirePressTags = await gatherHighwirePressTags(page);
-
-    // eslint-disable-next-line quotes
-    const abstractTitleElement = await page.$x(`//*[contains(text(), 'Abstract')]`);
-    const abstractElement = await abstractTitleElement?.[0]?.$x('./following-sibling::p[1]');
-    const abstract = await abstractElement?.[0].evaluate(p => p.textContent);
-
-    const allEvidence = [
-      ...highwirePressTags,
-      { type: 'abstract', value: abstract },
-    ];
-
-    return {
-      abstract: allEvidence.find((p) => p?.type === 'abstract' && p.value)?.value,
-      pdf: allEvidence.find((p) => p?.type === 'pdf' && p.value)?.value,
-    };
-  },
-};
-
 const generalRule = {
   shouldApplyRule: (url) => true,
   executeRule: async (html, page) => {
@@ -714,13 +665,11 @@ const runAllRules = async (html, page, url) => {
     scienceDirectRule,
     aaaiOrgRule,
     aclanthologyRule,
-    nipsCCRule,
     neuripsCCRule,
     dlAcmOrgRule,
     ieeeXploreOrgRule,
     iscaSpeechOrgRule,
     lrecConfOrgRule,
-    ePrintIacrRule,
     generalRule
   ];
   const applicableRules = rules.filter((rule) => rule.shouldApplyRule(url));

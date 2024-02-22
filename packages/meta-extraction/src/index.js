@@ -23,8 +23,8 @@ const extractAbstract = async (url, skipTidy = false) => {
   });
 
   const page = await browserInstance.newPage();
-  page.setDefaultNavigationTimeout(10_000);
-  page.setDefaultTimeout(10_000);
+  page.setDefaultNavigationTimeout(15_000);
+  page.setDefaultTimeout(15_000);
   page.setJavaScriptEnabled(enableJavaScript);
   await page.setRequestInterception(true);
   initRequestInterception(page, enableJavaScript, isRewritable);
