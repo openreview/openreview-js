@@ -8,7 +8,8 @@ import {
   htmlTidyOptions,
   urlWriteRegexMap,
   initRequestInterception,
-  rewriteUrl
+  rewriteUrl,
+  shouldEnableMultiRedirect
 } from './helpers.js';
 
 const extractAbstract = async (url, skipTidy = false) => {
@@ -50,6 +51,10 @@ const extractAbstract = async (url, skipTidy = false) => {
     // status filter
     const status = response.status().toString();
     console.log(`HTTP status code: ${status}`);
+
+    if (shouldEnableMultiRedirect(response.url())){
+      return extractAbstract(response.url(), true);
+    }
     // normalizeHtmls
     const rawHtml = await response.text();
     const tidyHtml = skipTidy? rawHtml: await new Promise((resolve, reject) => {
@@ -58,6 +63,7 @@ const extractAbstract = async (url, skipTidy = false) => {
         else resolve(html);
       });
     });
+
     extractionResult = await runAllRules(tidyHtml, page, response.url());
   } catch (error) {
     console.log(`${error.name}: ${error.message}`);
