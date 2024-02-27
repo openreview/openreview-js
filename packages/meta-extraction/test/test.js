@@ -148,7 +148,6 @@ describe.only('Abstract Extraction', function () {
     // and redirected again to https://www.sciencedirect.com/science/article/pii/S014036641730525X
     const {abstract, pdf} = await extractAbstract('https://doi.org/10.1016/j.comcom.2018.03.013');
     assert.equal(abstract.replace(/\s|\u00A0/g, ' '),abstractExpected.replace(/\s|\u00A0/g, ' ')); // non-breaking space can cause test to fail
-    console.log('pdf is',pdf);
     assert.ok(pdf === null || pdf === pdfExpected); // pdf not available outside campus
   });
 

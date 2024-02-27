@@ -475,8 +475,8 @@ const scienceDirectRule = {
     const openGraphTags = await gatherOpenGraphTags(page);
     const abstractClass = await selectElemTextEvidence(page, '.abstract');
     const pdf = await selectElemAttrEvidence(page, 'div.PdfEmbed a.anchor', 'href');
-    const pdfLink = await selectElemAttrEvidence(page, 'a.accessbar-utility-link', 'href');
-    console.log('pdfLink',pdfLink);
+    let pdfLink = await selectElemAttrEvidence(page, 'a.accessbar-utility-link', 'href');
+    if (pdfLink.startsWith('/user/institution/login')) pdfLink=null;
 
     const allEvidence = [
       ...highwirePressTags,
@@ -485,7 +485,6 @@ const scienceDirectRule = {
       { type: 'pdf', value: pdf },
       { type: 'pdf', value: pdfLink }
     ];
-
     return {
       abstract:allEvidence.find(
       (p) => p?.type === 'abstract' && p.value
