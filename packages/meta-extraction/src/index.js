@@ -9,7 +9,8 @@ import {
   urlWriteRegexMap,
   initRequestInterception,
   rewriteUrl,
-  shouldEnableMultiRedirect
+  shouldEnableMultiRedirect,
+  getTimeout
 } from './helpers.js';
 
 const extractAbstract = async (url, skipTidy = false) => {
@@ -24,8 +25,9 @@ const extractAbstract = async (url, skipTidy = false) => {
   });
 
   const page = await browserInstance.newPage();
-  page.setDefaultNavigationTimeout(15_000);
-  page.setDefaultTimeout(15_000);
+  const timeout = getTimeout(url);
+  page.setDefaultNavigationTimeout(timeout);
+  page.setDefaultTimeout(timeout);
   page.setJavaScriptEnabled(enableJavaScript);
   await page.setRequestInterception(true);
   initRequestInterception(page, enableJavaScript, isRewritable);
@@ -53,6 +55,7 @@ const extractAbstract = async (url, skipTidy = false) => {
     console.log(`HTTP status code: ${status}`);
 
     if (shouldEnableMultiRedirect(response.url())){
+      await browserInstance.close();
       return extractAbstract(response.url(), true);
     }
     // normalizeHtmls
