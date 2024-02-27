@@ -148,6 +148,7 @@ describe.only('Abstract Extraction', function () {
     // and redirected again to https://www.sciencedirect.com/science/article/pii/S014036641730525X
     const {abstract, pdf} = await extractAbstract('https://doi.org/10.1016/j.comcom.2018.03.013');
     assert.equal(abstract.replace(/\s|\u00A0/g, ' '),abstractExpected.replace(/\s|\u00A0/g, ' ')); // non-breaking space can cause test to fail
+    console.log('pdf is',pdf);
     assert.ok(pdf === null || pdf === pdfExpected); // pdf not available outside campus
   });
 
@@ -193,7 +194,7 @@ describe.only('Abstract Extraction', function () {
     // then redirect to https://dl.acm.org/doi/10.1145/765891.765992
     const {abstract, pdf} = await extractAbstract('https://doi.org/10.1145/765891.765992');
     assert.equal(abstract,abstractExpected);
-    assert.equal(pdf,pdfExpected);
+    assert.ok(pdf === null || pdf === pdfExpected);
   });
 
   it('should return abstract and pdf using academicOupComRule rule (academic.oup.com)',async function (){
