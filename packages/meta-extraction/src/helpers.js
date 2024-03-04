@@ -1,5 +1,13 @@
 const shouldEnableJavaScript = (url) => [/linkinghub.elsevier.com/, /aaai.org/, /isca-speech.org/].some((regex) => regex.test(url));
 
+const shouldEnableMultiRedirect = (url) => [/doi.org/, /linkinghub.elsevier.com/].some((regex) => regex.test(url));
+
+const getTimeout = (url) => {
+  const defaultTimeout = 15_000;
+  if ([/spiedigitallibrary.org/,/iospress.com/].some((regex) => regex.test(url))) return defaultTimeout*2;
+  return defaultTimeout;
+};
+
 const htmlTidyOptions = [
   'clean: no',
   'custom-tags: blocklevel',
@@ -75,8 +83,10 @@ const rewriteUrl = (srcUrl) => {
 
 export {
   shouldEnableJavaScript,
+  shouldEnableMultiRedirect,
   htmlTidyOptions,
   urlWriteRegexMap,
   initRequestInterception,
-  rewriteUrl
+  rewriteUrl,
+  getTimeout
 };
