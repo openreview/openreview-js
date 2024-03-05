@@ -776,7 +776,6 @@ describe('OpenReview Client', function () {
       },
       {
         cdate: 1640995200000,
-        pdate: 1641013200000,
         content: {
           title: {value: 'The Utilities of Evolutionary Multiobjective Optimization for Neural Architecture Search - An Empirical Perspective'},
           _bibtex: {value: '@inproceedings{DBLP:conf/bic-ta/Liu22,\n  author={Xukun Liu},\n  title={The Utilities of Evolutionary Multiobjective Optimization for Neural Architecture Search - An Empirical Perspective},\n  year={2022},\n  cdate={1640995200000},\n  pages={179-195},\n  url={https://doi.org/10.1007/978-981-99-1549-1_15},\n  booktitle={BIC-TA},\n  crossref={conf/bic-ta/2022}\n}\n'},
