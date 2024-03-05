@@ -711,6 +711,7 @@ describe('OpenReview Client', function () {
       '<proceedings key="conf/acl/1987" mdate="2017-05-10">\n<editor>Candy L. Sidner</editor>\n<title>25th Annual Meeting of the Association for Computational Linguistics, Stanford University, Stanford, California, USA, July 6-9, 1987.</title>\n<booktitle>ACL</booktitle>\n<publisher>ACL</publisher>\n<year>1987</year>\n<ee>http://aclweb.org/anthology/P/P87/</ee>\n<url>db/conf/acl/acl1987.html</url>\n</proceedings>\n\n',
       '<inproceedings key="conf/acl/Rajasekaran95" mdate="2016-12-19">\n<author>Sanguthevar Rajasekaran</author>\n<title>TAL Recognition in O(M(n<sup>2</sup>)) Time.</title>\n<pages>166-173</pages>\n<year>1995</year>\n<crossref>conf/acl/1995</crossref>\n<booktitle>ACL</booktitle>\n<url>db/conf/acl/acl95.html#Rajasekaran95</url>\n<ee>http://aclweb.org/anthology/P/P95/P95-1023.pdf</ee>\n</inproceedings>',
       '<inproceedings key="conf/aaai/TanYWHTS16" mdate="2018-11-20">\n<author>Mingkui Tan</author>\n<author>Yan Yan 0006</author>\n<author>Li Wang 0033</author>\n<author>Anton van den Hengel</author>\n<author>Ivor W. Tsang</author>\n<author>Qinfeng (Javen) Shi</author>\n<title>Learning Sparse Confidence-Weighted Classifier on Very High Dimensional Data.</title>\n<pages>2080-2086</pages>\n<year>2016</year>\n<booktitle>AAAI</booktitle>\n<ee>http://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/view/12329</ee>\n<crossref>conf/aaai/2016</crossref>\n<url>db/conf/aaai/aaai2016.html#TanYWHTS16</url>\n</inproceedings>',
+      '<inproceedings key="conf/bic-ta/Liu22" mdate="2023-07-21"><author orcid="0000-0002-4608-9448" pid="228/3773">Xukun Liu</author><title>The Utilities of Evolutionary Multiobjective Optimization for Neural Architecture Search - An Empirical Perspective.</title><pages>179-195</pages><year>2022</year><booktitle>BIC-TA</booktitle><ee>https://doi.org/10.1007/978-981-99-1549-1_15</ee><crossref>conf/bic-ta/2022</crossref><url>db/conf/bic-ta/bic-ta2022.html#Liu22</url></inproceedings>'
     ];
 
     const resolved = [
@@ -771,6 +772,18 @@ describe('OpenReview Client', function () {
           ]},
           html: { value: 'http://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/view/12329' },
           title: { value: 'Learning Sparse Confidence-Weighted Classifier on Very High Dimensional Data' }
+        }
+      },
+      {
+        cdate: 1640995200000,
+        content: {
+          title: {value: 'The Utilities of Evolutionary Multiobjective Optimization for Neural Architecture Search - An Empirical Perspective'},
+          _bibtex: {value: '@inproceedings{DBLP:conf/bic-ta/Liu22,\n  author={Xukun Liu},\n  title={The Utilities of Evolutionary Multiobjective Optimization for Neural Architecture Search - An Empirical Perspective},\n  year={2022},\n  cdate={1640995200000},\n  pages={179-195},\n  url={https://doi.org/10.1007/978-981-99-1549-1_15},\n  booktitle={BIC-TA},\n  crossref={conf/bic-ta/2022}\n}\n'},
+          authors: { value: ['Xukun Liu'] },
+          authorids: { value: ['https://dblp.org/search/pid/api?q=author:Xukun_Liu:'] },
+          venue: { value: 'BIC-TA 2022' },
+          venueid: { value: 'dblp.org/conf/BIC-TA/2022' },
+          html: { value: 'https://doi.org/10.1007/978-981-99-1549-1_15' }
         }
       }
     ];

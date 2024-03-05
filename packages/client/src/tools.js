@@ -732,7 +732,7 @@ export default class Tools {
           data.authors.push(author);
           data.authorids.push(authorid);
         }
-      } else if (typeof rawData.author === 'string') {
+      } else if (this.variableType(rawData.author) === 'string' || this.variableType(rawData.author) === 'object') {
         const { author, authorid } = getAuthorData(rawData.author);
         data.authors.push(author);
         data.authorids.push(authorid);
