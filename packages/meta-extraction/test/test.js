@@ -312,4 +312,11 @@ describe.only('Abstract Extraction', function () {
     const {abstract} = await extractAbstract('https://ieeexplore.ieee.org/document/10416155');
     assert.equal(abstract,abstractExpected);
   });
+
+  it('should return error when url is invalid',async function (){
+    const {abstract,pdf,error} = await extractAbstract('https://ieeexplore.ieee.org/non-existing-url');
+    assert.equal(abstract,null);
+    assert.equal(pdf,null);
+    assert.equal(error,'no global metadata');
+  });
 });

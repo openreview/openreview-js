@@ -373,7 +373,7 @@ const openreviewRule = {
   shouldApplyRule: (url) => /openreview.net/.test(url),
   executeRule: async (html, page) => {
     console.log(' run openreview.net rule');
-    return {result:'stop'};
+    return {error:'openreview rule'};
   }
 };
 
@@ -385,6 +385,7 @@ const ieeeXploreOrgRule = {
       const globalMetaMark = 'Global.document.metadata={';
       const lines = html.split('\n');
       const globalMetaLine = lines.find((p) => p.includes(globalMetaMark));
+      if (!globalMetaLine) throw new Error('no global metadata');
       const startIndex = globalMetaLine.indexOf('{');
       const endIndex = globalMetaLine.lastIndexOf('}');
 
@@ -402,7 +403,9 @@ const ieeeXploreOrgRule = {
       };
     } catch (error) {
       console.log(error.message);
-      return {};
+      return {
+        error: error.message
+      };
     }
   }
 };
@@ -971,10 +974,10 @@ const runAllRules = async (html, page, url) => {
   const applicableRules = rules.filter((rule) => rule.shouldApplyRule(url));
 
   for (const rule of applicableRules) {
-    const { abstract, pdf, result } = await rule.executeRule(html, page);
+    const { abstract, pdf, error } = await rule.executeRule(html, page);
 
-    if (result === 'stop') {
-      return {};
+    if (error) {
+      return {error};
     }
 
     if (abstract || pdf) {
