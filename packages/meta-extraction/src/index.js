@@ -52,13 +52,14 @@ const extractAbstract = async (url, skipTidy = false) => {
     }
     // status filter
     const status = response.status().toString();
+    const responseUrl = response.url();
     console.log(`HTTP status code: ${status}`);
 
-    if (shouldEnableMultiRedirect(response.url())){
+    if (shouldEnableMultiRedirect(responseUrl)){
       await browserInstance.close();
-      if (status.startsWith('3')) {
-        console.log(`Redirecting to ${response.url()}`);
-        return extractAbstract(response.url(), true);
+      if (status.startsWith('3') || status.startsWith('2')) {
+        console.log(`Redirecting to ${responseUrl}`);
+        return extractAbstract(responseUrl, true);
       } else {
         throw new Error(`HTTP status code: ${status}`);
       }
@@ -72,7 +73,7 @@ const extractAbstract = async (url, skipTidy = false) => {
       });
     });
 
-    extractionResult = await runAllRules(tidyHtml, page, response.url());
+    extractionResult = await runAllRules(tidyHtml, page, responseUrl);
   } catch (error) {
     extractionResult.error = error.message;
   }
