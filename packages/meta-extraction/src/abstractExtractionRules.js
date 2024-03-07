@@ -342,6 +342,22 @@ const cleanAbstract = (abstract) => {
   return cleanAbstract;
 };
 
+const cleanMathjax = async (str, page) => {
+  if (![/<inline-formula\b/,/\/Math\/MathML/].some(p => p.test(str))) return str;
+  try {
+    return await page.evaluate((p) => {
+      // eslint-disable-next-line no-undef
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = p;
+      // tempDiv.style['white-pace'] = 'pre-line';
+      const extractedText = tempDiv.textContent.trim();
+      return extractedText;
+  }, str);
+  } catch (error) {
+    return str;
+  }
+};
+
 const cleanPdf = (pdf,page) => {
   if (!pdf) return null;
   const cleanPdf = pdf.trim();
@@ -352,6 +368,7 @@ const cleanPdf = (pdf,page) => {
   return cleanPdf;
 };
 
+//#region rules
 const openreviewRule = {
   shouldApplyRule: (url) => /openreview.net/.test(url),
   executeRule: async (html, page) => {
@@ -924,6 +941,8 @@ const generalRule = {
   }
 };
 
+//#endregion
+
 const runAllRules = async (html, page, url) => {
   // run through all rules if should apply
   const rules = [
@@ -959,8 +978,9 @@ const runAllRules = async (html, page, url) => {
     }
 
     if (abstract || pdf) {
+      let cleanedAbstract = await cleanMathjax(abstract,page);
       return {
-        abstract: cleanAbstract(abstract),
+        abstract: cleanAbstract(cleanedAbstract),
         pdf: cleanPdf(pdf, page)
       };
     }

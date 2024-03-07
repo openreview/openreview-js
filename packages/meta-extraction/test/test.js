@@ -305,4 +305,11 @@ describe.only('Abstract Extraction', function () {
     assert.equal(abstract,abstractExpected);
     assert.equal(pdf,pdfExpected);
   });
+
+  it('should remove mathjax tags from abstract',async function (){
+    const abstractExpected = 'Various applications of molecular communications (MCs) feature an alarm-prompt behavior for which the prevalent Shannon capacity may not be the appropriate performance metric. The identification capacity as an alternative measure for such systems has been motivated and established in the literature. In this paper, we study deterministic K-identification (DKI) for the discrete-time Poisson channel (DTPC) with inter-symbol interference (ISI), where the transmitter is restricted to an average and a peak molecule release rate constraint. Such a channel serves as a model for diffusive MC systems featuring long channel impulse responses and employing molecule-counting receivers. We derive lower and upper bounds on the DKI capacity of the DTPC with ISI when the size of the target message set $K$ and the number of ISI channel taps $L$ may grow with the codeword length $n$ . As a key finding, we establish that for deterministic encoding, assuming that $K$ and $L$ both grow sub-linearly in $n$ , i.e., $K = 2^{\\kappa \\log n}$ and $L = 2^{l \\log n} $ with $\\kappa + 4l \\in [0,1)$ , where $\\kappa \\in [0,1)$ is the identification target rate and $l \\in [0,1/4) $ is the ISI rate, then the number of different messages that can be reliably identified scales super-exponentially in $n$ , i.e., $\\sim 2^{(n\\log n)R}$ , where $R$ is the DKI coding rate. Moreover, since $l$ and $\\kappa $ must fulfill $\\kappa + 4l \\in [0,1)$ , we show that optimizing $l$ (or equivalently the symbol rate) leads to an effective identification rate [bits/s] that scales sub-linearly with $n $ . This result is in contrast to the typical transmission rate [bits/s] which is independent of $n$ .';
+    // abstract contains <inline-formula>,<italic> and <tex-math> tags
+    const {abstract} = await extractAbstract('https://ieeexplore.ieee.org/document/10416155');
+    assert.equal(abstract,abstractExpected);
+  });
 });
