@@ -155,7 +155,22 @@ const gatherDublinCoreTags = async (page) => {
   return evidence;
 };
 
-const cleanAbstract = (abstract) => {
+const cleanMathjax = async (str, page) => {
+  if (![/<inline-formula\b/,/\/Math\/MathML/].some(p => p.test(str))) return str;
+  try {
+    return await page.evaluate((p) => {
+      // eslint-disable-next-line no-undef
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = p;
+      const extractedText = tempDiv.textContent.trim();
+      return extractedText;
+  }, str);
+  } catch (error) {
+    return str;
+  }
+};
+
+const cleanAbstract = async (abstract, page) => {
   if (!abstract) return null;
   const abstractCleaningRules = [
     {
@@ -326,7 +341,7 @@ const cleanAbstract = (abstract) => {
     }
   ];
 
-  let cleanAbstract = abstract;
+  let cleanAbstract = await cleanMathjax(abstract,page);
   abstractCleaningRules.forEach((rule) => {
     const { guards, run } = rule;
     const shouldRun = !guards.length || guards.some((guardRegex) => guardRegex.test(abstract));
@@ -340,21 +355,6 @@ const cleanAbstract = (abstract) => {
   });
 
   return cleanAbstract;
-};
-
-const cleanMathjax = async (str, page) => {
-  if (![/<inline-formula\b/,/\/Math\/MathML/].some(p => p.test(str))) return str;
-  try {
-    return await page.evaluate((p) => {
-      // eslint-disable-next-line no-undef
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = p;
-      const extractedText = tempDiv.textContent.trim();
-      return extractedText;
-  }, str);
-  } catch (error) {
-    return str;
-  }
 };
 
 const cleanPdf = (pdf,page) => {
@@ -495,7 +495,7 @@ const scienceDirectRule = {
     const abstractClass = await selectElemTextEvidence(page, '.abstract');
     const pdf = await selectElemAttrEvidence(page, 'div.PdfEmbed a.anchor', 'href');
     let pdfLink = await selectElemAttrEvidence(page, 'a.accessbar-utility-link', 'href');
-    if (pdfLink.startsWith('/user/institution/login')) pdfLink=null;
+    if (pdfLink?.startsWith('/user/institution/login')) pdfLink=null;
 
     const allEvidence = [
       ...highwirePressTags,
@@ -980,9 +980,8 @@ const runAllRules = async (html, page, url) => {
     }
 
     if (abstract || pdf) {
-      let cleanedAbstract = await cleanMathjax(abstract,page);
       return {
-        abstract: cleanAbstract(cleanedAbstract),
+        abstract: await cleanAbstract(abstract,page),
         pdf: cleanPdf(pdf, page)
       };
     }
