@@ -349,7 +349,6 @@ const cleanMathjax = async (str, page) => {
       // eslint-disable-next-line no-undef
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = p;
-      // tempDiv.style['white-pace'] = 'pre-line';
       const extractedText = tempDiv.textContent.trim();
       return extractedText;
   }, str);
