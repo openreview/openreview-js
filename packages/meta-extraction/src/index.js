@@ -31,7 +31,6 @@ const extractAbstract = async (url, skipTidy = false) => {
     browserInstance = await puppeteer.launch({
       headless: 'new',
     });
-    throw new Error('chrome failed to launch');
   } catch (error) {
     console.log(`Error: ${error}`);
     extractionResult.error = error.message;
