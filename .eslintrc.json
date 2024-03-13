@@ -8,7 +8,7 @@
   "parserOptions": {
     "ecmaVersion": 13
   },
-  "ignorePatterns": [ "node_modules", "scripts" ],
+  "ignorePatterns": [ "node_modules", "scripts","chrome-linux64" ],
   "rules": {
     "no-use-before-define": ["error", { "functions": false, "classes": false }],
     "no-unused-vars": ["error", { "vars": "all", "args": "none", "ignoreRestSiblings": false }],
