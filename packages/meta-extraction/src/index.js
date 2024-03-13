@@ -2,6 +2,8 @@ import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import AnonPlugin from 'puppeteer-extra-plugin-anonymize-ua';
 import { tidy as htmlTidy } from 'htmltidy2';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import { runAllRules } from './abstractExtractionRules.js';
 import {
   shouldEnableJavaScript,
@@ -20,9 +22,24 @@ const extractAbstract = async (url, skipTidy = false) => {
   puppeteer.use(StealthPlugin());
   puppeteer.use(AnonPlugin());
 
-  const browserInstance = await puppeteer.launch({
-    headless: 'new',
-  });
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const backupExecutablePath = join(__dirname, '../chrome-linux64/chrome');
+
+  let browserInstance=null;
+  try {
+    browserInstance = await puppeteer.launch({
+      headless: 'new',
+    });
+  } catch (error) {
+    console.log(`Error: ${error}`);
+    extractionResult.error = error.message;
+    browserInstance = await puppeteer.launch({
+      headless: 'new',
+      executablePath: backupExecutablePath
+    });
+  }
+
 
   const page = await browserInstance.newPage();
   const timeout = getTimeout(url);
