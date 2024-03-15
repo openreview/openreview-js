@@ -155,7 +155,22 @@ const gatherDublinCoreTags = async (page) => {
   return evidence;
 };
 
-const cleanAbstract = (abstract) => {
+const cleanMathjax = async (str, page) => {
+  if (![/<inline-formula\b/,/\/Math\/MathML/].some(p => p.test(str))) return str;
+  try {
+    return await page.evaluate((p) => {
+      // eslint-disable-next-line no-undef
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = p;
+      const extractedText = tempDiv.textContent.trim();
+      return extractedText;
+  }, str);
+  } catch (error) {
+    return str;
+  }
+};
+
+const cleanAbstract = async (abstract, page) => {
   if (!abstract) return null;
   const abstractCleaningRules = [
     {
@@ -326,7 +341,7 @@ const cleanAbstract = (abstract) => {
     }
   ];
 
-  let cleanAbstract = abstract;
+  let cleanAbstract = await cleanMathjax(abstract,page);
   abstractCleaningRules.forEach((rule) => {
     const { guards, run } = rule;
     const shouldRun = !guards.length || guards.some((guardRegex) => guardRegex.test(abstract));
@@ -352,11 +367,12 @@ const cleanPdf = (pdf,page) => {
   return cleanPdf;
 };
 
+//#region rules
 const openreviewRule = {
   shouldApplyRule: (url) => /openreview.net/.test(url),
   executeRule: async (html, page) => {
     console.log(' run openreview.net rule');
-    return {result:'stop'};
+    return {error:'openreview rule'};
   }
 };
 
@@ -368,6 +384,7 @@ const ieeeXploreOrgRule = {
       const globalMetaMark = 'Global.document.metadata={';
       const lines = html.split('\n');
       const globalMetaLine = lines.find((p) => p.includes(globalMetaMark));
+      if (!globalMetaLine) throw new Error('no global metadata');
       const startIndex = globalMetaLine.indexOf('{');
       const endIndex = globalMetaLine.lastIndexOf('}');
 
@@ -385,7 +402,9 @@ const ieeeXploreOrgRule = {
       };
     } catch (error) {
       console.log(error.message);
-      return {};
+      return {
+        error: error.message
+      };
     }
   }
 };
@@ -476,7 +495,7 @@ const scienceDirectRule = {
     const abstractClass = await selectElemTextEvidence(page, '.abstract');
     const pdf = await selectElemAttrEvidence(page, 'div.PdfEmbed a.anchor', 'href');
     let pdfLink = await selectElemAttrEvidence(page, 'a.accessbar-utility-link', 'href');
-    if (pdfLink.startsWith('/user/institution/login')) pdfLink=null;
+    if (pdfLink?.startsWith('/user/institution/login')) pdfLink=null;
 
     const allEvidence = [
       ...highwirePressTags,
@@ -924,6 +943,8 @@ const generalRule = {
   }
 };
 
+//#endregion
+
 const runAllRules = async (html, page, url) => {
   // run through all rules if should apply
   const rules = [
@@ -952,15 +973,15 @@ const runAllRules = async (html, page, url) => {
   const applicableRules = rules.filter((rule) => rule.shouldApplyRule(url));
 
   for (const rule of applicableRules) {
-    const { abstract, pdf, result } = await rule.executeRule(html, page);
+    const { abstract, pdf, error } = await rule.executeRule(html, page);
 
-    if (result === 'stop') {
-      return {};
+    if (error) {
+      return {error};
     }
 
     if (abstract || pdf) {
       return {
-        abstract: cleanAbstract(abstract),
+        abstract: await cleanAbstract(abstract,page),
         pdf: cleanPdf(pdf, page)
       };
     }

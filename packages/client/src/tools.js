@@ -260,7 +260,7 @@ export default class Tools {
    * @returns {Promise<object>} - The results of the function call.
    */
   async getAll(func, params) {
-    params.offset = 0;
+    delete params.offset;
 
     if (params.limit && (params.limit <= this.client.RESPONSE_SIZE)) {
       return func(params);
@@ -277,16 +277,24 @@ export default class Tools {
       }
     }
 
+    if (!params.sort) {
+      params.sort = 'id:asc';
+    }
+    params.limit = this.client.RESPONSE_SIZE;
+
     async function* gen() {
       let index = 0;
       let res = await func(params);
+      // Get the last ID of the first batch
+      params.after = res[docType]?.[res[docType].length - 1]?.id;
       while (index < count) {
         if (res[docType].length > 0) {
           yield res[docType].shift();
           index++;
         } else {
-          params.offset += this.client.RESPONSE_SIZE;
           res = await func(params);
+          // Get the last ID of the current batch
+          params.after = res[docType]?.[res[docType].length - 1]?.id;
         }
       }
     }
@@ -732,7 +740,7 @@ export default class Tools {
           data.authors.push(author);
           data.authorids.push(authorid);
         }
-      } else if (typeof rawData.author === 'string') {
+      } else if (this.variableType(rawData.author) === 'string' || this.variableType(rawData.author) === 'object') {
         const { author, authorid } = getAuthorData(rawData.author);
         data.authors.push(author);
         data.authorids.push(authorid);

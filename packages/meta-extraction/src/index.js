@@ -14,7 +14,7 @@ import {
 } from './helpers.js';
 
 const extractAbstract = async (url, skipTidy = false) => {
-  let extractionResult = {abstract:null,pdf:null};
+  let extractionResult = {abstract:null,pdf:null,error:null};
   const enableJavaScript = shouldEnableJavaScript(url);
   const isRewritable = urlWriteRegexMap.some((p) => p.regex.test(url));
   puppeteer.use(StealthPlugin());
@@ -52,11 +52,17 @@ const extractAbstract = async (url, skipTidy = false) => {
     }
     // status filter
     const status = response.status().toString();
+    const responseUrl = response.url();
     console.log(`HTTP status code: ${status}`);
 
-    if (shouldEnableMultiRedirect(response.url())){
+    if (shouldEnableMultiRedirect(responseUrl)){
       await browserInstance.close();
-      return extractAbstract(response.url(), true);
+      if (status.startsWith('3') || status.startsWith('2')) {
+        console.log(`Redirecting to ${responseUrl}`);
+        return extractAbstract(responseUrl, true);
+      } else {
+        throw new Error(`HTTP status code: ${status}`);
+      }
     }
     // normalizeHtmls
     const rawHtml = await response.text();
@@ -67,9 +73,9 @@ const extractAbstract = async (url, skipTidy = false) => {
       });
     });
 
-    extractionResult = await runAllRules(tidyHtml, page, response.url());
+    extractionResult = await runAllRules(tidyHtml, page, responseUrl);
   } catch (error) {
-    console.log(`${error.name}: ${error.message}`);
+    extractionResult.error = error.message;
   }
   await browserInstance.close();
   return extractionResult;
