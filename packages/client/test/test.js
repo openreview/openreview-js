@@ -250,8 +250,8 @@ describe('OpenReview Client', function () {
           readers: [ 'everyone' ],
           signatures: { param: { regex: '.+' } },
           writers: { param: { regex: '.*' } },
-          head: { param: { type: 'profile' } },
-          tail: { param: { type: 'profile' } },
+          head: { param: { type: 'group' } },
+          tail: { param: { type: 'group' } },
           label: { param: { regex: '.*' } },
           weight: { param: { minimum: 0 } }
         }
