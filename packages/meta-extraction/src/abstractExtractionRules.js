@@ -69,6 +69,15 @@ const selectElemTextEvidence = async (page, selector) => {
   return textContent.trim();
 };
 
+const selectCombinedElemTextEvidence = async (page, selector) => {
+  const elements = await page.$$(selector);
+  const textContent = await elements.flatMap(async(element) => {
+    if (!element) return [];
+    await page.evaluate((p) => p.textContent, element);
+  }).join('\n');
+  return textContent.trim();
+};
+
 const selectElemAttrEvidence = async (page, selector, contentAttr) => {
   try {
     const maybeAttr = await page.$eval(
@@ -119,8 +128,6 @@ const gatherOpenGraphTags = async (page) => {
       { name: 'og:title', attrName: 'property' },
       { name: 'og:type' },
       { name: 'og:type', attrName: 'property' },
-      { name: 'og:description', type: 'abstract' },
-      { name: 'og:description', attrName: 'property', type: 'abstract' },
     ].map(async ({ name, attrName, type }) => {
       const value = await selectMetaEvidence(page, name, attrName);
       return {
@@ -144,16 +151,26 @@ const gatherDublinCoreTags = async (page) => {
       return { name, type, value };
     })
   );
-//   const evidences = await Promise.all(
-//     ['DC.Creator', 'DC.Subject', 'DC.Identifier', 'DC.Type'].map(
-//       async (name) => selectAllMetaEvidence(page, name)
-//     )
-//   );
 
   return evidence;
 };
 
-const cleanAbstract = (abstract) => {
+const cleanMathjax = async (str, page) => {
+  if (![/<inline-formula\b/,/\/Math\/MathML/].some(p => p.test(str))) return str;
+  try {
+    return await page.evaluate((p) => {
+      // eslint-disable-next-line no-undef
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = p;
+      const extractedText = tempDiv.textContent.trim();
+      return extractedText;
+  }, str);
+  } catch (error) {
+    return str;
+  }
+};
+
+const cleanAbstract = async (abstract, page) => {
   if (!abstract) return null;
   const abstractCleaningRules = [
     {
@@ -324,7 +341,7 @@ const cleanAbstract = (abstract) => {
     }
   ];
 
-  let cleanAbstract = abstract;
+  let cleanAbstract = await cleanMathjax(abstract,page);
   abstractCleaningRules.forEach((rule) => {
     const { guards, run } = rule;
     const shouldRun = !guards.length || guards.some((guardRegex) => guardRegex.test(abstract));
@@ -348,6 +365,48 @@ const cleanPdf = (pdf,page) => {
     return fullUrl.href;
   }
   return cleanPdf;
+};
+
+//#region rules
+const openreviewRule = {
+  shouldApplyRule: (url) => /openreview.net/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run openreview.net rule');
+    return {error:'openreview rule'};
+  }
+};
+
+const ieeeXploreOrgRule = {
+  shouldApplyRule: (url) => /ieeexplore.ieee.org/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run ieeexplore.ieee.org rule');
+    try {
+      const globalMetaMark = 'Global.document.metadata={';
+      const lines = html.split('\n');
+      const globalMetaLine = lines.find((p) => p.includes(globalMetaMark));
+      if (!globalMetaLine) throw new Error('no global metadata');
+      const startIndex = globalMetaLine.indexOf('{');
+      const endIndex = globalMetaLine.lastIndexOf('}');
+
+      const globalMetadataString = globalMetaLine.slice(startIndex, endIndex + 1);
+      const globalMetadata = JSON.parse(globalMetadataString);
+      const abstract = globalMetadata?.abstract;
+      const pdf = globalMetadata?.pdfPath;
+      const allEvidence = [
+        { type: 'abstract', value: abstract },
+        { type: 'pdf', value: pdf }
+      ];
+      return {
+        abstract: allEvidence.find((p) => p?.type === 'abstract' && p.value)?.value,
+        pdf: allEvidence.find((p) => p?.type === 'pdf' && p.value)?.value
+      };
+    } catch (error) {
+      console.log(error.message);
+      return {
+        error: error.message
+      };
+    }
+  }
 };
 
 const arxivOrgRule = {
@@ -376,19 +435,45 @@ const arxivOrgRule = {
   },
 };
 
-const scienceDirectRule = {
-  shouldApplyRule: (url) => /sciencedirect.com/.test(url),
-  executeRule: async (html, page) => {
-    console.log(' run sciencedirect rule');
+const linkSpringerComRule ={
+  shouldApplyRule: (url) => /link.springer.com/.test(url),
+  executeRule: async(html,page) => {
+    console.log(' run springer rule');
     const highwirePressTags = await gatherHighwirePressTags(page);
     const openGraphTags = await gatherOpenGraphTags(page);
-    const abstractClass = await selectElemTextEvidence(page, '.abstract');
-    const pdf = await selectElemAttrEvidence(page, 'div.PdfEmbed a.anchor', 'href');
+    const abstractPara = await selectElemTextEvidence(page, 'div#Abs1-content > p');
+    const abstractContent = await selectCombinedElemTextEvidence(page, '#body div.content');
 
     const allEvidence = [
       ...highwirePressTags,
-      { type: 'abstract', value: abstractClass },
       ...openGraphTags,
+      { type: 'abstract', value: abstractPara },
+      { type: 'abstract', value: abstractContent },
+    ];
+
+    const abstractEvidences = allEvidence.filter(
+      (p) => p?.type === 'abstract' && p.value
+    );
+
+    const longestAbstractEvidence = _.maxBy(abstractEvidences, 'value.length');
+    return {
+      abstract:longestAbstractEvidence?.value,
+    pdf:allEvidence.find(
+      (p) => p?.type === 'pdf' && p.value
+    )?.value};
+}};
+
+const dlAcmOrgRule = {
+  shouldApplyRule: (url) => /dl.acm.org/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run dl.acm.org rule');
+    const dublinCoreTags = await gatherDublinCoreTags(page);
+    const abstractInFull = await selectElemTextEvidence(page, '.abstractInFull');
+    const pdf = await selectElemAttrEvidence(page, 'a[title="PDF"]', 'href');
+
+    const allEvidence = [
+      ...dublinCoreTags,
+      { type: 'abstract', value: abstractInFull },
       { type: 'pdf', value: pdf }
     ];
     return {
@@ -398,33 +483,26 @@ const scienceDirectRule = {
     pdf:allEvidence.find(
       (p) => p?.type === 'pdf' && p.value
     )?.value};
-  },
+  }
 };
 
-const aaaiOrgRule = {
-  shouldApplyRule: (url) => /\/aaai.org/.test(url),
+const scienceDirectRule = {
+  shouldApplyRule: (url) => /sciencedirect.com/.test(url),
   executeRule: async (html, page) => {
-    console.log(' run aaai rule');
-    const sections = await page.$$('h4');
-
-    let abstract = null;
-    let pdf = null;
-    for (let index = 0; index < sections.length; index++) {
-      const textContent = await page.evaluate((p) => p.textContent, sections[index]);
-      if (textContent==='Abstract:'){
-        const abstractContentElement = await sections[index].evaluateHandle(el => el.nextElementSibling);
-        abstract = await page.evaluate((p) => p.textContent, abstractContentElement);
-
-      }
-      if (textContent==='Downloads:'){
-        const pdfElement = await sections[index].evaluateHandle(el => el.nextElementSibling.firstElementChild);
-        pdf = await page.evaluate((p) => p.href, pdfElement);
-      }
-    }
+    console.log(' run sciencedirect rule');
+    const highwirePressTags = await gatherHighwirePressTags(page);
+    const openGraphTags = await gatherOpenGraphTags(page);
+    const abstractClass = await selectElemTextEvidence(page, '.abstract');
+    const pdf = await selectElemAttrEvidence(page, 'div.PdfEmbed a.anchor', 'href');
+    let pdfLink = await selectElemAttrEvidence(page, 'a.accessbar-utility-link', 'href');
+    if (pdfLink?.startsWith('/user/institution/login')) pdfLink=null;
 
     const allEvidence = [
-      { type: 'abstract', value: abstract },
-      { type: 'pdf', value: pdf }
+      ...highwirePressTags,
+      { type: 'abstract', value: abstractClass },
+      ...openGraphTags,
+      { type: 'pdf', value: pdf },
+      { type: 'pdf', value: pdfLink }
     ];
     return {
       abstract:allEvidence.find(
@@ -465,34 +543,43 @@ const aclanthologyRule = {
   }
 };
 
-const nipsCCRule = {
-  shouldApplyRule: (url) => /nips.cc/.test(url),
+const aaaiOrgRule = {
+  shouldApplyRule: (url) => /\/aaai.org/.test(url),
   executeRule: async (html, page) => {
-    console.log(' run nips rule');
+    console.log(' run aaai rule');
+    const sections = await page.$$('h4');
 
-    const highwirePressTags = await gatherHighwirePressTags(page);
-    const abstract = await selectElemTextEvidence(page, 'h4 + p');
+    let abstract = null;
+    let pdf = null;
+    for (let index = 0; index < sections.length; index++) {
+      const textContent = await page.evaluate((p) => p.textContent, sections[index]);
+      if (textContent==='Abstract:'){
+        const abstractContentElement = await sections[index].evaluateHandle(el => el.nextElementSibling);
+        abstract = await page.evaluate((p) => p.textContent, abstractContentElement);
+
+      }
+      if (textContent==='Downloads:'){
+        const pdfElement = await sections[index].evaluateHandle(el => el.nextElementSibling.firstElementChild);
+        pdf = await page.evaluate((p) => p.href, pdfElement);
+      }
+    }
 
     const allEvidence = [
-      ...highwirePressTags,
-      { type: 'abstract', value: abstract }
+      { type: 'abstract', value: abstract },
+      { type: 'pdf', value: pdf }
     ];
-
-    const abstractEvidences = allEvidence.filter(
-      (p) => p?.type === 'abstract' && p.value
-    );
-
-    const longestAbstractEvidence = _.maxBy(abstractEvidences, 'value.length');
     return {
-      abstract:longestAbstractEvidence?.value,
-      pdf:allEvidence.find(
-        (p) => p?.type === 'pdf' && p.value
-      )?.value};
-  }
+      abstract:allEvidence.find(
+      (p) => p?.type === 'abstract' && p.value
+    )?.value,
+    pdf:allEvidence.find(
+      (p) => p?.type === 'pdf' && p.value
+    )?.value};
+  },
 };
 
 const neuripsCCRule = {
-  shouldApplyRule: (url) => /neurips.cc/.test(url),
+  shouldApplyRule: (url) => /nips.cc/.test(url) || /neurips.cc/.test(url),
   executeRule: async (html, page) => {
     console.log(' run neurips.cc rule');
     const highwirePressTags = await gatherHighwirePressTags(page);
@@ -527,64 +614,146 @@ const neuripsCCRule = {
   }
 };
 
-const openreviewRule = {
-  shouldApplyRule: (url) => /openreview.net/.test(url),
+const onlinelibraryWileyComRule = {
+  shouldApplyRule: (url) => /onlinelibrary.wiley.com/.test(url),
   executeRule: async (html, page) => {
-    console.log(' run openreview.net rule');
-    return {result:'stop'};
-  }
-};
-
-const dlAcmOrgRule = {
-  shouldApplyRule: (url) => /dl.acm.org/.test(url),
-  executeRule: async (html, page) => {
-    console.log(' run dl.acm.org rule');
-    const dublinCoreTags = await gatherDublinCoreTags(page);
-    const abstractInFull = await selectElemTextEvidence(page, '.abstractInFull');
-    const pdf = await selectElemAttrEvidence(page, 'a[title="PDF"]', 'href');
+    console.log(' run onlinelibrary.wiley.com rule');
+    const highwirePressTags = await gatherHighwirePressTags(page);
+    const abstract = await selectElemTextEvidence(page,'section.article-section__abstract p');
 
     const allEvidence = [
-      ...dublinCoreTags,
-      { type: 'abstract', value: abstractInFull },
-      { type: 'pdf', value: pdf }
+      ...highwirePressTags,
+      { type: 'abstract', value: abstract }
     ];
-    return {
-      abstract:allEvidence.find(
+
+    const abstractEvidences = allEvidence.filter(
       (p) => p?.type === 'abstract' && p.value
-    )?.value,
-    pdf:allEvidence.find(
-      (p) => p?.type === 'pdf' && p.value
-    )?.value};
+    );
+
+    const longestAbstractEvidence = _.maxBy(abstractEvidences, 'value.length');
+    return {
+      abstract:longestAbstractEvidence?.value,
+      pdf:allEvidence.find(
+        (p) => p?.type === 'pdf' && p.value
+      )?.value};
   }
 };
 
-const ieeeXploreOrgRule = {
-  shouldApplyRule: (url) => /ieeexplore.ieee.org/.test(url),
+const mdpiComRule = {
+  shouldApplyRule: (url) => /www.mdpi.com/.test(url),
   executeRule: async (html, page) => {
-    console.log(' run ieeexplore.ieee.org rule');
-    try {
-      const globalMetaMark = 'Global.document.metadata={';
-      const lines = html.split('\n');
-      const globalMetaLine = lines.find((p) => p.includes(globalMetaMark));
-      const startIndex = globalMetaLine.indexOf('{');
-      const endIndex = globalMetaLine.lastIndexOf('}');
+    console.log(' run mdpi.com rule');
+    const highwirePressTags = await gatherHighwirePressTags(page);
+    const abstract = await selectElemTextEvidence(page,'section.html-abstract > div.html-p');
 
-      const globalMetadataString = globalMetaLine.slice(startIndex, endIndex + 1);
-      const globalMetadata = JSON.parse(globalMetadataString);
-      const abstract = globalMetadata?.abstract;
-      const pdf = globalMetadata?.pdfPath;
-      const allEvidence = [
-        { type: 'abstract', value: abstract },
-        { type: 'pdf', value: pdf }
-      ];
-      return {
-        abstract: allEvidence.find((p) => p?.type === 'abstract' && p.value)?.value,
-        pdf: allEvidence.find((p) => p?.type === 'pdf' && p.value)?.value
-      };
-    } catch (error) {
-      console.log(error.message);
-      return {};
-    }
+    const allEvidence = [
+      ...highwirePressTags,
+      { type: 'abstract', value: abstract },
+    ];
+
+    const abstractEvidences = allEvidence.filter(
+      (p) => p?.type === 'abstract' && p.value
+    );
+
+    const longestAbstractEvidence = _.maxBy(abstractEvidences, 'value.length');
+    return {
+      abstract:longestAbstractEvidence?.value,
+      pdf:allEvidence.find(
+        (p) => p?.type === 'pdf' && p.value
+      )?.value};
+  }
+};
+
+const ijcaiOrgRule = {
+  shouldApplyRule: (url) => /ijcai.org/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run ijcai.org rule');
+    const highwirePressTags = await gatherHighwirePressTags(page);
+    const abstract = await selectElemTextEvidence(page,'div.col-md-12');
+
+    const allEvidence = [
+      ...highwirePressTags,
+      { type: 'abstract', value: abstract },
+    ];
+
+    const abstractEvidences = allEvidence.filter(
+      (p) => p?.type === 'abstract' && p.value
+    );
+
+    const longestAbstractEvidence = _.maxBy(abstractEvidences, 'value.length');
+    return {
+      abstract:longestAbstractEvidence?.value,
+      pdf:allEvidence.find(
+        (p) => p?.type === 'pdf' && p.value
+      )?.value};
+  }
+};
+
+const academicOupComRule = {
+  shouldApplyRule: (url) => /academic.oup.com/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run academic.oup.com rule');
+    const highwirePressTags = await gatherHighwirePressTags(page);
+    const abstract = await selectElemTextEvidence(page,'section[class="abstract"] p[class="chapter-para"]');
+
+    const allEvidence = [
+      ...highwirePressTags,
+      { type: 'abstract', value: abstract },
+    ];
+
+    const abstractEvidences = allEvidence.filter(
+      (p) => p?.type === 'abstract' && p.value
+    );
+
+    const longestAbstractEvidence = _.maxBy(abstractEvidences, 'value.length');
+    return {
+      abstract:longestAbstractEvidence?.value,
+      pdf:allEvidence.find(
+        (p) => p?.type === 'pdf' && p.value
+      )?.value};
+  }
+};
+
+const iospressComRule = {
+  shouldApplyRule: (url) => /iospress.com/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run iospress.com rule');
+    const highwirePressTags = await gatherHighwirePressTags(page);
+
+    let abstract = await selectElemAttrEvidence(page, '[data-abstract]', 'data-abstract');
+    if (abstract==='No abstract') abstract = null;
+    const getPDFButton = await selectElemAttrEvidence(page, 'a[class*="get-pdf"]', 'href');
+
+    const allEvidence = [
+      ...highwirePressTags,
+      { type: 'abstract', value: abstract },
+      { type: 'pdf', value: getPDFButton },
+    ];
+
+    const abstractEvidences = allEvidence.filter(
+      (p) => p?.type === 'abstract' && p.value
+    );
+
+    const longestAbstractEvidence = _.maxBy(abstractEvidences, 'value.length');
+    return {
+      abstract:longestAbstractEvidence?.value,
+      pdf:allEvidence.find(
+        (p) => p?.type === 'pdf' && p.value
+      )?.value};
+  }
+};
+
+const worldscientificComRule = {
+  shouldApplyRule: (url) => /worldscientific.com/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run worldscientific.com rule');
+    const abstract = await selectElemTextEvidence(page,'div.abstractInFull');
+    const pdf = await selectElemAttrEvidence(page, 'a[class*="coolBar__ctrl--pdf-epub-link"]', 'href');
+
+    return {
+      abstract,
+      pdf
+    };
   }
 };
 
@@ -641,6 +810,93 @@ const lrecConfOrgRule = {
   }
 };
 
+const tandfonlineComRule = {
+  shouldApplyRule: (url) => /tandfonline.com/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run tandfonline.com rule');
+    const sections = await page.$$('h2');
+    let abstract = null;
+    for (let index = 0; index < sections.length; index++) {
+      const textContent = await page.evaluate((p) => p.textContent, sections[index]);
+      if (textContent==='Abstract'){
+        const abstractContentElement = await sections[index].evaluateHandle(el => el.nextElementSibling);
+        abstract = await page.evaluate((p) => p.textContent, abstractContentElement);
+
+      }
+    }
+
+    const allEvidence = [
+      { type: 'abstract', value: abstract },
+      // pdf need purchase
+    ];
+
+    return {
+      abstract:allEvidence.find(
+      (p) => p?.type === 'abstract' && p.value
+    )?.value,
+    pdf:allEvidence.find(
+      (p) => p?.type === 'pdf' && p.value
+    )?.value};
+  }
+};
+
+const ePrintIacrRule = {
+  shouldApplyRule: (url) => /eprint.iacr.org/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run eprint.iacr.org rule');
+    const highwirePressTags = await gatherHighwirePressTags(page);
+
+    const sections = await page.$$('h5');
+
+    let abstract = null;
+    for (let index = 0; index < sections.length; index++) {
+      const textContent = await page.evaluate((p) => p.textContent, sections[index]);
+      if (textContent==='Abstract'){
+        const abstractContentElement = await sections[index].evaluateHandle(el => el.nextElementSibling);
+        abstract = await page.evaluate((p) => p.textContent, abstractContentElement);
+
+      }
+    }
+
+    const allEvidence = [
+      ...highwirePressTags,
+      { type: 'abstract', value: abstract },
+    ];
+
+    return {
+      abstract: allEvidence.find((p) => p?.type === 'abstract' && p.value)?.value,
+      pdf: allEvidence.find((p) => p?.type === 'pdf' && p.value)?.value,
+    };
+  },
+};
+
+const jstageRule = {
+  shouldApplyRule: (url) => /jstage.jst.go.jp/.test(url),
+  executeRule: async (html, page) => {
+    console.log(' run jstage.jst.go.jp rule');
+    const highwirePressTags = await gatherHighwirePressTags(page);
+    const sections = await page.$$('div[class^="section-title"]');
+    let abstract = null;
+    for (let index = 0; index < sections.length; index++) {
+      const textContent = await page.evaluate((p) => p.textContent, sections[index]);
+      if (textContent==='Abstract'){
+        const abstractContentElement = await sections[index].evaluateHandle(el => el.nextElementSibling);
+        abstract = await page.evaluate((p) => p.textContent, abstractContentElement);
+
+      }
+    }
+    const allEvidence = [
+      ...highwirePressTags,
+      { type: 'abstract', value: abstract },
+    ];
+
+    return {
+      abstract: allEvidence.find((p) => p?.type === 'abstract' && p.value)?.value,
+      pdf: allEvidence.find((p) => p?.type === 'pdf' && p.value)?.value,
+    };
+  },
+};
+
 const generalRule = {
   shouldApplyRule: (url) => true,
   executeRule: async (html, page) => {
@@ -656,6 +912,8 @@ const generalRule = {
       page,
       '.abstractInFull'
     );
+    const abstractLabel = await selectElemTextEvidence(page, '#ContentPlaceHolder1_LinkPaperPage_LinkPaperContent_LabelAbstract');
+    const viewPDFButton = await selectElemAttrEvidence(page, 'a[title*="full-text"]', 'href');
 
     const allEvidence = [
       ...highwirePressTags,
@@ -666,6 +924,8 @@ const generalRule = {
       { type: 'abstract', value: abstractId },
       { type: 'abstract', value: upperAbstractId },
       { type: 'abstract', value: abstractInFullClass },
+      { type: 'abstract', value: abstractLabel },
+      { type: 'pdf', value:viewPDFButton },
     ];
 
 
@@ -683,34 +943,45 @@ const generalRule = {
   }
 };
 
+//#endregion
+
 const runAllRules = async (html, page, url) => {
   // run through all rules if should apply
   const rules = [
     openreviewRule,
-    arxivOrgRule,
-    scienceDirectRule,
-    aaaiOrgRule,
-    aclanthologyRule,
-    nipsCCRule,
-    neuripsCCRule,
-    dlAcmOrgRule,
     ieeeXploreOrgRule,
+    arxivOrgRule,
+    linkSpringerComRule,
+    dlAcmOrgRule,
+    scienceDirectRule,
+    aclanthologyRule,
+    aaaiOrgRule,
+    onlinelibraryWileyComRule,
+    mdpiComRule,
+    ijcaiOrgRule,
+    academicOupComRule,
+    iospressComRule,
+    worldscientificComRule,
+    neuripsCCRule,
     iscaSpeechOrgRule,
     lrecConfOrgRule,
+    tandfonlineComRule,
+    ePrintIacrRule,
+    jstageRule,
     generalRule
   ];
   const applicableRules = rules.filter((rule) => rule.shouldApplyRule(url));
 
   for (const rule of applicableRules) {
-    const { abstract, pdf, result } = await rule.executeRule(html, page);
+    const { abstract, pdf, error } = await rule.executeRule(html, page);
 
-    if (result === 'stop') {
-      return {};
+    if (error) {
+      return {error};
     }
 
     if (abstract || pdf) {
       return {
-        abstract: cleanAbstract(abstract),
+        abstract: await cleanAbstract(abstract,page),
         pdf: cleanPdf(pdf, page)
       };
     }

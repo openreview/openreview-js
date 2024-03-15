@@ -8,11 +8,13 @@ import {
   htmlTidyOptions,
   urlWriteRegexMap,
   initRequestInterception,
-  rewriteUrl
+  rewriteUrl,
+  shouldEnableMultiRedirect,
+  getTimeout
 } from './helpers.js';
 
 const extractAbstract = async (url, skipTidy = false) => {
-  let extractionResult = {abstract:null,pdf:null};
+  let extractionResult = {abstract:null,pdf:null,error:null};
   const enableJavaScript = shouldEnableJavaScript(url);
   const isRewritable = urlWriteRegexMap.some((p) => p.regex.test(url));
   puppeteer.use(StealthPlugin());
@@ -23,8 +25,9 @@ const extractAbstract = async (url, skipTidy = false) => {
   });
 
   const page = await browserInstance.newPage();
-  page.setDefaultNavigationTimeout(10_000);
-  page.setDefaultTimeout(10_000);
+  const timeout = getTimeout(url);
+  page.setDefaultNavigationTimeout(timeout);
+  page.setDefaultTimeout(timeout);
   page.setJavaScriptEnabled(enableJavaScript);
   await page.setRequestInterception(true);
   initRequestInterception(page, enableJavaScript, isRewritable);
@@ -49,7 +52,18 @@ const extractAbstract = async (url, skipTidy = false) => {
     }
     // status filter
     const status = response.status().toString();
+    const responseUrl = response.url();
     console.log(`HTTP status code: ${status}`);
+
+    if (shouldEnableMultiRedirect(responseUrl)){
+      await browserInstance.close();
+      if (status.startsWith('3') || status.startsWith('2')) {
+        console.log(`Redirecting to ${responseUrl}`);
+        return extractAbstract(responseUrl, true);
+      } else {
+        throw new Error(`HTTP status code: ${status}`);
+      }
+    }
     // normalizeHtmls
     const rawHtml = await response.text();
     const tidyHtml = skipTidy? rawHtml: await new Promise((resolve, reject) => {
@@ -58,9 +72,10 @@ const extractAbstract = async (url, skipTidy = false) => {
         else resolve(html);
       });
     });
-    extractionResult = await runAllRules(tidyHtml, page, response.url());
+
+    extractionResult = await runAllRules(tidyHtml, page, responseUrl);
   } catch (error) {
-    console.log(`${error.name}: ${error.message}`);
+    extractionResult.error = error.message;
   }
   await browserInstance.close();
   return extractionResult;
