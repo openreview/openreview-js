@@ -879,9 +879,9 @@ export default class Tools {
    * @param {string} url - The url from which the abstract and the PDF are to be extracted
    * @returns {object} The abstract and the PDF
    */
-  static extractAbstract(url, skipTidy = false) {
+  static extractAbstract(url) {
     const metaExtractionUrl = 'https://meta-extraction-wivlbyt6ga-uc.a.run.app/metadata';
-    const queryString = generateQueryString({ url, skipTidy });
+    const queryString = generateQueryString({ url });
     return fetch(`${metaExtractionUrl}?${queryString}`, {
       method: 'GET',
     });
