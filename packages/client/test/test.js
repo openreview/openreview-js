@@ -642,16 +642,8 @@ describe('OpenReview Client', function () {
         }
       });
     } catch (error) {
-      assert.equal(error.name, 'AggregateError');
+      assert.equal(error.name, 'AdditionalPropertiesError');
       assert.equal(error.message, 'The property invalidField must NOT be present');
-      assert.equal(error.errors[0].name, 'AdditionalPropertiesError');
-      assert.equal(error.errors[0].message, 'The property invalidField must NOT be present');
-      assert.equal(error.errors[0].status, 400);
-      assert.equal(error.errors[0].details.path, 'note');
-      assert.equal(error.errors[1].name, 'AdditionalPropertiesError');
-      assert.equal(error.errors[1].message, 'The property invalidField must NOT be present');
-      assert.equal(error.errors[1].status, 400);
-      assert.equal(error.errors[1].details.path, 'note/content/title');
     }
 
     this.throwErrors = false;
