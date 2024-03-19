@@ -5,7 +5,7 @@ import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 import { XMLParser } from 'fast-xml-parser';
 import pkg from 'tldjs';
-import { generateQueryString, handleResponse } from './helpers.js';
+import { generateQueryString } from './helpers.js';
 
 const { isValid, getDomain } = pkg;
 
@@ -879,15 +879,11 @@ export default class Tools {
    * @param {string} url - The url from which the abstract and the PDF are to be extracted
    * @returns {object} The abstract and the PDF
    */
-  static async extractAbstract(url, skipTidy = false, throwErrors = false) {
+  static extractAbstract(url, skipTidy = false) {
     const metaExtractionUrl = 'https://meta-extraction-wivlbyt6ga-uc.a.run.app/metadata';
-
     const queryString = generateQueryString({ url, skipTidy });
-
-    const data = await handleResponse(throwErrors)(fetch(`${metaExtractionUrl}?${queryString}`, {
+    return fetch(`${metaExtractionUrl}?${queryString}`, {
       method: 'GET',
-    }), {});
-
-    return data;
+    });
   }
 }
