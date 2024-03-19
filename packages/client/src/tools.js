@@ -5,6 +5,7 @@ import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 import { XMLParser } from 'fast-xml-parser';
 import pkg from 'tldjs';
+import { generateQueryString, handleResponse } from './helpers.js';
 
 const { isValid, getDomain } = pkg;
 
@@ -867,5 +868,29 @@ export default class Tools {
     }
 
     return note;
+  }
+
+  /**
+   * Gets the PDF and abstract from the url that is being passed
+   * This method calls a service that extracts the abstract and the PDF from the url
+   * The service uses runs npm package @openreview/meta-extraction in the background
+   *
+   * @static
+   * @param {string} url - The url from which the abstract and the PDF are to be extracted
+   * @returns {object} The abstract and the PDF
+   */
+  static async extractAbstract(url, skipTidy = false, throwErrors = false) {
+    if (!process.env.META_EXTRACTION_BASE_URL) {
+      throw new Error('META_EXTRACTION_BASE_URL is not defined');
+    }
+    const metaExtractionUrl = `${process.env.META_EXTRACTION_BASE_URL}/metadata`;
+
+    const queryString = generateQueryString({ url, skipTidy });
+
+    const data = await handleResponse(throwErrors)(fetch(`${metaExtractionUrl}?${queryString}`, {
+      method: 'GET',
+    }), {});
+
+    return data;
   }
 }
