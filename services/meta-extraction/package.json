@@ -1,0 +1,30 @@
+{
+  "name": "meta-extraction-service",
+  "version": "1.0.1",
+  "description": "Use the package meta extraction to create a service",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openreview/openreview-js.git"
+  },
+  "keywords": [
+    "pdf",
+    "abstract",
+    "extraction",
+    "service"
+  ],
+  "author": "OpenReview <info@openreview.net>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/openreview/openreview-js/issues"
+  },
+  "homepage": "https://github.com/openreview/openreview-js#readme",
+  "dependencies": {
+    "@openreview/meta-extraction": "^0.0.5",
+    "express": "^4.18.3"
+  }
+}
