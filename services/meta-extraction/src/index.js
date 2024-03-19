@@ -17,7 +17,7 @@ app.get('/metadata', async (req, res) => {
       status: 400
     });
   }
-  const { abstract, pdf, error } = await extractAbstract(req.query.url, !!req.query.skipTidy);
+  const { abstract, pdf, error } = await extractAbstract(req.query.url, false);
   if (error) {
     return res.status(400).json({
       name: 'ExtractionError',
