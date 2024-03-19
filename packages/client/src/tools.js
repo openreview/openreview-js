@@ -880,10 +880,7 @@ export default class Tools {
    * @returns {object} The abstract and the PDF
    */
   static async extractAbstract(url, skipTidy = false, throwErrors = false) {
-    if (!process.env.META_EXTRACTION_BASE_URL) {
-      throw new Error('META_EXTRACTION_BASE_URL is not defined');
-    }
-    const metaExtractionUrl = `${process.env.META_EXTRACTION_BASE_URL}/metadata`;
+    const metaExtractionUrl = 'https://meta-extraction-wivlbyt6ga-uc.a.run.app/metadata';
 
     const queryString = generateQueryString({ url, skipTidy });
 
