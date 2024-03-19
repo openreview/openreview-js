@@ -1,6 +1,5 @@
 'use strict';
 
-import fetch from 'node-fetch';
 import fs from 'fs';
 import { FormData } from 'formdata-node';
 // eslint-disable-next-line import/no-unresolved
@@ -503,7 +502,8 @@ export default class OpenReviewClient {
     const data = await this._handleResponse(fetch(this.attachmentUrl, {
       method: 'PUT',
       headers: { ...this.headers, ...encoder.headers },
-      body: Readable.from(encoder)
+      body: Readable.from(encoder),
+      duplex: 'half'
     }), { url: '' });
 
     return data;

@@ -1,6 +1,6 @@
 {
   "name": "@openreview/client",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "description": "Node.js client library for OpenReview's academic publishing API",
   "main": "src/index.js",
   "type": "module",
@@ -33,7 +33,6 @@
     "fast-xml-parser": "^4.3.2",
     "form-data-encoder": "^1.9.0",
     "formdata-node": "^4.4.1",
-    "node-fetch": "^2.7.0",
     "tldjs": "^2.3.1"
   },
   "devDependencies": {
