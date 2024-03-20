@@ -8,7 +8,7 @@ import { Readable } from 'stream';
 import { FormDataEncoder } from 'form-data-encoder';
 import { pipeline } from 'stream/promises';
 import Tools from './tools.js';
-import OpenReviewError from './errors.js';
+import { handleResponse, removeNilValues, generateQueryString } from './helpers.js';
 
 export default class OpenReviewClient {
   constructor(baseUrl, options = {}) {
@@ -77,42 +77,8 @@ export default class OpenReviewClient {
    * @returns {Promise} Promise that resolves to the response data.
    * @async
    */
-  async _handleResponse(fetchPromise, onErrorData, dataName) {
-    let response;
-    let data;
-    try {
-      response = await fetchPromise;
-      data = await response.json();
-    } catch (error) {
-      throw new OpenReviewError({
-        name: error.name || 'Error',
-        message: error.message,
-        status: error.status || 500,
-        cause: error
-      });
-    }
-
-    if (this.throwErrors) {
-      if (response.status !== 200) {
-        if (data.errors) {
-          throw new AggregateError(data.errors.map(error => new OpenReviewError(error)), data.errors?.[0]?.message ?? 'Error');
-        } else {
-          throw new OpenReviewError(data);
-        }
-      } else if (dataName) {
-        return { [dataName]: data };
-      } else {
-        return data;
-      }
-    } else {
-      if (response.status !== 200) {
-        return { ...onErrorData, error: data };
-      } else if (dataName) {
-        return { [dataName]: data, error: null };
-      } else {
-        return { ...data, error: null };
-      }
-    }
+  _handleResponse(fetchPromise, onErrorData, dataName) {
+    return handleResponse(this.throwErrors)(fetchPromise, onErrorData, dataName);
   }
 
   /**
@@ -145,46 +111,6 @@ export default class OpenReviewClient {
       preferredId: prefName ? prefName.username : profile.id,
       state: profile.state,
     };
-  }
-
-  /**
-   * Checks if a value is null or undefined.
-   *
-   * @private
-   * @param {any} value - Value to check.
-   * @returns {boolean} True if the value is null or undefined, false otherwise.
-   */
-  _isNil(value) {
-    return value === null || value === undefined;
-  }
-
-  /**
-   * Removes null and undefined values from an object.
-   *
-   * @private
-   * @param {object} params - Object to sanitize.
-   * @returns {object} Sanitized object.
-   */
-  _removeNilValues(params) {
-    const sanitizedParams = {};
-    for (const [ key, value ] of Object.entries(params)) {
-      if (!this._isNil(value)) {
-        sanitizedParams[key] = value;
-      }
-    }
-    return sanitizedParams;
-  }
-
-  /**
-   * Generates a query string from an object.
-   *
-   * @private
-   * @param {object} params - Object to convert to a query string.
-   * @returns {string} Query string.
-   */
-  _generateQueryString(params = {}) {
-    const sanitizedParams = this._removeNilValues(params);
-    return new URLSearchParams(sanitizedParams).toString();
   }
 
   /**
@@ -433,7 +359,7 @@ export default class OpenReviewClient {
    * @returns {Promise<object>} Dictionary containing the profiles and the total count.
    */
   async getProfiles(params) {
-    const queryString = this._generateQueryString(params);
+    const queryString = generateQueryString(params);
 
     const data = await this._handleResponse(fetch(`${this.profilesUrl}?${queryString}`, {
       method: 'GET',
@@ -464,10 +390,10 @@ export default class OpenReviewClient {
     let params;
     let url;
     if (editId) {
-      params = this._generateQueryString({ id: editId, name: fieldName });
+      params = generateQueryString({ id: editId, name: fieldName });
       url = `${this.editAttachmentUrl}?${params}`;
     } else {
-      params = this._generateQueryString({ id: noteId, name: fieldName });
+      params = generateQueryString({ id: noteId, name: fieldName });
       url = `${this.attachmentUrl}?${params}`;
     }
 
@@ -578,7 +504,7 @@ export default class OpenReviewClient {
    * @returns {Promise<{groups: Array<Object>, count: number}>} - Object containing an array of Groups and the count of all Groups.
    */
   async getGroups(params) {
-    const queryString = this._generateQueryString(params);
+    const queryString = generateQueryString(params);
 
     const data = await this._handleResponse(fetch(`${this.groupsUrl}?${queryString}`, {
       method: 'GET',
@@ -637,7 +563,7 @@ export default class OpenReviewClient {
    * @returns {Promise<{invitations: Array<Object>, count: number}>} - Object containing an array of Invitations and the count of all Invitations.
    */
   async getInvitations(params) {
-    const queryString = this._generateQueryString(params);
+    const queryString = generateQueryString(params);
 
     const data = await this._handleResponse(fetch(`${this.invitationsUrl}?${queryString}`, {
       method: 'GET',
@@ -691,7 +617,7 @@ export default class OpenReviewClient {
    * @returns {Promise<{edits: Array<Object>, count: number}>} - Object containing an array of Invitation Edits and the count of all Invitation Edits.
    */
   async getInvitationEdits(params) {
-    const queryString = this._generateQueryString({
+    const queryString = generateQueryString({
       id: params?.id,
       invitations: params?.invitation,
       'invitation.id': params?.invitationId,
@@ -738,7 +664,7 @@ export default class OpenReviewClient {
       }
       delete params.content;
     }
-    const queryString = this._generateQueryString(params);
+    const queryString = generateQueryString(params);
 
     const data = await this._handleResponse(fetch(`${this.notesUrl}?${queryString}`, {
       method: 'GET',
@@ -807,7 +733,7 @@ export default class OpenReviewClient {
       }
       delete params.content;
     }
-    const queryString = this._generateQueryString(params);
+    const queryString = generateQueryString(params);
 
     const v1Url = this.tools.convertUrlToV1(this.notesUrl);
 
@@ -858,7 +784,7 @@ export default class OpenReviewClient {
    * @returns {Promise<{edits: Array<Object>, count: number}>} - Object containing an array of Note Edits and the count of all Note Edits.
    */
   async getNoteEdits(params) {
-    const queryString = this._generateQueryString({
+    const queryString = generateQueryString({
       'note.id': params.noteId,
       invitation: params.invitation,
       sort: params.sort
@@ -887,7 +813,7 @@ export default class OpenReviewClient {
    * @returns {Promise<{tags: Array<Object>, count: number}>} - Object containing an array of tags and the count of all tags.
    */
   async getTags(params) {
-    const queryString = this._generateQueryString(params);
+    const queryString = generateQueryString(params);
 
     const data = await this._handleResponse(fetch(`${this.tagsUrl}?${queryString}`, {
       method: 'GET',
@@ -930,7 +856,7 @@ export default class OpenReviewClient {
    * @returns {Promise<{edges: Array<Object>, count: number}|{ groupedEdges: Array<Object> }>} - Object containing an array of edges and the count of all edges.
    */
   async getEdges(params) {
-    const queryString = this._generateQueryString(params);
+    const queryString = generateQueryString(params);
 
     const data = await this._handleResponse(fetch(`${this.edgesUrl}?${queryString}`, {
       method: 'GET',
@@ -971,7 +897,7 @@ export default class OpenReviewClient {
    * @returns {Promise<{count: number}>} - The number of edges matching the provided filters.
    */
   async getEdgesCount(params) {
-    const queryString = this._generateQueryString(params);
+    const queryString = generateQueryString(params);
 
     const data = await this._handleResponse(fetch(`${this.edgesCountUrl}?${queryString}`, {
       method: 'GET',
@@ -1028,7 +954,7 @@ export default class OpenReviewClient {
    * @returns {Promise<object>} Promise object representing the response from the API.
    */
   async deleteEdges(params) {
-    const deleteQuery = this._removeNilValues(params);
+    const deleteQuery = removeNilValues(params);
 
     deleteQuery.waitToFinish ??= true;
     deleteQuery.softDelete ??= false;
@@ -1093,7 +1019,7 @@ export default class OpenReviewClient {
    * @returns {Promise<object>} - Contains the message that was sent to each Group
    */
   async postMessage(params) {
-    const body = this._removeNilValues(params);
+    const body = removeNilValues(params);
 
     const data = await this._handleResponse(fetch(this.messagesUrl, {
       method: 'POST',
@@ -1119,7 +1045,7 @@ export default class OpenReviewClient {
    * @returns {Promise<object>} - Contains the message that was sent to each Group
    */
   async postDirectMessage(params) {
-    const body = this._removeNilValues(params);
+    const body = removeNilValues(params);
 
     const data = await this._handleResponse(fetch(`${this.messagesUrl}/direct`, {
       method: 'POST',
@@ -1251,7 +1177,7 @@ export default class OpenReviewClient {
       params.source ??= 'all';
     }
 
-    const queryString = this._generateQueryString(params);
+    const queryString = generateQueryString(params);
 
     const data = await this._handleResponse(fetch(`${this.notesUrl}/search?${queryString}`, {
       method: 'GET',
@@ -1271,7 +1197,7 @@ export default class OpenReviewClient {
    * @returns {Promise<object>} next possible tilde user name corresponding to the specified first, middle and last name
    */
   async getTildeUsername(first, last, middle = null) {
-    const queryString = this._generateQueryString({ first, last, middle });
+    const queryString = generateQueryString({ first, last, middle });
     const data = await this._handleResponse(fetch(`${this.tildeusernameUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers,
@@ -1293,7 +1219,7 @@ export default class OpenReviewClient {
   * @returns {Promise<{messages: Array<Object>, count: number}>} - Messages that match the passed parameters
   */
   async getMessages(params) {
-    const queryString = this._generateQueryString(params);
+    const queryString = generateQueryString(params);
     const data = await this._handleResponse(fetch(`${this.messagesUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers
@@ -1312,7 +1238,7 @@ export default class OpenReviewClient {
    * @returns {Promise<{logs: Array<Object>, count: number}>} - Logs of the process
    */
   async getProcessLogs(id, invitation, status) {
-    const queryString = this._generateQueryString({ id, invitation, status });
+    const queryString = generateQueryString({ id, invitation, status });
     const data = await this._handleResponse(fetch(`${this.processLogsUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers
@@ -1361,7 +1287,7 @@ export default class OpenReviewClient {
    * @returns {Promise<object>} - Response JSON object
    */
   async postInvitationEdit(invitaionEdit) {
-    const body = this._removeNilValues(invitaionEdit);
+    const body = removeNilValues(invitaionEdit);
 
     const data = await this._handleResponse(fetch(this.invitationEditsUrl, {
       method: 'POST',
@@ -1385,7 +1311,7 @@ export default class OpenReviewClient {
    * @returns {Promise<object>} - Response JSON object
    */
   async postNoteEdit(noteEdit) {
-    const body = this._removeNilValues(noteEdit);
+    const body = removeNilValues(noteEdit);
     const data = await this._handleResponse(fetch(this.noteEditsUrl, {
       method: 'POST',
       headers: this.headers,
@@ -1408,7 +1334,7 @@ export default class OpenReviewClient {
    * @returns {Promise<object>} - Response JSON object
    */
   async postGroupEdit(groupEdit) {
-    const body = this._removeNilValues(groupEdit);
+    const body = removeNilValues(groupEdit);
     const data = await this._handleResponse(fetch(this.groupEditsUrl, {
       method: 'POST',
       headers: this.headers,
