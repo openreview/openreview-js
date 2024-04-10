@@ -53,7 +53,7 @@ const selectAllMetaEvidence = async (page, name, attrName = 'name') => {
   );
   try {
     const elements = await page.$$(expandedEvidenceName);
-    const contents = elements.map((element) => page.evaluate((p) => p.getAttribute('content'), element)
+    const contents = await Promise.all(elements.map((element) => page.evaluate((p) => p.getAttribute('content'), element))
     );
     return contents;
   } catch (error) {

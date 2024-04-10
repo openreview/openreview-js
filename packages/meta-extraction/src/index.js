@@ -14,6 +14,7 @@ import {
 } from './helpers.js';
 
 const extractAbstract = async (url, skipTidy = false) => {
+  console.log(`Extracting abstract from ${url}`);
   let extractionResult = {abstract:null,pdf:null,error:null};
   const enableJavaScript = shouldEnableJavaScript(url);
   const isRewritable = urlWriteRegexMap.some((p) => p.regex.test(url));
@@ -78,6 +79,7 @@ const extractAbstract = async (url, skipTidy = false) => {
     extractionResult.error = error.message;
   }
   await browserInstance.close();
+  console.log('extractionResult: ', extractionResult);
   return extractionResult;
 };
 
