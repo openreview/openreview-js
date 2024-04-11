@@ -880,22 +880,22 @@ export default class Tools {
    * @param {string} url - The url from which the abstract and the PDF are to be extracted
    * @returns {object} The abstract and the PDF
    */
-  static extractAbstract(url) {
+  static async extractAbstract(url) {
     const metaExtractionUrl = 'https://meta-extraction-wivlbyt6ga-uc.a.run.app/metadata';
     const queryString = generateQueryString({ url });
-    const request = fetch(`${metaExtractionUrl}?${queryString}`, {
+    const result = await fetch(`${metaExtractionUrl}?${queryString}`, {
       method: 'GET',
     });
-    return request.then(async result => {
-      if (result.status === 200) {
-        return result.json();
-      }
-      const contentType = result.headers.get('content-type');
-      throw new OpenReviewError({
-        name: 'ExtractAbstractError',
-        message: (contentType && contentType.indexOf('application/json') !== -1) ? await result.json() : await result.text(),
-        status: result.status || 500
-      });
+
+    if (result.status === 200) {
+      return result.json();
+    }
+
+    const contentType = result.headers.get('content-type');
+    throw new OpenReviewError({
+      name: 'ExtractAbstractError',
+      message: (contentType && contentType.indexOf('application/json') !== -1) ? await result.json().message : await result.text(),
+      status: result.status || 500
     });
 
   }
