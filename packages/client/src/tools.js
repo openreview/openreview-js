@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { XMLParser } from 'fast-xml-parser';
 import pkg from 'tldjs';
 import { generateQueryString } from './helpers.js';
+import OpenReviewError from './errors.js';
 
 const { isValid, getDomain } = pkg;
 
@@ -882,8 +883,20 @@ export default class Tools {
   static extractAbstract(url) {
     const metaExtractionUrl = 'https://meta-extraction-wivlbyt6ga-uc.a.run.app/metadata';
     const queryString = generateQueryString({ url });
-    return fetch(`${metaExtractionUrl}?${queryString}`, {
+    const request = fetch(`${metaExtractionUrl}?${queryString}`, {
       method: 'GET',
     });
+    return request.then(async result => {
+      if (result.status === 200) {
+        return result.json();
+      }
+      const contentType = result.headers.get('content-type');
+      throw new OpenReviewError({
+        name: 'ExtractAbstractError',
+        message: (contentType && contentType.indexOf('application/json') !== -1) ? await result.json() : await result.text(),
+        status: result.status || 500
+      });
+    });
+
   }
 }
