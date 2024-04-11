@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { XMLParser } from 'fast-xml-parser';
 import pkg from 'tldjs';
 import { generateQueryString } from './helpers.js';
+import OpenReviewError from './errors.js';
 
 const { isValid, getDomain } = pkg;
 
@@ -879,11 +880,23 @@ export default class Tools {
    * @param {string} url - The url from which the abstract and the PDF are to be extracted
    * @returns {object} The abstract and the PDF
    */
-  static extractAbstract(url) {
+  static async extractAbstract(url) {
     const metaExtractionUrl = 'https://meta-extraction-wivlbyt6ga-uc.a.run.app/metadata';
     const queryString = generateQueryString({ url });
-    return fetch(`${metaExtractionUrl}?${queryString}`, {
+    const result = await fetch(`${metaExtractionUrl}?${queryString}`, {
       method: 'GET',
     });
+
+    if (result.status === 200) {
+      return result.json();
+    }
+
+    const contentType = result.headers.get('content-type');
+    throw new OpenReviewError({
+      name: 'ExtractAbstractError',
+      message: (contentType && contentType.indexOf('application/json') !== -1) ? await result.json().message : await result.text(),
+      status: result.status || 500
+    });
+
   }
 }
