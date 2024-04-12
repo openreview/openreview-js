@@ -894,7 +894,7 @@ export default class Tools {
     const contentType = result.headers.get('content-type');
     throw new OpenReviewError({
       name: 'ExtractAbstractError',
-      message: (contentType && contentType.indexOf('application/json') !== -1) ? await result.json().message : await result.text(),
+      message: (contentType && contentType.indexOf('application/json') !== -1) ? await result.json() : await result.text(),
       status: result.status || 500
     });
 
