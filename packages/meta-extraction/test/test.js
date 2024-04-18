@@ -100,7 +100,7 @@ describe.only('Abstract Extraction', function () {
     assert.equal(pdf,pdfExpected);
   });
 
-  it('should return abstract and pdf using openreview rule (openreview.net)', async function () {
+  it('should return abstract and pdf using ieeeXploreOrgRule rule (ieeexplore.ieee.org)', async function () {
     const abstractExpected = 'Deep Neural Networks (DNNs) have demonstrated remarkable success in computer vision applications. However, achieving sophisticated learning objectives often demands massive amounts of data, leading to challenges related to network management such as memory storage, computational cost, training time, and searching optimal models. Dataset distillation presents a potential solution by creating smaller training sets, but existing methods suffer from high computational costs and lengthy training times. Dataset distillation with distribution matching (DM) offers a viable approach to training synthetic sets with reduced cost and processing time, albeit at the expense of accuracy degradation. In this paper, we propose an improved distribution matching version that can enhance testing accuracy with low computational cost and an acceptable training time. Particularly, we propose to combine representative original image selection with multiple synthetic sample generations for the training with distribution matching. In addition, to increase the matching diversity, perturbation, pre-training with mini-batch, and training model with real data during the synthesis process are applied. Experimental results demonstrate that our method significantly improves distribution matching, achieving nearly equal testing accuracy with reduced learning time compared to the recent state-of-the-art approach of gradient matching.';
     const pdfExpected = 'https://ieeexplore.ieee.org/iel7/10258128/10258147/10258130.pdf';
     const {abstract, pdf} = await extractAbstract('https://ieeexplore.ieee.org/document/10258130');
@@ -255,7 +255,6 @@ describe.only('Abstract Extraction', function () {
     const pdfExpected = 'https://www.spiedigitallibrary.org/conference-proceedings-of-spie/7245/72450F/Active-contours-that-grow-and-compete-driven-by-local-region/10.1117/12.805983.pdf';
     // redirect to http://proceedings.spiedigitallibrary.org/proceeding.aspx?doi=10.1117/12.805983
     // then redirect to https://www.spiedigitallibrary.org/conference-proceedings-of-spie/7245/1/Active-contours-that-grow-and-compete-driven-by-local-region/10.1117/12.805983.full
-    this.skip(); // skip for now the website times out
     const {abstract, pdf} = await extractAbstract('https://doi.org/10.1117/12.805983');
     assert.equal(abstract,abstractExpected);
     assert.equal(pdf,pdfExpected);

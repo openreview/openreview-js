@@ -4,7 +4,7 @@ const shouldEnableMultiRedirect = (url) => [/doi.org/, /linkinghub.elsevier.com/
 
 const getTimeout = (url) => {
   const defaultTimeout = 15_000;
-  if ([/doi.org/, /spiedigitallibrary.org/, /iospress.com/].some((regex) => regex.test(url))) return defaultTimeout*2;
+  if ([/doi.org/, /spiedigitallibrary.org/, /iospress.com/].some((regex) => regex.test(url))) return defaultTimeout*3;
   return defaultTimeout;
 };
 

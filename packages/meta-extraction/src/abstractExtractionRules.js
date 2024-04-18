@@ -586,19 +586,23 @@ const neuripsCCRule = {
 
     const sections = await page.$$('h4');
 
-    let abstract = null;
+    let nextElementText = null;
+    let nextNextElementText = null;
+
     for (let index = 0; index < sections.length; index++) {
       const textContent = await page.evaluate((p) => p.textContent, sections[index]);
       if (textContent==='Abstract'){
-        const abstractContentElement = await sections[index].evaluateHandle(el => el.nextElementSibling.nextElementSibling);
-        abstract = await page.evaluate((p) => p.textContent, abstractContentElement);
-
+        const nextElement = await sections[index].evaluateHandle(el => el.nextElementSibling);
+        const nextNextElement = await sections[index].evaluateHandle(el => el.nextElementSibling.nextElementSibling);
+        nextElementText = await page.evaluate((p) => p?.textContent, nextElement);
+        nextNextElementText = await page.evaluate((p) => p?.textContent, nextNextElement);
       }
     }
 
     const allEvidence = [
       ...highwirePressTags,
-      { type: 'abstract', value: abstract }
+      { type: 'abstract', value: nextElementText },
+      { type: 'abstract', value: nextNextElementText }
     ];
 
     const abstractEvidences = allEvidence.filter(
@@ -976,6 +980,7 @@ const runAllRules = async (html, page, url) => {
     const { abstract, pdf, error } = await rule.executeRule(html, page);
 
     if (error) {
+      if (error==='openreview rule') return {};
       return {error};
     }
 
