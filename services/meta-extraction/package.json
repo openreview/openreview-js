@@ -1,6 +1,6 @@
 {
   "name": "meta-extraction-service",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Use the package meta extraction to create a service",
   "main": "src/index.js",
   "type": "module",
@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/openreview/openreview-js#readme",
   "dependencies": {
-    "@openreview/meta-extraction": "^0.0.6",
+    "@openreview/meta-extraction": "^0.0.7",
     "express": "^4.19.2"
   }
 }
