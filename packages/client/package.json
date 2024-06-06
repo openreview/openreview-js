@@ -1,6 +1,6 @@
 {
   "name": "@openreview/client",
-  "version": "0.0.32",
+  "version": "0.0.33",
   "description": "Node.js client library for OpenReview's academic publishing API",
   "main": "src/index.js",
   "type": "module",
