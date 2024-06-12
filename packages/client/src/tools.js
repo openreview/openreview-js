@@ -533,15 +533,10 @@ export default class Tools {
     let emails = new Set();
     let publications = new Set();
 
-    if (profile.content?.emails?.[0]?.startsWith('****@')) {
-      throw new Error('You do not have the required permissions as some emails are obfuscated. Please login with the correct account or contact support.');
-    }
-
     // Emails section
     for (const email of (profile.content?.emails || [])) {
       const domain = email.split('@')[1];
       domains.add(domain);
-      emails.add(email);
     }
 
     let cutOffYear = -1;
@@ -609,10 +604,6 @@ export default class Tools {
       cutOffYear = cutoffDate.getFullYear();
     }
 
-    if (profile.content?.emails?.[0]?.startsWith('****@')) {
-      throw new Error('You do not have the required permissions as some emails are obfuscated. Please login with the correct account or contact support.');
-    }
-
     // Institution section, get history within the last n years, excluding internships
     for (const history of (profile.content?.history || [])) {
       const position = history.position;
@@ -645,11 +636,6 @@ export default class Tools {
       for (const email of (profile.content?.emails || [])) {
         const domain = email.split('@')[1];
         domains.add(domain);
-        emails.add(email);
-      }
-    } else {
-      for (const email of (profile.content?.emails || [])) {
-        emails.add(email);
       }
     }
 

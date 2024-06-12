@@ -177,8 +177,7 @@ describe.only('Abstract Extraction', function () {
     assert.equal(pdf,pdfExpected);
   });
 
-  it('should return abstract and pdf using general rule (epubs.siam.org)',async function (){
-    this.skip();
+  it.skip('should return abstract and pdf using general rule (epubs.siam.org)',async function (){
     const abstractExpected = 'This paper presents an active learning strategy for boosting. In this strategy, we construct a novel objective function to unify semi-supervised learning and active learning boosting. Minimization of this objective is achieved through alternating optimization with respect to the classifier ensemble and the queried data set iteratively. Previous semi-supervised learning or active learning methods based on boosting can be viewed as special cases under this framework. More important, we derive an efficient active learning algorithm under this framework, based on a novel query mechanism called query by incremental committee. It does not only save considerable computational cost, but also outperforms conventional active learning methods based on boosting. We report the experimental results on both boosting benchmarks and real-world database, which show the efficiency of our algorithm and verify our theoretical analysis.';
     const pdfExpected = 'https://epubs.siam.org/doi/reader/10.1137/1.9781611972795.105';
     // redirect to https://epubs.siam.org/doi/10.1137/1.9781611972795.105
