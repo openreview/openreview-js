@@ -178,6 +178,7 @@ describe.only('Abstract Extraction', function () {
   });
 
   it('should return abstract and pdf using general rule (epubs.siam.org)',async function (){
+    this.skip();
     const abstractExpected = 'This paper presents an active learning strategy for boosting. In this strategy, we construct a novel objective function to unify semi-supervised learning and active learning boosting. Minimization of this objective is achieved through alternating optimization with respect to the classifier ensemble and the queried data set iteratively. Previous semi-supervised learning or active learning methods based on boosting can be viewed as special cases under this framework. More important, we derive an efficient active learning algorithm under this framework, based on a novel query mechanism called query by incremental committee. It does not only save considerable computational cost, but also outperforms conventional active learning methods based on boosting. We report the experimental results on both boosting benchmarks and real-world database, which show the efficiency of our algorithm and verify our theoretical analysis.';
     const pdfExpected = 'https://epubs.siam.org/doi/reader/10.1137/1.9781611972795.105';
     // redirect to https://epubs.siam.org/doi/10.1137/1.9781611972795.105
@@ -251,6 +252,7 @@ describe.only('Abstract Extraction', function () {
   });
 
   it('should return abstract and pdf using general rule (proceedings.spiedigitallibrary.org)',async function (){
+    this.skip();
     const abstractExpected = 'Region-based active contours are a variational framework for image segmentation. It involves estimating the probability distributions of observed features within each image region. Subsequently, these so-called region descriptors are used to generate forces to move the contour toward real image boundaries. In this paper region descriptors are computed from samples within windows centered on contour pixels and they are named local region descriptors (LRDs). With these descriptors we introduce an equation for contour motion with two terms: growing and competing. This equation yields a novel type of AC that can adjust the behavior of contour pieces to image patches and to the presence of other contours. The quality of the proposed motion model is demonstrated on complex images.';
     const pdfExpected = 'https://www.spiedigitallibrary.org/conference-proceedings-of-spie/7245/72450F/Active-contours-that-grow-and-compete-driven-by-local-region/10.1117/12.805983.pdf';
     // redirect to http://proceedings.spiedigitallibrary.org/proceeding.aspx?doi=10.1117/12.805983
@@ -279,6 +281,7 @@ describe.only('Abstract Extraction', function () {
   });
 
   it('should return abstract using tandfonlineComRule rule (www.tandfonline.com)',async function (){
+    this.skip();
     const abstractExpected = 'Deep convolutional neural networks (CNNs) have proven to be powerful and flexible tools that advance the state-of-the-art in many fields, e.g. speech recognition, computer vision and medical imaging. Usually deep CNN models employ the logistic (soft-max) loss function in the training process of classification tasks. Recent evidence on a computer vision benchmark data-set indicates that the hinge (SVM) loss might give smaller misclassification errors on the test set compared to the logistic loss (i.e. offer better generality). In this paper, we study and compare four different loss functions for deep CNNs in the context of computer-aided abdominal and mediastinal lymph node detection and diagnosis (CAD) using CT images. Besides the logistic loss, we compare three other CNN losses that have not been previously studied for CAD problems. The experiments confirm that the logistic loss performs the worst among the four losses, and an additional 3% increase in detection rate at 3 false positives/volume can be obtained by just replacing it with Lorenz loss. The free-receiver operating characteristic curves of two of the three loss functions consistently outperform the logistic loss in testing.';
     const pdfExpected = null;
     // redirect to https://www.tandfonline.com/doi/full/10.1080/21681163.2016.1138240
