@@ -1090,7 +1090,7 @@ export default class OpenReviewClient {
         return { group: {}, error };
       }
       return {
-        group: (await this.getGroups(group.id)).groups[0],
+        group: (await this.getGroups({ id: group.id })).groups[0],
         error: null
       };
     } else {
@@ -1141,7 +1141,7 @@ export default class OpenReviewClient {
         return { group: {}, error };
       }
       return {
-        group: (await this.getGroups(group.id)).groups[0],
+        group: (await this.getGroups({ id: group.id })).groups[0],
         error: null
       };
     } else {
