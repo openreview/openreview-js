@@ -877,6 +877,7 @@ export default class Tools {
       if (result.status === 200) {
         return result.json();
       }
+
       const contentType = result.headers.get('content-type');
       throw new OpenReviewError({
         name: 'ExtractAbstractError',
