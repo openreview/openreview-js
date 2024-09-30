@@ -869,9 +869,18 @@ export default class Tools {
   static async extractAbstract(url) {
     const metaExtractionUrl = 'https://meta-extraction-wivlbyt6ga-uc.a.run.app/metadata';
     const queryString = generateQueryString({ url });
-    const result = await fetch(`${metaExtractionUrl}?${queryString}`, {
-      method: 'GET',
-    });
+    let result;
+
+    try {
+      result = await fetch(`${metaExtractionUrl}?${queryString}`, {
+        method: 'GET',
+      });
+    } catch (error) {
+      throw new OpenReviewError({
+        name: 'ExtractAbstractError',
+        message: error,
+      });
+    }
 
     if (result.status === 200) {
       return result.json();
@@ -883,6 +892,5 @@ export default class Tools {
       message: (contentType && contentType.indexOf('application/json') !== -1) ? JSON.stringify(await result.json()) : await result.text(),
       status: result.status || 500
     });
-
   }
 }
