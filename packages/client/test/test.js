@@ -809,7 +809,7 @@ describe('OpenReview Client', function () {
     } catch (error) {
       assert.equal(error.name, 'ExtractAbstractError');
       assert.match(error.message, /Error: Page not found/);
-      assert.equal(error.status, 400);
+      assert.equal(error.status, 404);
     }
 
   });
