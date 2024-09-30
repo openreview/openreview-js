@@ -764,8 +764,8 @@ const worldscientificComRule = {
 const iscaSpeechOrgRule = {
   shouldApplyRule: (url) => /isca-speech.org/.test(url) || /isca-archive.org/.test(url),
   executeRule: async (html, page) => {
-    const abstract = await selectElemTextEvidence(page, 'div.w3-card>p');
-    const pdf = await selectElemAttrEvidence(page, 'div.w3-card>a', 'href');
+    const abstract = await selectElemTextEvidence(page, 'div#abstract>p');
+    const pdf = await selectElemAttrEvidence(page, 'div.w3-content div.w3-center a', 'href');
     const allEvidence = [
       { type: 'abstract', value: abstract },
       { type: 'pdf', value: pdf }
