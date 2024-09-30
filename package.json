@@ -31,9 +31,9 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "lerna": "^8.1.2"
+    "lerna": "^8.1.8"
   },
   "optionalDependencies": {
-    "@nx/nx-linux-x64-gnu": "^16.8.1"
+    "@nx/nx-linux-x64-gnu": "^19.8.2"
   }
 }
