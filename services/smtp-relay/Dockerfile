@@ -12,6 +12,12 @@ RUN apt-get update && \
     postfix \
     && rm -rf /var/lib/apt/lists/*
 
+RUN postconf -e 'inet_protocols = ipv4'
+RUN postconf -e 'myhostname = celestecongrats.fun'
+RUN postconf -e 'maillog_file = /var/log/postfix.log'
+RUN service postfix start
+EXPOSE 25
+
 # Install Node.js v20
 RUN curl -L https://raw.githubusercontent.com/tj/n/master/bin/n -o n && \
     bash n 20.11.0 && \
