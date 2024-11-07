@@ -14,7 +14,7 @@ app.post('/email', async (req, res) => {
     if (!req.body.to || !req.body.subject || !req.body.text || !req.body.html) {
         return res.status(400).json({
             name: 'ValidationError',
-            message: 'To, Subject and Text are required',
+            message: 'To, Subject and Text are all required',
             status: 400
         });
     }
