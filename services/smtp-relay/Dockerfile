@@ -54,7 +54,7 @@ RUN echo '{\
     },\
     {\
       "name": "postfix",\
-      "script": "postfix start && tail -f /var/log/postfix.log"\
+      "script": "service postfix start && tail -f /var/log/postfix.log"\
     }\
   ]\
 }' > pm2.json
