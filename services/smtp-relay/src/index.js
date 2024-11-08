@@ -36,6 +36,9 @@ app.post('/email', async (req, res) => {
             text: req.body.text,
             html: req.body.html
         });
+        // sleep for 20 seconds
+        await new Promise(resolve => { setTimeout(resolve, 20000); });
+
         return res.status(200).json({
             name: 'EmailSuccess',
             message: emailResult,

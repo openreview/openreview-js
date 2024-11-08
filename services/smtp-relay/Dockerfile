@@ -54,7 +54,7 @@ RUN echo '{\
     },\
     {\
       "name": "postfix",\
-      "script": "postfix start && chmod 1777 /etc/resolv.conf && chmod 777 -R /var/spool/postfix &&  service postfix restart &&tail -f /var/log/postfix.log"\
+      "script": "postfix start && chmod 1777 /etc/resolv.conf && chmod 777 -R /var/spool/postfix &&  service postfix restart && tail -f /var/log/postfix.log"\
     }\
   ]\
 }' > pm2.json
