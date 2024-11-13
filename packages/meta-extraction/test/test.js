@@ -169,7 +169,6 @@ describe.only('Abstract Extraction', function () {
   });
 
   it.skip('should return abstract and pdf using onlinelibraryWileyComRule rule (onlinelibrary.wiley.com)', async function () {
-    this.retries(3);
     const abstractExpected = 'Deep learning techniques are recently being used in fundus image analysis and diabetic retinopathy detection. Microaneurysms are important indicators of diabetic retinopathy progression. The authors introduce a two-stage deep learning approach for microaneurysms segmentation using multiple scales of the input with selective sampling and embedding triplet loss. The proposed approach facilitates a region proposal fully convolutional neural network trained on segmented patches and a patch-wise refinement network for improving the results suggested by the first stage hypothesis. To enhance the discriminative power of the second stage refinement network, the authors use triplet embedding loss with a selective sampling routine that dynamically assigns sampling probabilities to the oversampled class patches. This approach introduces a 23.5 % relative improvement over the vanilla fully convolutional neural network on the Indian Diabetic Retinopathy Image Data set segmentation data set. The proposed segmentation is incorporated in a classification model to solve two downstream tasks for diabetic retinopathy detection and referable diabetic retinopathy detection. The classification tasks are trained on the Kaggle diabetic retinopathy challenge data set and evaluated on the Messidor data. The authors show that adding the segmentation enhances the classification performance and achieves comparable performance to the state-of-the-art models.';
     const pdfExpected = 'https://onlinelibrary.wiley.com/doi/pdf/10.1049/iet-ipr.2019.0804';
     const {abstract, pdf} = await extractAbstract('https://onlinelibrary.wiley.com/doi/10.1049/iet-ipr.2019.0804');
@@ -198,7 +197,6 @@ describe.only('Abstract Extraction', function () {
   });
 
   it.skip('should return abstract and pdf using general rule (epubs.siam.org)', async function () {
-    this.retries(3);
     const abstractExpected = 'This paper presents an active learning strategy for boosting. In this strategy, we construct a novel objective function to unify semi-supervised learning and active learning boosting. Minimization of this objective is achieved through alternating optimization with respect to the classifier ensemble and the queried data set iteratively. Previous semi-supervised learning or active learning methods based on boosting can be viewed as special cases under this framework. More important, we derive an efficient active learning algorithm under this framework, based on a novel query mechanism called query by incremental committee. It does not only save considerable computational cost, but also outperforms conventional active learning methods based on boosting. We report the experimental results on both boosting benchmarks and real-world database, which show the efficiency of our algorithm and verify our theoretical analysis.';
     const pdfExpected = 'https://epubs.siam.org/doi/reader/10.1137/1.9781611972795.105';
     // redirect to https://epubs.siam.org/doi/10.1137/1.9781611972795.105
@@ -280,7 +278,6 @@ describe.only('Abstract Extraction', function () {
 
   it('should return abstract and pdf using general rule (proceedings.spiedigitallibrary.org)', async function () {
     this.skip();
-    this.retries(3);
     const abstractExpected = 'Region-based active contours are a variational framework for image segmentation. It involves estimating the probability distributions of observed features within each image region. Subsequently, these so-called region descriptors are used to generate forces to move the contour toward real image boundaries. In this paper region descriptors are computed from samples within windows centered on contour pixels and they are named local region descriptors (LRDs). With these descriptors we introduce an equation for contour motion with two terms: growing and competing. This equation yields a novel type of AC that can adjust the behavior of contour pieces to image patches and to the presence of other contours. The quality of the proposed motion model is demonstrated on complex images.';
     const pdfExpected = 'https://www.spiedigitallibrary.org/conference-proceedings-of-spie/7245/72450F/Active-contours-that-grow-and-compete-driven-by-local-region/10.1117/12.805983.pdf';
     // redirect to http://proceedings.spiedigitallibrary.org/proceeding.aspx?doi=10.1117/12.805983
@@ -291,7 +288,6 @@ describe.only('Abstract Extraction', function () {
   });
 
   it.skip('should return abstract and pdf using worldscientific rule (worldscientific.com)', async function () {
-    this.retries(3);
     const abstractExpected = 'Content-based image retrieval has become an essential technique in multimedia data management. However, due to the difficulties and complications involved in the various image processing tasks, a robust semantic representation of image content is still very difficult (if not impossible) to achieve. In this paper, we propose a novel content-based image retrieval approach with relevance feedback using adaptive processing of tree-structure image representation. In our approach, each image is first represented with a quad-tree, which is segmentation free. Then a neural network model with the Back-Propagation Through Structure (BPTS) learning algorithm is employed to learn the tree-structure representation of the image content. This approach that integrates image representation and similarity measure in a single framework is applied to the relevance feedback of the content-based image retrieval. In our approach, an initial ranking of the database images is first carried out based on the similarity between the query image and each of the database images according to global features. The user is then asked to categorize the top retrieved images into similar and dissimilar groups. Finally, the BPTS neural network model is used to learn the user\'s intention for a better retrieval result. This process continues until satisfactory retrieval results are achieved. In the refining process, a fine similarity grading scheme can also be adopted to improve the retrieval performance. Simulations on texture images and scenery pictures have demonstrated promising results which compare favorably with the other relevance feedback methods tested.';
     const pdfExpected = 'https://www.worldscientific.com/doi/reader/10.1142/S0219467803000944';
     // redirect to https://www.worldscientific.com/doi/abs/10.1142/S0219467803000944
@@ -302,7 +298,6 @@ describe.only('Abstract Extraction', function () {
 
   it('should return abstract using general rule (www.scitepress.org)', async function () {
     this.skip();
-    this.retries(3);
     const abstractExpected = 'The cost of video cameras is decreasing rapidly while their resolution is improving. This makes them useful for a number of transportation applications. In this paper, we present an approach to commodity classification from surveillance videos by utilizing text information of logos on trucks. A new real-world benchmark dataset is collected and annotated accordingly that covers over 4,000 truck images. Our approach is evaluated on video data collected in collaboration with the state transportation entity. Results on this dataset indicate that our proposed approach achieved promising performance. This, along with prior work on trailer classification, can be effectively used for automatically deriving the commodity classification for trucks moving on highways using video collection and processing.';
     const pdfExpected = null;
     // redirect to https://www.scitepress.org/Link.aspx?doi=10.5220/0009393702290236
@@ -313,7 +308,6 @@ describe.only('Abstract Extraction', function () {
 
   it('should return abstract using tandfonlineComRule rule (www.tandfonline.com)', async function () {
     this.skip();
-    this.retries(3);
     const abstractExpected = 'Deep convolutional neural networks (CNNs) have proven to be powerful and flexible tools that advance the state-of-the-art in many fields, e.g. speech recognition, computer vision and medical imaging. Usually deep CNN models employ the logistic (soft-max) loss function in the training process of classification tasks. Recent evidence on a computer vision benchmark data-set indicates that the hinge (SVM) loss might give smaller misclassification errors on the test set compared to the logistic loss (i.e. offer better generality). In this paper, we study and compare four different loss functions for deep CNNs in the context of computer-aided abdominal and mediastinal lymph node detection and diagnosis (CAD) using CT images. Besides the logistic loss, we compare three other CNN losses that have not been previously studied for CAD problems. The experiments confirm that the logistic loss performs the worst among the four losses, and an additional 3% increase in detection rate at 3 false positives/volume can be obtained by just replacing it with Lorenz loss. The free-receiver operating characteristic curves of two of the three loss functions consistently outperform the logistic loss in testing.';
     const pdfExpected = null;
     // redirect to https://www.tandfonline.com/doi/full/10.1080/21681163.2016.1138240
@@ -323,7 +317,6 @@ describe.only('Abstract Extraction', function () {
   });
 
   it.skip('should return abstract using general rule (direct.mit.edu)', async function () {
-    this.retries(3);
     const abstractExpected = 'We propose a new method for detecting changes in Markov network structure between two sets of samples. Instead of naively fitting two Markov network models separately to the two data sets and figuring out their difference, we directly learn the network structure change by estimating the ratio of Markov network models. This density-ratio formulation naturally allows us to introduce sparsity in the network structure change, which highly contributes to enhancing interpretability. Furthermore, computation of the normalization term, a critical bottleneck of the naive approach, can be remarkably mitigated. We also give the dual formulation of the optimization problem, which further reduces the computation cost for large-scale Markov networks. Through experiments, we demonstrate the usefulness of our method.';
     const pdfExpected = 'https://direct.mit.edu/neco/article-pdf/26/6/1169/913165/neco_a_00589.pdf';
     // redirect to https://direct.mit.edu/neco/article/26/6/1169-1197/7970
