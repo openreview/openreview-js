@@ -307,7 +307,7 @@ export default class Tools {
       [docType]: [],
       count
     };
-    // eslint-disable-next-line no-constant-condition
+
     while (true) {
       const { value } = await g.next();
       if (value) {
