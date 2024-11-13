@@ -4,11 +4,8 @@ import { join, dirname } from 'path';
 import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 import { XMLParser } from 'fast-xml-parser';
-import pkg from 'tldjs';
 import { generateQueryString } from './helpers.js';
 import OpenReviewError from './errors.js';
-
-const { isValid, getDomain } = pkg;
 
 export default class Tools {
   constructor(client) {
@@ -29,6 +26,7 @@ export default class Tools {
       'live.com'
     ];
     this.subdomainsCache = {};
+    this.tlds = null;
   }
 
   /**
@@ -47,6 +45,40 @@ export default class Tools {
   }
 
   /**
+   * Loads the TLDs from a file
+   * 
+   * @private
+   * @returns {boolean} True if successful, false otherwise
+   */
+  async #loadTLDsFromFile() {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const filePath = join(__dirname, '../data/tlds.dat');
+    const file = (await fs.readFile(filePath)).toString();
+    this.tlds = new Set(file.split('\n').filter((line) => !line.startsWith('//') && line !== ''));
+    return true;
+  }
+
+  /**
+   * Loads the TLDs from a URL
+   * 
+   * @private
+   * @returns {boolean} True if successful, false otherwise
+   */
+  async #loadTLDsFromURL() {
+    try {
+      const response = await fetch('https://publicsuffix.org/list/public_suffix_list.dat');
+      if (response.ok) {
+        this.tlds = new Set((await response.text()).split('\n').filter((line) => !line.startsWith('//') && line !== ''));
+        return true;
+      }
+      return false;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
    * Checks if domain is a TLD
    *
    * @private
@@ -54,7 +86,7 @@ export default class Tools {
    * @returns {boolean} true if domain is a TLD, false otherwise
    */
   #isTLD(domain) {
-    return isValid(domain) && !getDomain(domain);
+    return this.tlds.has(domain);
   }
 
   /**
@@ -441,6 +473,11 @@ export default class Tools {
       const __dirname = dirname(__filename);
       const filePath = join(__dirname, '../data/duplicate-domains.json');
       this.duplicateDomains = JSON.parse(await fs.readFile(filePath));
+    }
+
+    // Get common domains only once
+    if (!this.tlds) {
+      await this.#loadTLDsFromURL() || await this.#loadTLDsFromFile();
     }
 
     let infoFunction;
