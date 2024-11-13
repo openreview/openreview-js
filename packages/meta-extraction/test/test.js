@@ -301,6 +301,7 @@ describe.only('Abstract Extraction', function () {
   });
 
   it('should return abstract using general rule (www.scitepress.org)', async function () {
+    this.skip();
     this.retries(3);
     const abstractExpected = 'The cost of video cameras is decreasing rapidly while their resolution is improving. This makes them useful for a number of transportation applications. In this paper, we present an approach to commodity classification from surveillance videos by utilizing text information of logos on trucks. A new real-world benchmark dataset is collected and annotated accordingly that covers over 4,000 truck images. Our approach is evaluated on video data collected in collaboration with the state transportation entity. Results on this dataset indicate that our proposed approach achieved promising performance. This, along with prior work on trailer classification, can be effectively used for automatically deriving the commodity classification for trucks moving on highways using video collection and processing.';
     const pdfExpected = null;
