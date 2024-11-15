@@ -2,7 +2,6 @@
 
 import fs from 'fs';
 import { FormData } from 'formdata-node';
-// eslint-disable-next-line import/no-unresolved
 import { fileFromPath } from 'formdata-node/file-from-path';
 import { Readable } from 'stream';
 import { FormDataEncoder } from 'form-data-encoder';

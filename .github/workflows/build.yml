@@ -25,13 +25,13 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [20.x, 22.x]
 
     steps:
       - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.8.0
+        uses: supercharge/mongodb-github-action@1.11.0
         with:
-          mongodb-version: 6.0
+          mongodb-version: 7.0
           mongodb-replica-set: rs0
       - name: Configure sysctl Limits
         run: |
