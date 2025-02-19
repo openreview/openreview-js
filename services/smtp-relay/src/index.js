@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 // Define routes
 app.post('/email', async (req, res) => {
     console.log(req.body);
-    if (!req.body.to || !req.body.subject || !req.body.text || !req.body.html || !req.body.user || !req.body.pass) {
+    if (!req.body.to || !req.body.subject || !req.body.text  || !req.body.user || !req.body.pass) {
         return res.status(400).json({
             name: 'ValidationError',
             message: 'To, Subject and Text are all required',
@@ -34,7 +34,6 @@ app.post('/email', async (req, res) => {
             to: req.body.to,
             subject: req.body.subject,
             text: req.body.text,
-            html: req.body.html
         });
         // sleep for 20 seconds
         await new Promise(resolve => { setTimeout(resolve, 20000); });
