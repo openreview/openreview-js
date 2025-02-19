@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 // Define routes
 app.post('/email', async (req, res) => {
     console.log(req.body);
-    if (!req.body.to || !req.body.subject || !req.body.text || !req.body.html) {
+    if (!req.body.to || !req.body.subject || !req.body.text || !req.body.html || !req.body.user || !req.body.pass) {
         return res.status(400).json({
             name: 'ValidationError',
             message: 'To, Subject and Text are all required',
@@ -20,17 +20,17 @@ app.post('/email', async (req, res) => {
     }
 
     const transporter = nodemailer.createTransport({
-        host: '127.0.0.1',
-        port: 25,
-        secure: false,
-        tls: {
-            rejectUnauthorized: false
+        host: 'in.mailjet.com',
+        port: 2525,
+        auth:{
+            user: req.body.user,
+            pass: req.body.pass
         }
     });
 
     try {
         const emailResult = await transporter.sendMail({
-            from: '"OpenReview" <noreply@celestecongrats.fun>',
+            from: '"OpenReview" <noreply@openreview.net>',
             to: req.body.to,
             subject: req.body.subject,
             text: req.body.text,
