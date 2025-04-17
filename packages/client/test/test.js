@@ -790,7 +790,7 @@ describe('OpenReview Client', function () {
       const resolvedNote = resolved[i];
       assert.equal(note.externalId, resolvedNote.externalId);
       if (resolvedNote.pdate) {
-        assert.equal(note.pdate, resolvedNote.pdate);
+        assert.strictEqual(note.pdate, resolvedNote.pdate);
       }
       if (resolvedNote.cdate) {
         assert.equal(note.cdate, resolvedNote.cdate);
