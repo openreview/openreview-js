@@ -708,6 +708,7 @@ describe('OpenReview Client', function () {
 
     const resolved = [
       {
+        externalId: 'conf/acl/KimBL16',
         cdate: 1451606400000,
         content: {
           venue: { value: 'ACL (1) 2016' },
@@ -724,6 +725,7 @@ describe('OpenReview Client', function () {
         }
       },
       {
+        externalId: 'conf/acl/1987',
         cdate: 536457600000,
         content: {
           venue: { value: 'ACL 1987' },
@@ -736,6 +738,7 @@ describe('OpenReview Client', function () {
         }
       },
       {
+        externalId: 'conf/acl/Rajasekaran95',
         cdate: 788918400000,
         content: {
           venue: { value: 'ACL 1995' },
@@ -748,6 +751,7 @@ describe('OpenReview Client', function () {
         }
       },
       {
+        externalId: 'conf/aaai/TanYWHTS16',
         cdate: 1451606400000,
         content: {
           venue: { value: 'AAAI 2016' },
@@ -767,6 +771,7 @@ describe('OpenReview Client', function () {
         }
       },
       {
+        externalId: 'conf/bic-ta/Liu22',
         cdate: 1640995200000,
         content: {
           title: {value: 'The Utilities of Evolutionary Multiobjective Optimization for Neural Architecture Search - An Empirical Perspective'},
@@ -783,6 +788,7 @@ describe('OpenReview Client', function () {
     for (let i = 0; i < dblpXmls.length; i++) {
       const note = Tools.convertDblpXmlToNote(dblpXmls[i]);
       const resolvedNote = resolved[i];
+      assert.equal(note.externalId, resolvedNote.externalId);
       if (resolvedNote.pdate) {
         assert.equal(note.pdate, resolvedNote.pdate);
       }

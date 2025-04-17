@@ -845,6 +845,7 @@ export default class Tools {
     const data = entryToData(dblpJson);
 
     const note = {
+      externalId: data.key,
       cdate: data.cdate,
       pdate: new Date(data.year, 0, 1).getTime(),
       content: {
