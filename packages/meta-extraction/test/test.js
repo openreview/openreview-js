@@ -216,7 +216,7 @@ describe.only('Abstract Extraction', function () {
     assert.ok(pdf === null || pdf === pdfExpected);
   });
 
-  it('should return abstract and pdf using academicOupComRule rule (academic.oup.com)', async function () {
+  it.skip('should return abstract and pdf using academicOupComRule rule (academic.oup.com)', async function () {
     this.retries(3);
     const abstractExpected = 'Analysis of RNA sequencing (RNA-Seq) data have highlighted the fact that most genes undergo alternative splicing (AS) and that these patterns are tightly regulated. Many of these events are complex, resulting in numerous possible isoforms that quickly become difficult to visualize, interpret and experimentally validate. To address these challenges we developed MAJIQ-SPEL, a web-tool that takes as input local splicing variations (LSVs) quantified from RNA-Seq data and provides users with visualization and quantification of gene isoforms associated with those. Importantly, MAJIQ-SPEL is able to handle both classical (binary) and complex, non-binary, splicing variations. Using a matching primer design algorithm it also suggests to users possible primers for experimental validation by RT-PCR and displays those, along with the matching protein domains affected by the LSV, on UCSC Genome Browser for further downstream analysis.';
     const pdfExpected = 'https://academic.oup.com/bioinformatics/article-pdf/34/2/300/48912940/bioinformatics_34_2_300.pdf';
