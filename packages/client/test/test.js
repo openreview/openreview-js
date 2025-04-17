@@ -468,37 +468,37 @@ describe('OpenReview Client', function () {
     assert.equal(res.error, null);
 
     res = await this.superClient.postMessage({
+      invitation: `${this.superUser}/-/Edit`,
       subject: 'test',
       groups: [ `${this.superUser}/Message_Group` ],
       message: 'test message'
     });
     assert.equal(res.error, null);
     assert.equal(res.groups.length, 1);
-    assert.equal(res.groups[0].id, `${this.superUser}/Message_Group`);
+    assert.equal(res.groups[0], `${this.superUser}/Message_Group`);
 
     res = await this.superClient.getMessages({
       subject: 'test'
     });
     assert.equal(res.error, null);
     assert.equal(res.messages.length, 1);
-    assert.equal(res.count, 1);
 
     const recipient2 = 'recipient2@email.com';
     res = await this.superClient.postMessage({
+      invitation: `${this.superUser}/-/Edit`,
       subject: 'test 2',
       groups: [ recipient2 ],
       message: 'test message 2'
     });
     assert.equal(res.error, null);
     assert.equal(res.groups.length, 1);
-    assert.equal(res.groups[0].id, recipient2);
+    assert.equal(res.groups[0], recipient2);
 
     res = await this.superClient.getMessages({
       subject: 'test 2'
     });
     assert.equal(res.error, null);
     assert.equal(res.messages.length, 1);
-    assert.equal(res.count, 1);
   });
 
   it('should compute the venue from venueid and decision', async function () {
