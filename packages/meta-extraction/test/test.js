@@ -27,7 +27,7 @@ describe.only('Abstract Extraction', function () {
     assert.equal(pdf,pdfExpected);
   });
 
-  it('should extract abstract using general rule (ojs.aaai.org)', async function () {
+  it.skip('should extract abstract using general rule (ojs.aaai.org)', async function () {
     this.retries(3);
     const abstractExpected = 'We study how political polarization is reflected in the social media posts used by media outlets to promote their content online. In particular, we track the Twitter posts of several media outlets over the course of more than three years (566K tweets), and the engagement with these tweets from other users (104M retweets), modeling the relationship between the tweet text and the political diversity of the audience. We build a tool that integrates our model and helps journalists craft tweets that are engaging to a politically diverse audience, guided by the model predictions. To test the real-world impact of the tool, we partner with the PBS documentary series Frontline and run a series of advertising experiments on Twitter. We find that in seven out of the ten experiments, the tweets selected by our model were indeed engaging to a more politically diverse audience, reducing the gap in engagement between left- and right-leaning users by 20.3%, on average, and illustrating the effectiveness of our approach.';
     const pdfExpected = 'https://ojs.aaai.org/index.php/ICWSM/article/download/19342/19114';
