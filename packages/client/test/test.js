@@ -692,9 +692,69 @@ describe('OpenReview Client', function () {
     const { profiles: [ profile1 ] } = await this.superClient.getProfiles({ id: profileId1 });
     const { profiles: [ profile2 ] } = await this.superClient.getProfiles({ id: profileId2 });
 
-    const conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile2);
+    let conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile2);
     assert.equal(conflicts.length, 1);
     assert.equal(conflicts[0], 'facebook.com');
+
+    // add a relation to the profile
+    profile1.content.relations = [
+      {
+        "name": "Conflict User Two",
+        "relation": "Coauthor",
+        "start": null,
+        "end": null,
+        "username": profileId2
+      }
+    ]
+    
+    conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile2);
+    assert.equal(conflicts.length, 2);
+    assert.equal(conflicts[0], 'facebook.com');    
+    assert.equal(conflicts[1], '~Conflict_User_Two1');
+    
+    conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile2, 'NeurIPS', 5);
+    assert.equal(conflicts.length, 2);
+    assert.equal(conflicts[0], 'facebook.com');    
+    assert.equal(conflicts[1], '~Conflict_User_Two1');
+    
+    profile1.content.relations = [
+      {
+        "name": "Conflict User Two",
+        "relation": "Coauthor",
+        "start": 1978,
+        "end": 1980,
+        "username": profileId2
+      }
+    ]    
+    
+    conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile2, 'NeurIPS', 5);
+    assert.equal(conflicts.length, 1);
+    assert.equal(conflicts[0], 'facebook.com');
+    
+    profile1.content.relations = [
+      {
+        "name": "Melisa Author",
+        "relation": "Coauthor",
+        "start": 1978,
+        "end": null,
+        "email": "melisa@mail.com"
+      }
+    ]
+
+    const profile3 = {
+      id: 'melisa@mail.com',
+      content: {
+        emails: ['melisa@mail.com'],
+        preferredEmail: 'melisa@mail.com',
+        emailsConfirmed: ['melisa@mail.com'],
+        names: [],
+      }
+    }
+
+    conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile3, 'default', 5);
+    assert.equal(conflicts.length, 1);
+    assert.equal(conflicts[0], 'melisa@mail.com');    
+
   });
 
   it('should convert DBLP xml to Note Edit', async function () {
