@@ -75,8 +75,8 @@ jobs:
         run: |
           cd openreview-api
           mkdir -p logs files/attachments files/pdfs files/temp
+          apt-get install -y chromium-suid-sandbox
           export PUPPETEER_SKIP_DOWNLOAD='true'
-          npx puppeteer browsers install chrome
           npm ci
       - name: Run openreview-api
         run: |
