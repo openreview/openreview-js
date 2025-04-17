@@ -75,7 +75,8 @@ jobs:
         run: |
           cd openreview-api
           mkdir -p logs files/attachments files/pdfs files/temp
-          apt-get install -y chromium-suid-sandbox
+          sudo apt-get install -y chromium-suid-sandbox
+          sudo chmod 4755 /usr/lib/chromium/chrome-sandbox
           export PUPPETEER_SKIP_DOWNLOAD='true'
           npm ci
       - name: Run openreview-api
