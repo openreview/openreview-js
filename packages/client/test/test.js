@@ -788,9 +788,9 @@ describe('OpenReview Client', function () {
     for (let i = 0; i < dblpXmls.length; i++) {
       const note = Tools.convertDblpXmlToNote(dblpXmls[i]);
       const resolvedNote = resolved[i];
-      assert.equal(note.externalId, resolvedNote.externalId);
+      assert.strictEqual(note.externalId, resolvedNote.externalId);
       if (resolvedNote.pdate) {
-        assert.strictEqual(note.pdate, resolvedNote.pdate);
+        assert.equal(note.pdate, resolvedNote.pdate);
       }
       if (resolvedNote.cdate) {
         assert.equal(note.cdate, resolvedNote.cdate);
