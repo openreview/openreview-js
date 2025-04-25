@@ -40,7 +40,6 @@ export default class OpenReviewClient {
     this.bulkEdgesUrl = `${this.baseUrl}/edges/bulk`;
     this.edgesCountUrl = `${this.baseUrl}/edges/count`;
     this.messagesUrl = `${this.baseUrl}/messages`;
-    this.messagesDirectUrl = `${this.baseUrl}/messages/direct`;
     this.tildeusernameUrl = `${this.baseUrl}/tildeusername`;
     this.processLogsUrl = `${this.baseUrl}/logs/process`;
     this.duplicateDomainsUrl = `${this.baseUrl}/settings/duplicateDomains`;
@@ -1020,33 +1019,7 @@ export default class OpenReviewClient {
   async postMessage(params) {
     const body = removeNilValues(params);
 
-    const data = await this._handleResponse(fetch(this.messagesUrl, {
-      method: 'POST',
-      headers: this.headers,
-      body: JSON.stringify(body)
-    }), params?.useJob ? { status: 'error', jobId: '' } : { groups: [] });
-
-    return data;
-  }
-
-  /**
-   * Posts a message to the recipients and consequently sends them emails
-   *
-   * @async
-   * @param {Object} params - Parameters to post a message
-   * @param {string} [params.subject] - Subject of the e-mail
-   * @param {Array<string>} [params.groups] - Recipients of the e-mail. Valid inputs would be tilde username or emails registered in OpenReview
-   * @param {string} [params.message] - Message in the e-mail
-   * @param {Array<string>} [params.ignoreGroups] - List of groups ids to be ignored from the recipient list
-   * @param {string} [params.replyTo] - e-mail address used when recipients reply to this message
-   * @param {string} [params.parentGroup] - parent group recipients of e-mail belong to
-   *
-   * @returns {Promise<object>} - Contains the message that was sent to each Group
-   */
-  async postDirectMessage(params) {
-    const body = removeNilValues(params);
-
-    const data = await this._handleResponse(fetch(`${this.messagesUrl}/direct`, {
+    const data = await this._handleResponse(fetch(`${this.messagesUrl}/requests`, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(body)

@@ -483,12 +483,13 @@ export default class Tools {
     let infoFunction;
     if (typeof policy === 'function') {
       infoFunction = this.#infoFunctionBuilder(policy);
-    } else if (policy === 'neurips') {
+    } else if (policy === 'NeurIPS') {
       infoFunction = this.#infoFunctionBuilder(this.getNeuripsProfileInfo);
     } else {
       infoFunction = this.#infoFunctionBuilder(this.getProfileInfo);
     }
 
+    const authorIds = new Set();
     const authorDomains = new Set();
     const authorEmails = new Set();
     const authorRelations = new Set();
@@ -509,6 +510,7 @@ export default class Tools {
     }
 
     for (const authorInfo of authorsInfo) {
+      authorIds.add(authorInfo.id);
       for (const authorDomain of authorInfo.domains) {
         authorDomains.add(authorDomain);
       }
@@ -527,6 +529,10 @@ export default class Tools {
 
     const conflicts = new Set();
 
+    if (authorIds.has(userInfo.id)) {
+      conflicts.add(userInfo.id);
+    }
+    
     for (const domain of userInfo.domains) {
       if (authorDomains.has(domain)) {
         conflicts.add(domain);
@@ -534,18 +540,19 @@ export default class Tools {
     }
 
     for (const email of userInfo.emails) {
-      if (authorRelations.has(email)) {
-        conflicts.add(email);
-      }
       if (authorEmails.has(email)) {
         conflicts.add(email);
       }
-    }
+    }    
 
     for (const relation of userInfo.relations) {
-      if (authorEmails.has(relation)) {
+      if (authorIds.has(relation)) {
         conflicts.add(relation);
       }
+    }
+
+    if (authorRelations.has(userInfo.id)) {
+      conflicts.add(userInfo.id);
     }
 
     for (const publication of userInfo.publications) {
@@ -596,9 +603,9 @@ export default class Tools {
     const relations = new Set();
     for (const relObj of profile.content?.relations || []) {
       const relationEnd = parseInt(relObj.end || 0, 10);
-      if (relationEnd > cutOffYear) {
-        const relationEmail = relObj.email;
-        relations.add(relationEmail);
+      if (!relationEnd || relationEnd > cutOffYear) {
+        const relationUsername = relObj.username || relObj.email;
+        relations.add(relationUsername);
       }
     }
 
@@ -657,13 +664,13 @@ export default class Tools {
     for (const relObj of profile.content?.relations || []) {
       const relation = (relObj.relation || '').toLowerCase();
       const relationEnd = parseInt(relObj.end || 0, 10);
-      const relationEmail = relObj.email;
+      const relationUsername = relObj.username || relObj.email;
       if (relation === 'coauthor' || relation === 'coworker') {
-        if (relationEnd > cutOffYear) {
-          relations.add(relationEmail);
+        if (!relationEnd || relationEnd > cutOffYear) {
+          relations.add(relationUsername);
         }
       } else {
-        relations.add(relationEmail);
+        relations.add(relationUsername);
       }
     }
 
