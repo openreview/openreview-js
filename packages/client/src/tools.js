@@ -565,6 +565,52 @@ export default class Tools {
   }
 
   /**
+   * Checks if a profile meets the minimum requirements defined by a venue.
+   *
+   * @param {object} profile - The profile object.
+   * @param {object} profileReqs - An object defining the required profile fields and conditions.
+   * @returns {boolean} - Returns true if the profile satisfies all requirements, false otherwise.
+   */
+  isProfileComplete(profile, profileReqs) {
+    // If no profile or no requirements, skip check
+    if (!profile.id.startsWith('~') || !profileReqs) {
+      return true;
+    }
+
+    for (const [profilePath, expectedValue] of Object.entries(profileReqs)) {
+      const pathItems = profilePath.split('.');
+      let actualValue = profile;
+
+      // Resolve actual value from the profile
+      for (const item of pathItems) {
+        if (actualValue && typeof actualValue === 'object') {
+          actualValue = actualValue?.[item];
+        } else {
+          actualValue = null;
+        }
+  
+        if (actualValue === null || actualValue === undefined) {
+          break;
+        }
+      }
+
+      // Check number of entries
+      if (typeof expectedValue === 'number') {
+        if (actualValue?.length < expectedValue) {
+          return false;
+        }
+      // Check if field exists in profile (e.g. links)
+      } else if (expectedValue === true && !actualValue) {
+        return false;
+      } else {
+        console.log(`Invalid path: ${profilePath}`);
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * Get the profile information for a given profile that includes the domains, emails, relations and publications.
    *
    * @param {object} profile - The profile object.
