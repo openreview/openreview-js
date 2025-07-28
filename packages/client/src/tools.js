@@ -300,54 +300,47 @@ export default class Tools {
       return func(params);
     }
 
-    // Get total number of results
-    const res = await func({ ...params, limit: 1 });
-    const count = res.count;
+    if (!params.sort) {
+      params.sort = 'id:asc';
+    }
+    params.limit = this.client.RESPONSE_SIZE;
+
+    // Get docType from the first call
+    const firstRes = await func({ ...params, limit: 1 });
     let docType;
-    for (let key in res) {
+    for (let key in firstRes) {
       if (key !== 'count') {
         docType = key;
         break;
       }
     }
 
-    if (!params.sort) {
-      params.sort = 'id:asc';
-    }
-    params.limit = this.client.RESPONSE_SIZE;
-
-    async function* gen() {
-      let index = 0;
-      let res = await func(params);
-      // Get the last ID of the first batch
-      params.after = res[docType]?.[res[docType].length - 1]?.id;
-      while (index < count) {
-        if (res[docType].length > 0) {
-          yield res[docType].shift();
-          index++;
-        } else {
-          res = await func(params);
-          // Get the last ID of the current batch
-          params.after = res[docType]?.[res[docType].length - 1]?.id;
-        }
-      }
-    }
-
-    const g = gen.bind(this)();
-
     const result = {
       [docType]: [],
-      count
+      count: 0
     };
 
-    while (true) {
-      const { value } = await g.next();
-      if (value) {
-        result[docType].push(value);
-      } else {
-        break;
-      }
+    // Enhancement: If params.details is undefined, use stream=true to get all docs at once
+    if (params.details === undefined) {
+      delete params.limit;
+      const streamRes = await func({ ...params, stream: true });
+      const docs = streamRes[docType] || [];
+      result[docType] = docs;
+      result.count = docs.length;
+      return result;
     }
+
+    let after = undefined;
+    while (true) {
+      const res = await func({ ...params, after });
+      const docs = res[docType] || [];
+      if (docs.length === 0) break;
+      result[docType].push(...docs);
+      after = docs[docs.length - 1]?.id;
+      if (!after) break;
+    }
+
+    result.count = result[docType].length;
     return result;
   }
 
