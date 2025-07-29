@@ -81,7 +81,7 @@ describe('OpenReview Client', function () {
     assert.equal(res.edit.invitation.signatures[0], this.superUser);
     assert.equal(res.edit.invitation.edit, true);
 
-    res = await this.superClient.getInvitations({
+    res = await this.superClient.getAllInvitations({
       id: `${this.superUser}/-/Edit`
     });
     assert.equal(res.error, null);
@@ -122,7 +122,7 @@ describe('OpenReview Client', function () {
     });
     assert.equal(res.error, null);
 
-    res = await this.superClient.getGroups({
+    res = await this.superClient.getAllGroups({
       id: `${this.superUser}/Test_Group`
     });
     assert.equal(res.error, null);
@@ -134,7 +134,7 @@ describe('OpenReview Client', function () {
     res = await this.superClient.addMembersToGroup(`${this.superUser}/Test_Group`, [ newMember ]);
     assert.equal(res.error, null);
 
-    res = await this.superClient.getGroups({
+    res = await this.superClient.getAllGroups({
       id: `${this.superUser}/Test_Group`
     });
     assert.equal(res.error, null);
@@ -146,7 +146,7 @@ describe('OpenReview Client', function () {
 
     res = await this.superClient.removeMembersFromGroup(`${this.superUser}/Test_Group`, [ newMember ]);
 
-    res = await this.superClient.getGroups({
+    res = await this.superClient.getAllGroups({
       id: `${this.superUser}/Test_Group`
     });
     assert.equal(res.error, null);
@@ -205,6 +205,14 @@ describe('OpenReview Client', function () {
 
     res = await this.superClient.getNotes({
       id: noteId
+    });
+    assert.equal(res.error, null);
+    assert.equal(res.notes.length, 1);
+    assert.equal(res.notes[0].id, noteId);
+    assert.equal(res.count, 1);
+
+    res = await this.superClient.getAllNotes({
+      invitation: `${this.superUser}/-/Edit`,
     });
     assert.equal(res.error, null);
     assert.equal(res.notes.length, 1);
@@ -295,7 +303,7 @@ describe('OpenReview Client', function () {
     ]);
     assert.equal(res.error, null);
 
-    res = await this.superClient.getEdges({
+    res = await this.superClient.getAllEdges({
       head: this.superUser
     });
     assert.equal(res.error, null);
@@ -588,7 +596,7 @@ describe('OpenReview Client', function () {
     let res;
 
     try {
-      res = await this.superClient.getGroups({
+      res = await this.superClient.getAllGroups({
         id: `${this.superUser}/Test_Group`
       });
     } catch (error) {
@@ -598,7 +606,7 @@ describe('OpenReview Client', function () {
     }
 
     try {
-      res = await this.superClient.getNotes({
+      res = await this.superClient.getAllNotes({
         id: 'non_existent_note_id'
       });
     } catch (error) {
