@@ -9,8 +9,8 @@ To run the tests locally, you'll need to set up the following prerequisites:
 ### Prerequisites
 
 1. Node.js (versions 20.x or 22.x)
-2. Redis
-3. MongoDB (v7.0) with replica set
+2. Redis (v7.x)
+3. MongoDB (v8.0) with replica set
 4. Elasticsearch (v7.6.0)
 5. Python (for openreview-py)
 
