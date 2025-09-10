@@ -906,12 +906,14 @@ export default class Tools {
   static convertORCIDJsonToNote(workNode) {
     const title = workNode.title?.title?.value
     const cdate = workNode['created-date']?.value
-    const year = workNode['publication-date']?.year?.value
+    const rawYear = workNode['publication-date']?.year?.value
+    const rawMonth = workNode['publication-date']?.month?.value
+    const rawDay = workNode['publication-date']?.day?.value
     const externalId = `orcid:${workNode['put-code']}`
     const authorNames = workNode.contributors?.contributor.map((p) => p['credit-name'].value)
     const abstract = workNode['short-description']
     const citationNode = workNode['citation']
-    const bibtex = citationNode['citation-type'] === 'bibtex' ? citationNode['citation-value'] : undefined
+    const bibtex = citationNode?.['citation-type'] === 'bibtex' ? citationNode['citation-value'] : undefined
     const venue = workNode.source?.['source-name']?.value
     const html = workNode.url?.value
     const pdf = workNode['external-ids']?.['external-id']?.find((p) => p['external-id-type'] === 'uri')?.['external-id-value']
@@ -922,10 +924,14 @@ export default class Tools {
       return `https://orcid.org/orcid-search/search?searchQuery=${p['credit-name'].value}`
     })
 
+    const year = rawYear ? parseInt(rawYear, 10) : null
+    const month = rawMonth ? (parseInt(rawMonth, 10) - 1) : 0
+    const day = rawDay ? parseInt(rawDay, 10) : 1
+
     const note = {
       externalId,
       cdate,
-      pdate: new Date(year, 0, 1).getTime(),
+      pdate: new Date(year, month, day).getTime(),
       content: {
         title: { value: title },
         authors: { value: authorNames },

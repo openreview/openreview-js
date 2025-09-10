@@ -877,7 +877,7 @@ describe('OpenReview Client', function () {
   });
 
   it('should convert raw ORCID Json object to note edit', function () {
-    // no pdf no abstact no contributer with orcid
+    // no pdf no abstact no contributer with orcid publication date with only year
     let rawOrcidJson = {
       "created-date": {
         "value": 1592855844182
@@ -921,12 +921,8 @@ describe('OpenReview Client', function () {
         "year": {
           "value": "2020"
         },
-        "month": {
-          "value": "07"
-        },
-        "day": {
-          "value": "06"
-        }
+        "month": null,
+        "day": null
       },
       "external-ids": {
         "external-id": [
@@ -1014,7 +1010,7 @@ describe('OpenReview Client', function () {
     let expectedNote = {
       externalId: "orcid:76065020",
       cdate: 1592855844182,
-      pdate: new Date(2020, 0, 1).getTime(),
+      pdate: 1577854800000, //new Date(2020, 0, 1).getTime(),
       content: {
         title: { value: "Cascade optical coherence tomography (C-OCT)" },
         authors: {
@@ -1039,6 +1035,169 @@ describe('OpenReview Client', function () {
         _bibtex: { value: "<head>\n<META HTTP-EQUIV=\"Refresh\" CONTENT=\"0;URL=/servlet/useragent\">\n</head>\n" },
         venue: { value: "Crossref" },
         html: { value: "https://doi.org/10.1364/OE.394638" },
+
+      }
+    }
+    assert.deepStrictEqual(Tools.convertORCIDJsonToNote(rawOrcidJson), expectedNote);
+
+    // publication date with year month day no bibtex
+    rawOrcidJson = {
+      "created-date": {
+        "value": 1742577867171
+      },
+      "last-modified-date": {
+        "value": 1742577867171
+      },
+      "source": {
+        "source-orcid": null,
+        "source-client-id": {
+          "uri": "https://orcid.org/client/0000-0001-9884-1913",
+          "path": "0000-0001-9884-1913",
+          "host": "orcid.org"
+        },
+        "source-name": {
+          "value": "Crossref"
+        },
+        "assertion-origin-orcid": null,
+        "assertion-origin-client-id": null,
+        "assertion-origin-name": null
+      },
+      "put-code": 180585244,
+      "path": "/0000-0002-3491-5968/work/180585244",
+      "title": {
+        "title": {
+          "value": "Introduction to the Special Issue on Knowledge Transferring for Recommender Systems"
+        },
+        "subtitle": null,
+        "translated-title": null
+      },
+      "journal-title": {
+        "value": "ACM Transactions on Recommender Systems"
+      },
+      "short-description": null,
+      "citation": null,
+      "type": "journal-article",
+      "publication-date": {
+        "year": {
+          "value": "2025"
+        },
+        "month": {
+          "value": "09"
+        },
+        "day": {
+          "value": "30"
+        }
+      },
+      "external-ids": {
+        "external-id": [
+          {
+            "external-id-type": "doi",
+            "external-id-value": "10.1145/3715601",
+            "external-id-normalized": {
+              "value": "10.1145/3715601",
+              "transient": true
+            },
+            "external-id-normalized-error": null,
+            "external-id-url": {
+              "value": "https://doi.org/10.1145/3715601"
+            },
+            "external-id-relationship": "self"
+          }
+        ]
+      },
+      "url": {
+        "value": "https://doi.org/10.1145/3715601"
+      },
+      "contributors": {
+        "contributor": [
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Zhiwei Liu"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Hao Peng"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Caiming Xiong"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Julian McAuley"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Philip Yu"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          }
+        ]
+      },
+      "language-code": null,
+      "country": null,
+      "visibility": "public"
+    }
+    expectedNote = {
+      externalId: "orcid:180585244",
+      cdate: 1742577867171,
+      pdate: 1759204800000, //new Date(2025, 8, 30).getTime(),
+      content: {
+        title: { value: "Introduction to the Special Issue on Knowledge Transferring for Recommender Systems" },
+        authors: {
+          value: [
+            "Zhiwei Liu",
+            "Hao Peng",
+            "Caiming Xiong",
+            "Julian McAuley",
+            "Philip Yu"
+          ]
+        },
+        authorids: {
+          value: [
+            "https://orcid.org/orcid-search/search?searchQuery=Zhiwei Liu",
+            "https://orcid.org/orcid-search/search?searchQuery=Hao Peng",
+            "https://orcid.org/orcid-search/search?searchQuery=Caiming Xiong",
+            "https://orcid.org/orcid-search/search?searchQuery=Julian McAuley",
+            "https://orcid.org/orcid-search/search?searchQuery=Philip Yu"
+          ]
+        },
+        abstract: { value: null },
+        venue: { value: "Crossref" },
+        html: { value: "https://doi.org/10.1145/3715601" },
 
       }
     }
