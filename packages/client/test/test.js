@@ -1010,7 +1010,7 @@ describe('OpenReview Client', function () {
     let expectedNote = {
       externalId: "orcid:76065020",
       cdate: 1592855844182,
-      pdate: 1577854800000, //new Date(2020, 0, 1).getTime(),
+      pdate: new Date(2020, 0, 1).getTime(),
       content: {
         title: { value: "Cascade optical coherence tomography (C-OCT)" },
         authors: {
@@ -1174,7 +1174,7 @@ describe('OpenReview Client', function () {
     expectedNote = {
       externalId: "orcid:180585244",
       cdate: 1742577867171,
-      pdate: 1759204800000, //new Date(2025, 8, 30).getTime(),
+      pdate: new Date(2025, 8, 30).getTime(),
       content: {
         title: { value: "Introduction to the Special Issue on Knowledge Transferring for Recommender Systems" },
         authors: {
