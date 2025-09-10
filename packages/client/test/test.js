@@ -876,6 +876,175 @@ describe('OpenReview Client', function () {
     }
   });
 
+  it('should convert raw ORCID Json object to note edit', function () {
+    // no pdf no abstact no contributer with orcid
+    let rawOrcidJson = {
+      "created-date": {
+        "value": 1592855844182
+      },
+      "last-modified-date": {
+        "value": 1663265211991
+      },
+      "source": {
+        "source-orcid": null,
+        "source-client-id": {
+          "uri": "https://orcid.org/client/0000-0001-9884-1913",
+          "path": "0000-0001-9884-1913",
+          "host": "orcid.org"
+        },
+        "source-name": {
+          "value": "Crossref"
+        },
+        "assertion-origin-orcid": null,
+        "assertion-origin-client-id": null,
+        "assertion-origin-name": null
+      },
+      "put-code": 76065020,
+      "path": "/0000-0002-0613-2229/work/76065020",
+      "title": {
+        "title": {
+          "value": "Cascade optical coherence tomography (C-OCT)"
+        },
+        "subtitle": null,
+        "translated-title": null
+      },
+      "journal-title": {
+        "value": "Optics Express"
+      },
+      "short-description": null,
+      "citation": {
+        "citation-type": "bibtex",
+        "citation-value": "<head>\n<META HTTP-EQUIV=\"Refresh\" CONTENT=\"0;URL=/servlet/useragent\">\n</head>\n"
+      },
+      "type": "journal-article",
+      "publication-date": {
+        "year": {
+          "value": "2020"
+        },
+        "month": {
+          "value": "07"
+        },
+        "day": {
+          "value": "06"
+        }
+      },
+      "external-ids": {
+        "external-id": [
+          {
+            "external-id-type": "doi",
+            "external-id-value": "10.1364/OE.394638",
+            "external-id-normalized": {
+              "value": "10.1364/oe.394638",
+              "transient": true
+            },
+            "external-id-normalized-error": null,
+            "external-id-url": {
+              "value": "https://doi.org/10.1364/OE.394638"
+            },
+            "external-id-relationship": "self"
+          }
+        ]
+      },
+      "url": {
+        "value": "https://doi.org/10.1364/OE.394638"
+      },
+      "contributors": {
+        "contributor": [
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Andres Garcia Coleto"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Benjamin Moon"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Jonathan C. Papa"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Michael Pomerantz"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Jannick P. Rolland"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          }
+        ]
+      },
+      "language-code": null,
+      "country": null,
+      "visibility": "public"
+    }
+    let expectedNote = {
+      externalId: "orcid:76065020",
+      cdate: 1592855844182,
+      pdate: 1577854800000,
+      content: {
+        title: { value: "Cascade optical coherence tomography (C-OCT)" },
+        authors: {
+          value: [
+            "Andres Garcia Coleto",
+            "Benjamin Moon",
+            "Jonathan C. Papa",
+            "Michael Pomerantz",
+            "Jannick P. Rolland"
+          ]
+        },
+        authorids: {
+          value: [
+            "https://orcid.org/orcid-search/search?searchQuery=Andres Garcia Coleto",
+            "https://orcid.org/orcid-search/search?searchQuery=Benjamin Moon",
+            "https://orcid.org/orcid-search/search?searchQuery=Jonathan C. Papa",
+            "https://orcid.org/orcid-search/search?searchQuery=Michael Pomerantz",
+            "https://orcid.org/orcid-search/search?searchQuery=Jannick P. Rolland"
+          ]
+        },
+        abstract: { value: null },
+        _bibtex: { value: "<head>\n<META HTTP-EQUIV=\"Refresh\" CONTENT=\"0;URL=/servlet/useragent\">\n</head>\n" },
+        venue: { value: "Crossref" },
+        html: { value: "https://doi.org/10.1364/OE.394638" },
+
+      }
+    }
+    assert.deepStrictEqual(Tools.convertORCIDJsonToNote(rawOrcidJson), expectedNote);
+  });
+
   it('should try to extract the abstract but get a 404 error', async function () {
 
     try {

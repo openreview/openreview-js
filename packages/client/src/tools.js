@@ -896,6 +896,52 @@ export default class Tools {
   }
 
   /**
+    * Converts raw orcid json to a note object.
+    *
+    * @static
+    * @param {object} workNode - The raw orcid object.
+    * @returns {object} The note object.
+    *
+  */
+  static convertORCIDJsonToNote(workNode) {
+    const title = workNode.title?.title?.value
+    const cdate = workNode['created-date']?.value
+    const year = workNode['publication-date']?.year?.value
+    const externalId = `orcid:${workNode['put-code']}`
+    const authorNames = workNode.contributors?.contributor.map((p) => p['credit-name'].value)
+    const abstract = workNode['short-description']
+    const citationNode = workNode['citation']
+    const bibtex = citationNode['citation-type'] === 'bibtex' ? citationNode['citation-value'] : undefined
+    const venue = workNode.source?.['source-name']?.value
+    const html = workNode.url?.value
+    const pdf = workNode['external-ids']?.['external-id']?.find((p) => p['external-id-type'] === 'uri')?.['external-id-value']
+    const authorIds = workNode.contributors?.contributor.map((p) => {
+      if (p['contributor-orcid']) {
+        return p['contributor-orcid'].uri
+      }
+      return `https://orcid.org/orcid-search/search?searchQuery=${p['credit-name'].value}`
+    })
+
+    const note = {
+      externalId,
+      cdate,
+      pdate: new Date(year, 0, 1).getTime(),
+      content: {
+        title: { value: title },
+        authors: { value: authorNames },
+        authorids: { value: authorIds },
+        abstract: { value: abstract },
+        ...(bibtex && { _bibtex: { value: bibtex } }),
+        ...(venue && { venue: { value: venue } }),
+        ...(html && { html: { value: html } }),
+        ...(pdf && { pdf: { value: pdf } }),
+
+      }
+    };
+    return note
+  }
+
+  /**
    * Gets the PDF and abstract from the url that is being passed
    * This method calls a service that extracts the abstract and the PDF from the url
    * The service uses runs npm package @openreview/meta-extraction in the background
