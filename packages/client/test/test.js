@@ -1014,7 +1014,7 @@ describe('OpenReview Client', function () {
     let expectedNote = {
       externalId: "orcid:76065020",
       cdate: 1592855844182,
-      pdate: 1577854800000,
+      pdate: new Date(2020, 0, 1).getTime(),
       content: {
         title: { value: "Cascade optical coherence tomography (C-OCT)" },
         authors: {
