@@ -923,7 +923,7 @@ export default class Tools {
         authorId = p['contributor-orcid'].uri
       }
       if (!authorId) {
-        return `https://orcid.org/orcid-search/search?searchQuery=${p['credit-name'].value}`
+        return `https://orcid.org/orcid-search/search?searchQuery=${p['credit-name']?.value}`
       }
       return authorId
     })
