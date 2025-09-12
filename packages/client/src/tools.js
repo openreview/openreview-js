@@ -918,10 +918,14 @@ export default class Tools {
     const html = workNode.url?.value
     const pdf = workNode['external-ids']?.['external-id']?.find((p) => p['external-id-type'] === 'uri')?.['external-id-value']
     const authorIds = workNode.contributors?.contributor.map((p) => {
+      let authorId = null
       if (p['contributor-orcid']) {
-        return p['contributor-orcid'].uri
+        authorId = p['contributor-orcid'].uri
       }
-      return `https://orcid.org/orcid-search/search?searchQuery=${p['credit-name'].value}`
+      if (!authorId) {
+        return `https://orcid.org/orcid-search/search?searchQuery=${p['credit-name'].value}`
+      }
+      return authorId
     })
 
     const year = rawYear ? parseInt(rawYear, 10) : null
