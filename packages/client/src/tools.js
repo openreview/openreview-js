@@ -910,7 +910,7 @@ export default class Tools {
     const rawMonth = workNode['publication-date']?.month?.value
     const rawDay = workNode['publication-date']?.day?.value
     const externalId = `orcid:${workNode['put-code']}`
-    const authorNames = workNode.contributors?.contributor.map((p) => p['credit-name'].value)
+    const authorNames = workNode.contributors?.contributor.map((p) => p['credit-name']?.value.replace(',', ''))
     const abstract = workNode['short-description']
     const citationNode = workNode['citation']
     const bibtex = citationNode?.['citation-type'] === 'bibtex' ? citationNode['citation-value'] : undefined
