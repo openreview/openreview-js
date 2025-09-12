@@ -936,7 +936,7 @@ export default class Tools {
         title: { value: title },
         authors: { value: authorNames },
         authorids: { value: authorIds },
-        abstract: { value: abstract },
+        ...(abstract && { abstract: { value: abstract } }),
         ...(bibtex && { _bibtex: { value: bibtex } }),
         ...(venue && { venue: { value: venue } }),
         ...(html && { html: { value: html } }),

@@ -1031,7 +1031,7 @@ describe('OpenReview Client', function () {
             "https://orcid.org/orcid-search/search?searchQuery=Jannick P. Rolland"
           ]
         },
-        abstract: { value: null },
+        // abstract: { value: null }, empty abstract should not be included
         _bibtex: { value: "<head>\n<META HTTP-EQUIV=\"Refresh\" CONTENT=\"0;URL=/servlet/useragent\">\n</head>\n" },
         venue: { value: "Crossref" },
         html: { value: "https://doi.org/10.1364/OE.394638" },
@@ -1074,7 +1074,7 @@ describe('OpenReview Client', function () {
       "journal-title": {
         "value": "ACM Transactions on Recommender Systems"
       },
-      "short-description": null,
+      "short-description": "test short description",
       "citation": null,
       "type": "journal-article",
       "publication-date": {
@@ -1195,7 +1195,7 @@ describe('OpenReview Client', function () {
             "https://orcid.org/orcid-search/search?searchQuery=Philip Yu"
           ]
         },
-        abstract: { value: null },
+        abstract: { value: "test short description" },
         venue: { value: "Crossref" },
         html: { value: "https://doi.org/10.1145/3715601" },
 
