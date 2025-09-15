@@ -910,7 +910,7 @@ export default class Tools {
     const rawMonth = workNode['publication-date']?.month?.value
     const rawDay = workNode['publication-date']?.day?.value
     const externalId = `orcid:${workNode['put-code']}`
-    const authorNames = workNode.contributors?.contributor.map((p) => p['credit-name'].value)
+    const authorNames = workNode.contributors?.contributor.map((p) => p['credit-name']?.value.replaceAll(',', ''))
     const abstract = workNode['short-description']
     const citationNode = workNode['citation']
     const bibtex = citationNode?.['citation-type'] === 'bibtex' ? citationNode['citation-value'] : undefined
@@ -918,10 +918,14 @@ export default class Tools {
     const html = workNode.url?.value
     const pdf = workNode['external-ids']?.['external-id']?.find((p) => p['external-id-type'] === 'uri')?.['external-id-value']
     const authorIds = workNode.contributors?.contributor.map((p) => {
+      let authorId = null
       if (p['contributor-orcid']) {
-        return p['contributor-orcid'].uri
+        authorId = p['contributor-orcid'].uri
       }
-      return `https://orcid.org/orcid-search/search?searchQuery=${p['credit-name'].value}`
+      if (!authorId) {
+        return `https://orcid.org/orcid-search/search?searchQuery=${p['credit-name']?.value}`
+      }
+      return authorId
     })
 
     const year = rawYear ? parseInt(rawYear, 10) : null
