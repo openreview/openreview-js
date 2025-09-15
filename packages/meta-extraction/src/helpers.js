@@ -1,4 +1,4 @@
-const shouldEnableJavaScript = (url) => [/linkinghub.elsevier.com/, /aaai.org/, /isca-speech.org/].some((regex) => regex.test(url));
+const shouldEnableJavaScript = (url) => [/linkinghub.elsevier.com/, /aaai.org/, /isca-speech.org/, /aclweb.org/].some((regex) => regex.test(url));
 
 const shouldEnableMultiRedirect = (url) => [/doi.org/, /linkinghub.elsevier.com/].some((regex) => regex.test(url));
 
