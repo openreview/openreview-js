@@ -1204,6 +1204,197 @@ describe('OpenReview Client', function () {
     assert.deepStrictEqual(Tools.convertORCIDJsonToNote(rawOrcidJson), expectedNote);
   });
 
+  it('should convert arxiv xml to note edit', function () {
+    let rawiarxivxml = `<?xml version="1.0" encoding="UTF-8"?>
+    <feed xmlns="http://www.w3.org/2005/Atom">
+        <link href="http://arxiv.org/api/query?search_query%3D%26id_list%3D2509.14206%26start%3D0%26max_results%3D10" rel="self" type="application/atom+xml"/>
+        <title type="html">ArXiv Query: search_query=&amp;id_list=2509.14206&amp;start=0&amp;max_results=10</title>
+        <id>http://arxiv.org/api/883ohB9ZqEhqbZCHoXUNTRcTLFQ</id>
+        <updated>2025-09-18T00:00:00-04:00</updated>
+        <opensearch:totalResults xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">1</opensearch:totalResults>
+        <opensearch:startIndex xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">0</opensearch:startIndex>
+        <opensearch:itemsPerPage xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">10</opensearch:itemsPerPage>
+        <entry>
+            <id>http://arxiv.org/abs/2509.14206v1</id>
+            <updated>2025-09-17T17:37:25Z</updated>
+            <published>2025-09-17T17:37:25Z</published>
+            <title>Looking into the faintEst WIth MUSE (LEWIS): Exploring the nature of
+      ultra-diffuse galaxies in the Hydra-I cluster IV. A study of the Globular
+      Cluster population in four UDGs</title>
+            <summary>  As old stellar systems, globular clusters (GCs) are key fossil tracers of
+    galaxy formation and interaction histories. This paper is part of the LEWIS
+    project, an integral-field spectroscopic survey of ultra-diffuse galaxies
+    (UDGs) in the Hydra I cluster. We use MUSE spectroscopy and new VIRCAM $H$-band
+    imaging data to study the GC populations and dark matter content in four dwarf
+    galaxies. We retrieved line-of-sight velocities for all sources in the observed
+    MUSE fields. Since the spectroscopic measurements are limited to relatively
+    bright sources, we developed a multi-band photometric procedure to identify
+    additional GC candidates too faint for spectroscopic confirmation. GC
+    candidates were selected using a combination of photometric properties and
+    morphometric criteria. Additionally, the $H$-band observations were used to
+    constrain the stellar masses of the studied galaxies. Based on the
+    spectroscopic classification, we confirm one GC in UDG3, two in UDG7, and four
+    in UDG11, while UDG9 has no spectroscopically confirmed bright GCs. We identify
+    four intra-cluster GCs in the vicinity of UDG3 and UDG11, and one ultra-compact
+    dwarf with a radial velocity only $\Delta v = -85 \pm 10\mathrm{km\ s^{-1}}$
+    relative to UDG7, suggesting it may be bound to it. Considering completeness
+    corrections and accounting for possible contamination, from photometry we
+    estimate that the number of GCs ranges between 0 and $\sim40$ for the
+    investigated UDGs. Their specific frequencies suggest that three out of four
+    UDGs are either GC-rich, similar to those in the Coma cluster, or belong to an
+    intermediate population as seen in the Perseus cluster. Dark matter content
+    estimates, inferred from GC counts and stellar mass, indicate that these
+    galaxies are dark-matter dominated, with dynamical-to-stellar mass ratios of
+    $M_{\mathrm{dyn}} / M_\star \sim 10-1000$.
+    </summary>
+            <author>
+                <name>Marco Mirabile</name>
+            </author>
+            <author>
+                <name>Michele Cantiello</name>
+            </author>
+            <author>
+                <name>Marina Rejkuba</name>
+            </author>
+            <author>
+                <name>Steffen Mieske</name>
+            </author>
+            <author>
+                <name>Enrichetta Iodice</name>
+            </author>
+            <author>
+                <name>Chiara Buttitta</name>
+            </author>
+            <author>
+                <name>Maria Luisa Buzzo</name>
+            </author>
+            <author>
+                <name>Johanna Hartke</name>
+            </author>
+            <author>
+                <name>Goran Doll</name>
+            </author>
+            <author>
+                <name>Luca Rossi</name>
+            </author>
+            <author>
+                <name>Magda Arnaboldi</name>
+            </author>
+            <author>
+                <name>Marica Branchesi</name>
+            </author>
+            <author>
+                <name>Giuseppe D'Ago</name>
+            </author>
+            <author>
+                <name>Jesus Falcon-Barroso</name>
+            </author>
+            <author>
+                <name>Katja Fahrion</name>
+            </author>
+            <author>
+                <name>Duncan A. Forbes</name>
+            </author>
+            <author>
+                <name>Marco Gullieuszik</name>
+            </author>
+            <author>
+                <name>Michael Hilker</name>
+            </author>
+            <author>
+                <name>Felipe S. Lohmann</name>
+            </author>
+            <author>
+                <name>Maurizio Paolillo</name>
+            </author>
+            <author>
+                <name>Gabriele Riccio</name>
+            </author>
+            <author>
+                <name>Tom Richtler</name>
+            </author>
+            <author>
+                <name>Marilena Spavone</name>
+            </author>
+            <arxiv:comment xmlns:arxiv="http://arxiv.org/schemas/atom">25 pages, 24 figures, 7 tables. Accepted for publication in A&amp;A</arxiv:comment>
+            <link href="http://arxiv.org/abs/2509.14206v1" rel="alternate" type="text/html"/>
+            <link title="pdf" href="http://arxiv.org/pdf/2509.14206v1" rel="related" type="application/pdf"/>
+            <arxiv:primary_category xmlns:arxiv="http://arxiv.org/schemas/atom" term="astro-ph.GA" scheme="http://arxiv.org/schemas/atom"/>
+            <category term="astro-ph.GA" scheme="http://arxiv.org/schemas/atom"/>
+        </entry>
+    </feed>`
+    let expectedNote={
+      content: {
+        title: {
+          value: 'Looking into the faintEst WIth MUSE (LEWIS): Exploring the nature of ultra-diffuse galaxies in the Hydra-I cluster IV. A study of the Globular Cluster population in four UDGs'
+        },
+        abstract: {
+          value: 'As old stellar systems, globular clusters (GCs) are key fossil tracers of galaxy formation and interaction histories. This paper is part of the LEWIS project, an integral-field spectroscopic survey of ultra-diffuse galaxies (UDGs) in the Hydra I cluster. We use MUSE spectroscopy and new VIRCAM $H$-band imaging data to study the GC populations and dark matter content in four dwarf galaxies. We retrieved line-of-sight velocities for all sources in the observed MUSE fields. Since the spectroscopic measurements are limited to relatively bright sources, we developed a multi-band photometric procedure to identify additional GC candidates too faint for spectroscopic confirmation. GC candidates were selected using a combination of photometric properties and morphometric criteria. Additionally, the $H$-band observations were used to constrain the stellar masses of the studied galaxies. Based on the spectroscopic classification, we confirm one GC in UDG3, two in UDG7, and four in UDG11, while UDG9 has no spectroscopically confirmed bright GCs. We identify four intra-cluster GCs in the vicinity of UDG3 and UDG11, and one ultra-compact dwarf with a radial velocity only $Delta v = -85 pm 10mathrm{km s^{-1}}$ relative to UDG7, suggesting it may be bound to it. Considering completeness corrections and accounting for possible contamination, from photometry we estimate that the number of GCs ranges between 0 and $sim40$ for the investigated UDGs. Their specific frequencies suggest that three out of four UDGs are either GC-rich, similar to those in the Coma cluster, or belong to an intermediate population as seen in the Perseus cluster. Dark matter content estimates, inferred from GC counts and stellar mass, indicate that these galaxies are dark-matter dominated, with dynamical-to-stellar mass ratios of $M_{mathrm{dyn}} / M_star sim 10-1000$.'
+        },
+        authors: {
+          value: [
+            'Marco Mirabile',    
+            'Michele Cantiello',
+            'Marina Rejkuba',    
+            'Steffen Mieske',
+            'Enrichetta Iodice', 
+            'Chiara Buttitta',
+            'Maria Luisa Buzzo', 
+            'Johanna Hartke',
+            'Goran Doll',        
+            'Luca Rossi',
+            'Magda Arnaboldi',   
+            'Marica Branchesi',
+            "Giuseppe D'Ago",    
+            'Jesus Falcon-Barroso',
+            'Katja Fahrion',     
+            'Duncan A. Forbes',
+            'Marco Gullieuszik', 
+            'Michael Hilker',
+            'Felipe S. Lohmann', 
+            'Maurizio Paolillo',
+            'Gabriele Riccio',   
+            'Tom Richtler',
+            'Marilena Spavone'
+          ]
+        },
+        authorids: {
+          value: [
+            'https://arxiv.org/search/?query=Marco%20Mirabile&searchtype=all',
+            'https://arxiv.org/search/?query=Michele%20Cantiello&searchtype=all',
+            'https://arxiv.org/search/?query=Marina%20Rejkuba&searchtype=all',
+            'https://arxiv.org/search/?query=Steffen%20Mieske&searchtype=all',
+            'https://arxiv.org/search/?query=Enrichetta%20Iodice&searchtype=all',
+            'https://arxiv.org/search/?query=Chiara%20Buttitta&searchtype=all',
+            'https://arxiv.org/search/?query=Maria%20Luisa%20Buzzo&searchtype=all',
+            'https://arxiv.org/search/?query=Johanna%20Hartke&searchtype=all',
+            'https://arxiv.org/search/?query=Goran%20Doll&searchtype=all',
+            'https://arxiv.org/search/?query=Luca%20Rossi&searchtype=all',
+            'https://arxiv.org/search/?query=Magda%20Arnaboldi&searchtype=all',
+            'https://arxiv.org/search/?query=Marica%20Branchesi&searchtype=all',
+            "https://arxiv.org/search/?query=Giuseppe%20D'Ago&searchtype=all",
+            'https://arxiv.org/search/?query=Jesus%20Falcon-Barroso&searchtype=all',
+            'https://arxiv.org/search/?query=Katja%20Fahrion&searchtype=all',
+            'https://arxiv.org/search/?query=Duncan%20A.%20Forbes&searchtype=all',
+            'https://arxiv.org/search/?query=Marco%20Gullieuszik&searchtype=all',
+            'https://arxiv.org/search/?query=Michael%20Hilker&searchtype=all',
+            'https://arxiv.org/search/?query=Felipe%20S.%20Lohmann&searchtype=all',
+            'https://arxiv.org/search/?query=Maurizio%20Paolillo&searchtype=all',
+            'https://arxiv.org/search/?query=Gabriele%20Riccio&searchtype=all',
+            'https://arxiv.org/search/?query=Tom%20Richtler&searchtype=all',
+            'https://arxiv.org/search/?query=Marilena%20Spavone&searchtype=all'
+          ]
+        },
+        ['subject_areas']: { value: [ 'astro-ph.GA' ] },
+        pdf: { value: 'http://arxiv.org/pdf/2509.14206v1' }
+      },
+      pdate: 1758130645000,
+      mdate: 1758130645000,
+      externalId: 'arxiv:2509.14206v1'
+    }
+    assert.deepStrictEqual(Tools.convertArxivXmlToNote(rawiarxivxml), expectedNote);
+  });
+
   it('should try to extract the abstract but get a 404 error', async function () {
 
     try {
