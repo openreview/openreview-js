@@ -969,7 +969,7 @@ export default class Tools {
     });
 
     let arxivObj = xmlParser.parse(arxivXml);
-    arxivObj=arxivObj?.feed?.entry
+    arxivObj=arxivObj?.entry
     
     const title = arxivObj?.title
     const abstract = arxivObj?.summary

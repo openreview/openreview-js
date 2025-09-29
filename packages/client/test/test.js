@@ -1205,16 +1205,7 @@ describe('OpenReview Client', function () {
   });
 
   it('should convert arxiv xml to note edit', function () {
-    let rawiarxivxml = `<?xml version="1.0" encoding="UTF-8"?>
-    <feed xmlns="http://www.w3.org/2005/Atom">
-        <link href="http://arxiv.org/api/query?search_query%3D%26id_list%3D2509.14206%26start%3D0%26max_results%3D10" rel="self" type="application/atom+xml"/>
-        <title type="html">ArXiv Query: search_query=&amp;id_list=2509.14206&amp;start=0&amp;max_results=10</title>
-        <id>http://arxiv.org/api/883ohB9ZqEhqbZCHoXUNTRcTLFQ</id>
-        <updated>2025-09-18T00:00:00-04:00</updated>
-        <opensearch:totalResults xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">1</opensearch:totalResults>
-        <opensearch:startIndex xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">0</opensearch:startIndex>
-        <opensearch:itemsPerPage xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">10</opensearch:itemsPerPage>
-        <entry>
+    let rawiarxivxml = `<entry>
             <id>http://arxiv.org/abs/2509.14206v1</id>
             <updated>2025-09-17T17:37:25Z</updated>
             <published>2025-09-17T17:37:25Z</published>
@@ -1321,8 +1312,7 @@ describe('OpenReview Client', function () {
             <link title="pdf" href="http://arxiv.org/pdf/2509.14206v1" rel="related" type="application/pdf"/>
             <arxiv:primary_category xmlns:arxiv="http://arxiv.org/schemas/atom" term="astro-ph.GA" scheme="http://arxiv.org/schemas/atom"/>
             <category term="astro-ph.GA" scheme="http://arxiv.org/schemas/atom"/>
-        </entry>
-    </feed>`
+        </entry>`
     let expectedNote={
       content: {
         title: {
