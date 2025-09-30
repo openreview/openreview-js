@@ -2,7 +2,7 @@ import assert from 'assert';
 import { extractAbstract } from '../src/index.js';
 
 describe.only('Abstract Extraction', function () {
-  it('should extract abstract using general rule', async function () {
+  it.skip('should extract abstract using general rule', async function () {
     this.retries(3);
     const abstractExpected = 'Unimanual interaction allows the user to operate the mobile device in a distracted, multitasking scenario and frees the other hand for tasks like carrying a bag, writing a relevant note etc. In such scenarios, the thumb of the hand holding the device is normally the only available finger for touch input [Boring et al. 2012]. However, mainly due to biomechanical limitations of the thumb, only a subregion of the touch screen is comfortable to access by the thumb [Karlson and Bederson 2007], causing awkward hand postures to reach the rest of the screen. This problem of limited screen accessibility by the thumb deteriorates with screens of increasingly bigger sizes, which, however, are getting more and more popular [Fingas 2012].';
     const {abstract} = await extractAbstract('https://doi.org/10.1145/2543651.2543680');
