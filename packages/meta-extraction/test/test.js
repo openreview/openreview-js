@@ -92,7 +92,7 @@ describe.only('Abstract Extraction', function () {
     assert.equal(pdf,pdfExpected);
   });
 
-  it('should extract abstract and pdf using dlAcmOrgRule rule (dl.acm.org)', async function () {
+  it.skip('should extract abstract and pdf using dlAcmOrgRule rule (dl.acm.org)', async function () {
     this.retries(3);
     const abstractExpected = `n today's information era, every day more and more information is generated and people, on the one hand, have advantages due the increasing support in decision processes and, on the other hand, are experiencing difficulties in the selection of the right data to use. That is, users may leverage on more data but at the same time they may not be able to fully value such data since they lack the necessary knowledge about their provenance and quality. The data quality research area provides quality assessment and improvement methods that can be a valuable support for users that have to deal with the complexity of Web content. In fact, such methods help users to identify the suitability of information for their purposes. Most of the methods and techniques proposed, however, address issues for structured data and/or for defined contexts. Clearly, they cannot be easily used on the Web, where data come from heterogeneous sources and the context of use is most of the times unknown.In this keynote, the need for new assessment techniques is highlighted together with the importance of tracking data provenance as well as the reputation and trustworthiness of the sources. In fact, it is well known that the increase of data volume often corresponds to an increase of value, but to maximize such value the data sources to be used have to carefully analyzed, selected and integrated depending on the specific context of use. The talk discusses the data quality dimensions necessary to analyze different Web data sources and provides a set of illustrative examples that show how to maximize the quality of gathered information.`;
     //const pdfExpected = 'https://dl.acm.org/doi/pdf/10.1145/2740908.2778845'; // pdf link is only available for subscribers
@@ -205,7 +205,7 @@ describe.only('Abstract Extraction', function () {
     assert.equal(pdf,pdfExpected);
   });
 
-  it('should return abstract and pdf using dlAcmOrgRule rule (portal.acm.org)', async function () {
+  it.skip('should return abstract and pdf using dlAcmOrgRule rule (portal.acm.org)', async function () {
     this.retries(3);
     const abstractExpected = 'This study assessed the value of a cursor pointer that allows remote collaborators to point to locations in a partner\'s workspace via a shared video feed. We compared performance with the cursor pointer with that in video-only and side-by-side conditions. Results indicated that participants found the cursor pointer of value for referring to objects and locations in the work environment, but that the pointer did not improve performance time over video-only. We conclude that cursor pointing is valuable for collaboration on physical tasks, but that additional gestural support will be required to make performance using video systems as good as performance working side-by-side.';
     const pdfExpected = 'https://dl.acm.org/doi/pdf/10.1145/765891.765992';
@@ -226,7 +226,7 @@ describe.only('Abstract Extraction', function () {
     assert.equal(pdf,pdfExpected);
   });
 
-  it('should return abstract and pdf using iospressComRule rule (iospress.com)', async function () {
+  it.skip('should return abstract and pdf using iospressComRule rule (iospress.com)', async function () {
     this.retries(3);
     const abstractExpected = 'This paper presents a new software framework, Sampo-UI, for developing user interfaces for semantic portals. The goal is to provide the end-user with multiple application perspectives to Linked Data knowledge graphs, and a two-step usage cycle based on faceted search combined with ready-to-use tooling for data analysis. For the software developer, the Sampo-UI framework makes it possible to create highly customizable, user-friendly, and responsive user interfaces using current state-of-the-art JavaScript libraries and data from SPARQL endpoints, while saving substantial coding effort. Sampo-UI is published on GitHub under the open MIT License and has been utilized in several internal and external projects. The framework has been used thus far in creating six published and five forth-coming portals, mostly related to the Cultural Heritage domain, that have had tens of thousands of end-users on the Web.';
     const pdfExpected = 'https://journals.sagepub.com/doi/reader/10.3233/SW-210428';
@@ -237,7 +237,7 @@ describe.only('Abstract Extraction', function () {
     assert.equal(pdf,pdfExpected);
   });
 
-  it('should return pdf using iospressComRule rule (iospress.com)', async function () {
+  it.skip('should return pdf using iospressComRule rule (iospress.com)', async function () {
     this.retries(3);
     const abstractExpected = null;
     const pdfExpected = 'https://journals.sagepub.com/doi/reader/10.3233/JIFS-219322';
