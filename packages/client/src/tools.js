@@ -952,6 +952,66 @@ export default class Tools {
   }
 
   /**
+    * Converts raw arxiv xml to a note object.
+    *
+    * @static
+    * @param {object} workNode - The raw orcid object.
+    * @returns {object} The note object.
+    *
+  */
+  static convertArxivXmlToNote(arxivXml) {
+    const xmlParser = new XMLParser({
+      ignoreAttributes: false,
+      trimValues: true,
+      tagValueProcessor: (tagName, tagValue, jPath, hasAttributes, isLeafNode) => {
+        return tagValue.replace(/\s+/g, ' ').trim()
+      }
+    });
+
+    let arxivObj = xmlParser.parse(arxivXml);
+    arxivObj=arxivObj?.entry
+    
+    const title = arxivObj?.title
+    const abstract = arxivObj?.summary
+    const authorNames = arxivObj?.author?.map((p) => p.name)
+    const authorIds = authorNames?.map(p => `https://arxiv.org/search/?query=${encodeURIComponent(p)}&searchtype=all`)
+    const subjectArea = arxivObj?.category?.['@_term']
+    const pdf = arxivObj?.link?.find((p) => p['@_title'] === 'pdf')?.['@_href']
+    const pdate = new Date(arxivObj?.published).getTime()
+    const mdate = new Date(arxivObj?.updated).getTime()
+    const arxivIdWithLatestVersion = arxivObj?.id?.split('/abs/')[1]
+    const externalId = `arxiv:${arxivIdWithLatestVersion}`
+
+    const note = {
+      content: {
+        title: {
+          value: title,
+        },
+        abstract: {
+          value: abstract,
+        },
+        authors: {
+          value: authorNames,
+        },
+        authorids: {
+          value: authorIds,
+        },
+        // eslint-disable-next-line camelcase
+        subject_areas: {
+          value: [subjectArea],
+        },
+        pdf: {
+          value: pdf,
+        },
+      },
+      pdate,
+      mdate,
+      externalId,
+    }
+    return note
+  }
+
+  /**
    * Gets the PDF and abstract from the url that is being passed
    * This method calls a service that extracts the abstract and the PDF from the url
    * The service uses runs npm package @openreview/meta-extraction in the background
