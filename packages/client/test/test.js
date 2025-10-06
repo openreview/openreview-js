@@ -1008,7 +1008,7 @@ describe('OpenReview Client', function () {
       "visibility": "public"
     }
     let expectedNote = {
-      externalId: "orcid:76065020",
+      externalId: "doi:10.1364/oe.394638",
       cdate: 1592855844182,
       pdate: new Date(2020, 0, 1).getTime(),
       content: {
@@ -1172,7 +1172,7 @@ describe('OpenReview Client', function () {
       "visibility": "public"
     }
     expectedNote = {
-      externalId: "orcid:180585244",
+      externalId: "doi:10.1145/3715601",
       cdate: 1742577867171,
       pdate: new Date(2025, 8, 30).getTime(),
       content: {
