@@ -909,7 +909,7 @@ export default class Tools {
     const rawYear = workNode['publication-date']?.year?.value
     const rawMonth = workNode['publication-date']?.month?.value
     const rawDay = workNode['publication-date']?.day?.value
-    const externalId = `doi:${workNode['external-ids']?.['external-id']?.find((p) => p['external-id-type'] === 'doi')?.['external-id-value']}`
+    const externalId = `doi:${workNode['external-ids']?.['external-id']?.find((p) => p['external-id-type'] === 'doi')?.['external-id-value'].toLowerCase()}`
     const authorNames = workNode.contributors?.contributor.map((p) => p['credit-name']?.value.replaceAll(',', ''))
     const abstract = workNode['short-description']
     const citationNode = workNode['citation']
