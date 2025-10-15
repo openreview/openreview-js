@@ -914,7 +914,8 @@ export default class Tools {
     const abstract = workNode['short-description']
     const citationNode = workNode['citation']
     const bibtex = citationNode?.['citation-type'] === 'bibtex' ? citationNode['citation-value'] : undefined
-    const venue = workNode.source?.['source-name']?.value
+    const source = workNode.source?.['source-name']?.value
+    const venue = workNode['journal-title']?.value ?? source
     const html = workNode.url?.value
     const pdf = workNode['external-ids']?.['external-id']?.find((p) => p['external-id-type'] === 'uri')?.['external-id-value']
     const authorIds = workNode.contributors?.contributor.map((p) => {

@@ -1033,7 +1033,7 @@ describe('OpenReview Client', function () {
         },
         // abstract: { value: null }, empty abstract should not be included
         _bibtex: { value: "<head>\n<META HTTP-EQUIV=\"Refresh\" CONTENT=\"0;URL=/servlet/useragent\">\n</head>\n" },
-        venue: { value: "Crossref" },
+        venue: { value: "Optics Express" },
         html: { value: "https://doi.org/10.1364/OE.394638" },
 
       }
@@ -1196,11 +1196,242 @@ describe('OpenReview Client', function () {
           ]
         },
         abstract: { value: "test short description" },
-        venue: { value: "Crossref" },
+        venue: { value: "ACM Transactions on Recommender Systems" },
         html: { value: "https://doi.org/10.1145/3715601" },
 
       }
     }
+    assert.deepStrictEqual(Tools.convertORCIDJsonToNote(rawOrcidJson), expectedNote);
+
+    // no journal titile, use source as venue
+    rawOrcidJson = {
+      "created-date": {
+        "value": 1747143994104
+      },
+      "last-modified-date": {
+        "value": 1747143994104
+      },
+      "source": {
+        "source-orcid": null,
+        "source-client-id": {
+          "uri": "https://orcid.org/client/APP-GMH5NW3CFA3HLFZ9",
+          "path": "APP-GMH5NW3CFA3HLFZ9",
+          "host": "orcid.org"
+        },
+        "source-name": {
+          "value": "University of Oxford - Symplectic Elements"
+        },
+        "assertion-origin-orcid": null,
+        "assertion-origin-client-id": null,
+        "assertion-origin-name": null
+      },
+      "put-code": 183966518,
+      "path": "/0000-0003-2391-5361/work/183966518",
+      "title": {
+        "title": {
+          "value": "High-performance automated abstract screening with large language model ensembles"
+        },
+        "subtitle": null,
+        "translated-title": null
+      },
+      "journal-title": null,
+      "short-description": null,
+      "citation": {
+        "citation-type": "bibtex",
+        "citation-value": "@misc{sanghera2024highperformanceensembles,\nauthor = {Sanghera, R and Thirunavukarasu, AJ and Khoury, ME and O'Logbon, J and Chen, Y and Watt, A and Mahmood, M and Butt, H and Nishimura, G and Soltan, A},\nmonth = {Nov},\ntitle = {High-performance automated abstract screening with large language model ensembles},\nyear = {2024},\ndoi = {10.48550/arxiv.2411.02451},\nkeyword = {46 Information and Computing Sciences},\nkeyword = {5204 Cognitive and Computational Psychology},\nkeyword = {52 Psychology},\nday = {3},\n}\n"
+      },
+      "type": "other",
+      "publication-date": {
+        "year": {
+          "value": "2024"
+        },
+        "month": {
+          "value": "11"
+        },
+        "day": {
+          "value": "03"
+        }
+      },
+      "external-ids": {
+        "external-id": [
+          {
+            "external-id-type": "arxiv",
+            "external-id-value": "arXiv:2411.02451",
+            "external-id-normalized": {
+              "value": "arXiv:2411.02451",
+              "transient": true
+            },
+            "external-id-normalized-error": null,
+            "external-id-url": null,
+            "external-id-relationship": "self"
+          },
+          {
+            "external-id-type": "doi",
+            "external-id-value": "10.48550/arxiv.2411.02451",
+            "external-id-normalized": {
+              "value": "10.48550/arxiv.2411.02451",
+              "transient": true
+            },
+            "external-id-normalized-error": null,
+            "external-id-url": null,
+            "external-id-relationship": "self"
+          },
+          {
+            "external-id-type": "source-work-id",
+            "external-id-value": "2123560",
+            "external-id-normalized": {
+              "value": "2123560",
+              "transient": true
+            },
+            "external-id-normalized-error": null,
+            "external-id-url": null,
+            "external-id-relationship": "self"
+          }
+        ]
+      },
+      "url": {
+        "value": "https://app.dimensions.ai/details/publication/pub.1182049962"
+      },
+      "contributors": {
+        "contributor": [
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Rohan Sanghera"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Arun James Thirunavukarasu"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Marc El Khoury"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Jessica O'Logbon"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Yuqing Chen"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Archie Watt"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Mustafa Mahmood"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Hamid Butt"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "George Nishimura"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          },
+          {
+            "contributor-orcid": {
+              "uri": null,
+              "path": "0000-0003-2391-5361",
+              "host": "https://orcid.org/"
+            },
+            "credit-name": {
+              "value": "Andrew Soltan"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          }
+        ]
+      },
+      "language-code": null,
+      "country": null,
+      "visibility": "public"
+    }
+    expectedNote = {
+      externalId: "doi:10.48550/arxiv.2411.02451",
+      cdate: 1747143994104,
+      pdate: new Date(2024, 10, 3).getTime(),
+      content: {
+        title: {
+          value:
+            "High-performance automated abstract screening with large language model ensembles",
+        },
+        authors: {
+          value: [
+            "Rohan Sanghera",
+            "Arun James Thirunavukarasu",
+            "Marc El Khoury",
+            "Jessica O'Logbon",
+            "Yuqing Chen",
+            "Archie Watt",
+            "Mustafa Mahmood",
+            "Hamid Butt",
+            "George Nishimura",
+            "Andrew Soltan",
+          ],
+        },
+        authorids: {
+          value: [
+            "https://orcid.org/orcid-search/search?searchQuery=Rohan Sanghera",
+            "https://orcid.org/orcid-search/search?searchQuery=Arun James Thirunavukarasu",
+            "https://orcid.org/orcid-search/search?searchQuery=Marc El Khoury",
+            "https://orcid.org/orcid-search/search?searchQuery=Jessica O'Logbon",
+            "https://orcid.org/orcid-search/search?searchQuery=Yuqing Chen",
+            "https://orcid.org/orcid-search/search?searchQuery=Archie Watt",
+            "https://orcid.org/orcid-search/search?searchQuery=Mustafa Mahmood",
+            "https://orcid.org/orcid-search/search?searchQuery=Hamid Butt",
+            "https://orcid.org/orcid-search/search?searchQuery=George Nishimura",
+            "https://orcid.org/orcid-search/search?searchQuery=Andrew Soltan",
+          ],
+        },
+        _bibtex: {
+          value:
+            "@misc{sanghera2024highperformanceensembles,\nauthor = {Sanghera, R and Thirunavukarasu, AJ and Khoury, ME and O'Logbon, J and Chen, Y and Watt, A and Mahmood, M and Butt, H and Nishimura, G and Soltan, A},\nmonth = {Nov},\ntitle = {High-performance automated abstract screening with large language model ensembles},\nyear = {2024},\ndoi = {10.48550/arxiv.2411.02451},\nkeyword = {46 Information and Computing Sciences},\nkeyword = {5204 Cognitive and Computational Psychology},\nkeyword = {52 Psychology},\nday = {3},\n}\n",
+        },
+        venue: { value: "University of Oxford - Symplectic Elements" }, // no journal title so fall back to source
+        html: {
+          value: "https://app.dimensions.ai/details/publication/pub.1182049962",
+        },
+      },
+    };
+
     assert.deepStrictEqual(Tools.convertORCIDJsonToNote(rawOrcidJson), expectedNote);
   });
 
