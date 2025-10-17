@@ -910,7 +910,7 @@ export default class Tools {
     const rawMonth = workNode['publication-date']?.month?.value
     const rawDay = workNode['publication-date']?.day?.value
     const externalId = `doi:${workNode['external-ids']?.['external-id']?.find((p) => p['external-id-type'] === 'doi')?.['external-id-value'].toLowerCase()}`
-    const authorNames = workNode.contributors?.contributor.map((p) => p['credit-name']?.value.replaceAll(',', ''))
+    const authorNames = workNode.contributors?.contributor.map((p) => p['credit-name']?.value.replaceAll(',', '').trim())
     const abstract = workNode['short-description']
     const citationNode = workNode['citation']
     const bibtex = citationNode?.['citation-type'] === 'bibtex' ? citationNode['citation-value'] : undefined
@@ -924,7 +924,7 @@ export default class Tools {
         authorId = p['contributor-orcid'].uri
       }
       if (!authorId) {
-        return `https://orcid.org/orcid-search/search?searchQuery=${p['credit-name']?.value}`
+        return `https://orcid.org/orcid-search/search?searchQuery=${p['credit-name']?.value.replaceAll(',', '').trim()}`
       }
       return authorId
     })
