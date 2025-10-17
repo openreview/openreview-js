@@ -1433,6 +1433,215 @@ describe('OpenReview Client', function () {
     };
 
     assert.deepStrictEqual(Tools.convertORCIDJsonToNote(rawOrcidJson), expectedNote);
+
+    // author name has space
+    rawOrcidJson = {
+      "created-date": {
+          "value": 1714030886118
+      },
+      "last-modified-date": {
+          "value": 1714030886118
+      },
+      "source": {
+          "source-orcid": null,
+          "source-client-id": {
+              "uri": "https://orcid.org/client/0000-0001-9884-1913",
+              "path": "0000-0001-9884-1913",
+              "host": "orcid.org"
+          },
+          "source-name": {
+              "value": "Crossref"
+          },
+          "assertion-origin-orcid": null,
+          "assertion-origin-client-id": null,
+          "assertion-origin-name": null
+      },
+      "put-code": 158406720,
+      "path": "/0009-0005-1338-3228/work/158406720",
+      "title": {
+          "title": {
+              "value": "High-Precision Visual Servoing for the Neutron Diffractometer STRESS-SPEC at MLZ"
+          },
+          "subtitle": null,
+          "translated-title": null
+      },
+      "journal-title": {
+          "value": "Sensors"
+      },
+      "short-description": null,
+      "citation": null,
+      "type": "journal-article",
+      "publication-date": {
+          "year": {
+              "value": "2024"
+          },
+          "month": {
+              "value": "04"
+          },
+          "day": {
+              "value": "24"
+          }
+      },
+      "external-ids": {
+          "external-id": [
+              {
+                  "external-id-type": "doi",
+                  "external-id-value": "10.3390/s24092703",
+                  "external-id-normalized": {
+                      "value": "10.3390/s24092703",
+                      "transient": true
+                  },
+                  "external-id-normalized-error": null,
+                  "external-id-url": {
+                      "value": "https://doi.org/10.3390/s24092703"
+                  },
+                  "external-id-relationship": "self"
+              }
+          ]
+      },
+      "url": {
+          "value": "https://doi.org/10.3390/s24092703"
+      },
+      "contributors": {
+          "contributor": [
+              {
+                  "contributor-orcid": null,
+                  "credit-name": {
+                      "value": "Martin Landesberger "
+                  },
+                  "contributor-email": null,
+                  "contributor-attributes": {
+                      "contributor-sequence": null,
+                      "contributor-role": "author"
+                  }
+              },
+              {
+                  "contributor-orcid": null,
+                  "credit-name": {
+                      "value": "Oguz Kedilioglu "
+                  },
+                  "contributor-email": null,
+                  "contributor-attributes": {
+                      "contributor-sequence": null,
+                      "contributor-role": "author"
+                  }
+              },
+              {
+                  "contributor-orcid": null,
+                  "credit-name": {
+                      "value": "Lijiu Wang "
+                  },
+                  "contributor-email": null,
+                  "contributor-attributes": {
+                      "contributor-sequence": null,
+                      "contributor-role": "author"
+                  }
+              },
+              {
+                  "contributor-orcid": null,
+                  "credit-name": {
+                      "value": "Weimin Gan "
+                  },
+                  "contributor-email": null,
+                  "contributor-attributes": {
+                      "contributor-sequence": null,
+                      "contributor-role": "author"
+                  }
+              },
+              {
+                  "contributor-orcid": null,
+                  "credit-name": {
+                      "value": "Joana Rebelo Kornmeier "
+                  },
+                  "contributor-email": null,
+                  "contributor-attributes": {
+                      "contributor-sequence": null,
+                      "contributor-role": "author"
+                  }
+              },
+              {
+                  "contributor-orcid": null,
+                  "credit-name": {
+                      "value": "Sebastian Reitelshöfer "
+                  },
+                  "contributor-email": null,
+                  "contributor-attributes": {
+                      "contributor-sequence": null,
+                      "contributor-role": "author"
+                  }
+              },
+              {
+                  "contributor-orcid": null,
+                  "credit-name": {
+                      "value": "Jörg Franke "
+                  },
+                  "contributor-email": null,
+                  "contributor-attributes": {
+                      "contributor-sequence": null,
+                      "contributor-role": "author"
+                  }
+              },
+              {
+                  "contributor-orcid": null,
+                  "credit-name": {
+                      "value": "Michael Hofmann "
+                  },
+                  "contributor-email": null,
+                  "contributor-attributes": {
+                      "contributor-sequence": null,
+                      "contributor-role": "author"
+                  }
+              }
+          ]
+      },
+      "language-code": null,
+      "country": null,
+      "visibility": "public"
+    } 
+
+    expectedNote = {
+      externalId: "doi:10.3390/s24092703",
+      cdate: 1714030886118,
+      pdate: new Date(2024, 3, 24).getTime(),
+      content: {
+        title: {
+          value:
+            "High-Precision Visual Servoing for the Neutron Diffractometer STRESS-SPEC at MLZ",
+        },
+        authors: {
+          value: [
+            "Martin Landesberger",
+            "Oguz Kedilioglu",
+            "Lijiu Wang",
+            "Weimin Gan",
+            "Joana Rebelo Kornmeier",
+            "Sebastian Reitelshöfer",
+            "Jörg Franke",
+            "Michael Hofmann"
+          ],
+        },
+        authorids: {
+          value: [
+            "https://orcid.org/orcid-search/search?searchQuery=Martin Landesberger",
+            "https://orcid.org/orcid-search/search?searchQuery=Oguz Kedilioglu",
+            "https://orcid.org/orcid-search/search?searchQuery=Lijiu Wang",
+            "https://orcid.org/orcid-search/search?searchQuery=Weimin Gan",
+            "https://orcid.org/orcid-search/search?searchQuery=Joana Rebelo Kornmeier",
+            "https://orcid.org/orcid-search/search?searchQuery=Sebastian Reitelshöfer",
+            "https://orcid.org/orcid-search/search?searchQuery=Jörg Franke",
+            "https://orcid.org/orcid-search/search?searchQuery=Michael Hofmann",  
+          ],
+        },
+  
+        venue: { value: "Sensors" },
+        html: {
+          value: "https://doi.org/10.3390/s24092703",
+        },
+      },
+    };
+
+    assert.deepStrictEqual(Tools.convertORCIDJsonToNote(rawOrcidJson), expectedNote);
+
   });
 
   it('should convert arxiv xml to note edit', function () {
