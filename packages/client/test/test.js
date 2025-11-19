@@ -761,7 +761,29 @@ describe('OpenReview Client', function () {
 
     conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile3, 'default', 5);
     assert.equal(conflicts.length, 1);
-    assert.equal(conflicts[0], 'melisa@mail.com');    
+    assert.equal(conflicts[0], 'melisa@mail.com');
+
+    // Test comprehensive conflict policy
+    profile3.content.history = [
+      {
+        position: 'Intern',
+        start: 2020,
+        end: 2022,
+        institution: {
+          domain: 'facebook.com',
+          name: 'Facebook'
+        }
+      }
+    ]
+
+    conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile3, 'NeurIPS', 5);
+    assert.equal(conflicts.length, 1);
+    assert.equal(conflicts[0], 'melisa@mail.com');
+
+    conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile3, 'Comprehensive', 5);
+    assert.equal(conflicts.length, 2);
+    assert.equal(conflicts[0], 'facebook.com');
+    assert.equal(conflicts[1], 'melisa@mail.com');
 
   });
 

@@ -478,6 +478,8 @@ export default class Tools {
       infoFunction = this.#infoFunctionBuilder(policy);
     } else if (policy === 'NeurIPS') {
       infoFunction = this.#infoFunctionBuilder(this.getNeuripsProfileInfo);
+    } else if (policy === 'Comprehensive') {
+      infoFunction = this.#infoFunctionBuilder(this.getComprehensiveProfileInfo);
     } else {
       infoFunction = this.#infoFunctionBuilder(this.getProfileInfo);
     }
@@ -645,6 +647,89 @@ export default class Tools {
     for (const history of (profile.content?.history || [])) {
       const position = history.position;
       if (!position || (typeof position === 'string' && !position.toLowerCase().includes('intern'))) {
+        const end = parseInt(history.end || 0, 10);
+        if (!end || end > cutOffYear) {
+          const domain = history.institution?.domain || '';
+          domains.add(domain);
+        }
+      }
+    }
+
+    // Relations section, get coauthor/coworker relations within the last n years + all the other relations
+    for (const relObj of profile.content?.relations || []) {
+      const relation = (relObj.relation || '').toLowerCase();
+      const relationEnd = parseInt(relObj.end || 0, 10);
+      const relationUsername = relObj.username || relObj.email;
+      if (relation === 'coauthor' || relation === 'coworker') {
+        if (!relationEnd || relationEnd > cutOffYear) {
+          relations.add(relationUsername);
+        }
+      } else {
+        relations.add(relationUsername);
+      }
+    }
+
+    // Emails section
+    // if institution section is empty, add email domains
+    if (domains.size === 0) {
+      for (const email of (profile.content?.emails || [])) {
+        const domain = email.split('@')[1];
+        domains.add(domain);
+      }
+    }
+
+    // Publications section: get publications within last n years
+    for (const publication of (profile.content?.publications || [])) {
+      let year = -1;
+      if (publication.content?.year) {
+        const convertedYear = parseInt(publication.content.year, 10);
+        if (convertedYear <= currentYear) {
+          year = convertedYear;
+        }
+      } else {
+        const timestamp = publication.pdate || publication.cdate || publication.tcdate;
+        year = new Date(timestamp).getFullYear();
+      }
+      if (year > cutOffYear) {
+        publications.add(publication.id);
+      }
+    }
+
+    return {
+      id: profile.id,
+      domains,
+      emails,
+      relations,
+      publications
+    };
+  }
+
+  /**
+   * Get the profile information for a given profile including the domains, emails, relations and publications.
+   *
+   * @param {object} profile - The profile object.
+   * @param {number} nYears - The number of years to consider for the profile.
+   * @returns {object} The profile information.
+   * @throws {Error} If the profile has obfuscated emails.
+   */
+  getComprehensiveProfileInfo(profile, nYears) {
+    const domains = new Set();
+    const emails = new Set();
+    const relations = new Set();
+    const publications = new Set();
+    const currentYear = new Date().getFullYear();
+
+    let cutOffYear = -1;
+    if (nYears) {
+      const cutoffDate = new Date();
+      cutoffDate.setFullYear(cutoffDate.getFullYear() - nYears);
+      cutOffYear = cutoffDate.getFullYear();
+    }
+
+    // Institution section, get history within the last n years
+    for (const history of (profile.content?.history || [])) {
+      const position = history.position;
+      if (!position || (typeof position === 'string')) {
         const end = parseInt(history.end || 0, 10);
         if (!end || end > cutOffYear) {
           const domain = history.institution?.domain || '';
