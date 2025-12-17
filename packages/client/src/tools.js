@@ -560,6 +560,67 @@ export default class Tools {
   }
 
   /**
+   * Find publications after the cut off year.
+   *
+   * @static
+   * @param {object[]} publications - List of publication notes
+   * @param {number} cutOffYear - The year to consider for the profile.
+   * @returns {Set<string>} A set of publication note IDs.
+   */
+  static filterPublicationsByYear(publications, cutOffYear) {
+    function extractYear(publicationId, timestamp) {
+      try {
+        if (!timestamp) return null;
+        const date = new Date(timestamp);
+        const year = date.getFullYear();
+        return Number.isNaN(year) ? null : year;
+      } catch (e) {
+        console.error('Error extracting the date for publication:', publicationId);
+        return null;
+      }
+    }
+
+    const filteredPublications = new Set();
+    const currentYear = new Date().getFullYear();
+    for (const publication of publications || []) {
+      let year = null;
+
+      // 1. Check pdate first
+      if (publication.pdate) {
+        year = extractYear(publication.id, publication.pdate);
+      }
+
+      // 2. Check content.year
+      if (!year && publication.content?.year !== undefined) {
+        let unformattedYear;
+
+        const yearField = publication.content.year;
+        if (typeof yearField === 'object' && yearField?.value !== undefined) {
+          unformattedYear = yearField.value; // API 2
+        } else if (typeof yearField === 'string' || typeof yearField === 'number') {
+          unformattedYear = yearField; // API 1
+        }
+
+        const convertedYear = parseInt(unformattedYear, 10);
+        if (!Number.isNaN(convertedYear) && convertedYear <= currentYear) {
+          year = convertedYear;
+        }
+      }
+
+      // 3. Fallback to cdate / tcdate
+      if (!year) {
+        year = extractYear(publication.id, publication.cdate ?? publication.tcdate);
+      }
+
+      if (year && year > cutOffYear) {
+        filteredPublications.add(publication.id);
+      }
+    }
+
+    return filteredPublications;
+  }
+
+  /**
    * Get the profile information for a given profile that includes the domains, emails, relations and publications.
    *
    * @param {object} profile - The profile object.
@@ -605,12 +666,7 @@ export default class Tools {
     }
 
     // Publications section: get publications within last n years, default is all publications from previous years
-    for (const publication of (profile.content?.publications || [])) {
-      const publicationDate = publication?.pdate || publication?.cdate || publication?.tcdate || 0;
-      if (new Date(publicationDate).getFullYear() > cutOffYear) {
-        publications.add(publication.id);
-      }
-    }
+    publications = Tools.filterPublicationsByYear(profile.content?.publications || [], cutOffYear)
 
     return {
       id: profile.id,
@@ -633,8 +689,7 @@ export default class Tools {
     const domains = new Set();
     const emails = new Set();
     const relations = new Set();
-    const publications = new Set();
-    const currentYear = new Date().getFullYear();
+    let publications = new Set();
 
     let cutOffYear = -1;
     if (nYears) {
@@ -679,21 +734,7 @@ export default class Tools {
     }
 
     // Publications section: get publications within last n years
-    for (const publication of (profile.content?.publications || [])) {
-      let year = -1;
-      if (publication.content?.year) {
-        const convertedYear = parseInt(publication.content.year, 10);
-        if (convertedYear <= currentYear) {
-          year = convertedYear;
-        }
-      } else {
-        const timestamp = publication.pdate || publication.cdate || publication.tcdate;
-        year = new Date(timestamp).getFullYear();
-      }
-      if (year > cutOffYear) {
-        publications.add(publication.id);
-      }
-    }
+    publications = Tools.filterPublicationsByYear(profile.content?.publications || [], cutOffYear)
 
     return {
       id: profile.id,
@@ -716,8 +757,7 @@ export default class Tools {
     const domains = new Set();
     const emails = new Set();
     const relations = new Set();
-    const publications = new Set();
-    const currentYear = new Date().getFullYear();
+    let publications = new Set();
 
     let cutOffYear = -1;
     if (nYears) {
@@ -762,21 +802,7 @@ export default class Tools {
     }
 
     // Publications section: get publications within last n years
-    for (const publication of (profile.content?.publications || [])) {
-      let year = -1;
-      if (publication.content?.year) {
-        const convertedYear = parseInt(publication.content.year, 10);
-        if (convertedYear <= currentYear) {
-          year = convertedYear;
-        }
-      } else {
-        const timestamp = publication.pdate || publication.cdate || publication.tcdate;
-        year = new Date(timestamp).getFullYear();
-      }
-      if (year > cutOffYear) {
-        publications.add(publication.id);
-      }
-    }
+    publications = Tools.filterPublicationsByYear(profile.content?.publications || [], cutOffYear)
 
     return {
       id: profile.id,
