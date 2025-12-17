@@ -847,7 +847,7 @@ export default class Tools {
     const note = {
       externalId: `dblp:${data.key}`,
       cdate: data.cdate,
-      pdate: new Date(data.year, 0, 1).getTime(),
+      pdate: new Date(Date.UTC(data.year, 11, 31,0,0,0,0)).getTime(),
       content: {
         title: { value: data.title },
         _bibtex: { value: dataToBibtex(data) },
