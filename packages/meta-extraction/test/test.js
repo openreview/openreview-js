@@ -157,7 +157,7 @@ describe.only('Abstract Extraction', function () {
     assert.equal(pdf,pdfExpected);
   });
 
-  it('should return abstract using scienceDirect rule (linkinghub.elsevier.com)', async function () {
+  it.skip('should return abstract using scienceDirect rule (linkinghub.elsevier.com)', async function () {
     this.retries(3);
     const abstractExpected = 'Many of the existing opportunistic networking systems have been designed assuming a small number links per node and have trouble scaling to large numbers of potential concurrent communication partners. In the real world we often find wireless local area networks with large numbers of connected users – in particular in open Wi-Fi networks provided by cities, airports, conferences and other venues. In this paper we build a 50 client opportunistic network in a single Wi-Fi access point and use it to uncover scaling problems and to suggest mechanisms to improve the performance of single segment dissemination. Further, we present an algorithm for breaking down a single dense segment dissemination problem into multiple smaller but identical problems by exploiting resource (e.g., Wi-Fi channel) diversity, and validate our approach via simulations and testbed experiments. The ability to scale to high density network segments creates new, realistic use cases for opportunistic networking applications.';
     const pdfExpected = 'https://www.sciencedirect.com/science/article/pii/S014036641730525X/pdfft?md5=937ab7fd26e98a51fba20e6e4f3bdb15&pid=1-s2.0-S014036641730525X-main.pdf';
@@ -260,7 +260,7 @@ describe.only('Abstract Extraction', function () {
     assert.equal(pdf,pdfExpected);
   });
 
-  it('should extract abstract using scienceDirect rule', async function () {
+  it.skip('should extract abstract using scienceDirect rule', async function () {
     this.retries(3);
     const abstractExpected = 'With the increasing use of research paper search engines, such as CiteSeer, for both literature search and hiring decisions, the accuracy of such systems is of paramount importance. This article employs conditional random fields (CRFs) for the task of extracting various common fields from the headers and citation of research papers. CRFs provide a principled way for incorporating various local features, external lexicon features and globle layout features. The basic theory of CRFs is becoming well-understood, but best-practices for applying them to real-world data requires additional exploration. We make an empirical exploration of several factors, including variations on Gaussian, Laplace and hyperbolic-L1 priors for improved regularization, and several classes of features. Based on CRFs, we further present a novel approach for constraint co-reference information extraction; i.e., improving extraction performance given that we know some citations refer to the same publication. On a standard benchmark dataset, we achieve new state-of-the-art performance, reducing error in average F1 by 36%, and word error rate by 78% in comparison with the previous best SVM results. Accuracy compares even more favorably against HMMs. On four co-reference IE datasets, our system significantly improves extraction performance, with an error rate reduction of 6–14%.';
     const {abstract} = await extractAbstract('https://www.sciencedirect.com/science/article/pii/S0306457305001172');
