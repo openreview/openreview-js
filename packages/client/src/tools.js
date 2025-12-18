@@ -641,9 +641,7 @@ export default class Tools {
 
     let cutOffYear = -1;
     if (nYears) {
-      const cutoffDate = new Date();
-      cutoffDate.setFullYear(cutoffDate.getFullYear() - nYears);
-      cutOffYear = cutoffDate.getFullYear();
+      cutOffYear = new Date().getFullYear() - nYears;
     }
 
     // Institution section
@@ -693,9 +691,7 @@ export default class Tools {
 
     let cutOffYear = -1;
     if (nYears) {
-      const cutoffDate = new Date();
-      cutoffDate.setFullYear(cutoffDate.getFullYear() - nYears);
-      cutOffYear = cutoffDate.getFullYear();
+      cutOffYear = new Date().getFullYear() - nYears;
     }
 
     // Institution section, get history within the last n years, excluding internships
@@ -761,9 +757,7 @@ export default class Tools {
 
     let cutOffYear = -1;
     if (nYears) {
-      const cutoffDate = new Date();
-      cutoffDate.setFullYear(cutoffDate.getFullYear() - nYears);
-      cutOffYear = cutoffDate.getFullYear();
+      cutOffYear = new Date().getFullYear() - nYears;
     }
 
     // Institution section, get history within the last n years
