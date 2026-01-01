@@ -25,6 +25,6 @@
   "homepage": "https://github.com/openreview/openreview-js#readme",
   "dependencies": {
     "@openreview/meta-extraction": "^0.0.10",
-    "express": "^4.21.2"
+    "express": "^4.22.1"
   }
 }
