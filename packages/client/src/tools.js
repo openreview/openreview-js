@@ -478,6 +478,8 @@ export default class Tools {
       infoFunction = this.#infoFunctionBuilder(policy);
     } else if (policy === 'NeurIPS') {
       infoFunction = this.#infoFunctionBuilder(this.getNeuripsProfileInfo);
+    } else if (policy === 'Comprehensive') {
+      infoFunction = this.#infoFunctionBuilder(this.getComprehensiveProfileInfo);
     } else {
       infoFunction = this.#infoFunctionBuilder(this.getProfileInfo);
     }
@@ -558,6 +560,67 @@ export default class Tools {
   }
 
   /**
+   * Find publications after the cut off year.
+   *
+   * @static
+   * @param {object[]} publications - List of publication notes
+   * @param {number} cutOffYear - The year to consider for the profile.
+   * @returns {Set<string>} A set of publication note IDs.
+   */
+  static filterPublicationsByYear(publications, cutOffYear) {
+    function extractYear(publicationId, timestamp) {
+      try {
+        if (!timestamp) return null;
+        const date = new Date(timestamp);
+        const year = date.getFullYear();
+        return Number.isNaN(year) ? null : year;
+      } catch (e) {
+        console.error('Error extracting the date for publication:', publicationId);
+        return null;
+      }
+    }
+
+    const filteredPublications = new Set();
+    const currentYear = new Date().getFullYear();
+    for (const publication of publications || []) {
+      let year = null;
+
+      // 1. Check pdate first
+      if (publication.pdate) {
+        year = extractYear(publication.id, publication.pdate);
+      }
+
+      // 2. Check content.year
+      if (!year && publication.content?.year !== undefined) {
+        let unformattedYear;
+
+        const yearField = publication.content.year;
+        if (typeof yearField === 'object' && yearField?.value !== undefined) {
+          unformattedYear = yearField.value; // API 2
+        } else if (typeof yearField === 'string' || typeof yearField === 'number') {
+          unformattedYear = yearField; // API 1
+        }
+
+        const convertedYear = parseInt(unformattedYear, 10);
+        if (!Number.isNaN(convertedYear) && convertedYear <= currentYear) {
+          year = convertedYear;
+        }
+      }
+
+      // 3. Fallback to cdate / tcdate
+      if (!year) {
+        year = extractYear(publication.id, publication.cdate ?? publication.tcdate);
+      }
+
+      if (year && year > cutOffYear) {
+        filteredPublications.add(publication.id);
+      }
+    }
+
+    return filteredPublications;
+  }
+
+  /**
    * Get the profile information for a given profile that includes the domains, emails, relations and publications.
    *
    * @param {object} profile - The profile object.
@@ -578,9 +641,7 @@ export default class Tools {
 
     let cutOffYear = -1;
     if (nYears) {
-      const cutoffDate = new Date();
-      cutoffDate.setFullYear(cutoffDate.getFullYear() - nYears);
-      cutOffYear = cutoffDate.getFullYear();
+      cutOffYear = new Date().getFullYear() - nYears;
     }
 
     // Institution section
@@ -603,12 +664,7 @@ export default class Tools {
     }
 
     // Publications section: get publications within last n years, default is all publications from previous years
-    for (const publication of (profile.content?.publications || [])) {
-      const publicationDate = publication?.pdate || publication?.cdate || publication?.tcdate || 0;
-      if (new Date(publicationDate).getFullYear() > cutOffYear) {
-        publications.add(publication.id);
-      }
-    }
+    publications = Tools.filterPublicationsByYear(profile.content?.publications || [], cutOffYear)
 
     return {
       id: profile.id,
@@ -631,14 +687,11 @@ export default class Tools {
     const domains = new Set();
     const emails = new Set();
     const relations = new Set();
-    const publications = new Set();
-    const currentYear = new Date().getFullYear();
+    let publications = new Set();
 
     let cutOffYear = -1;
     if (nYears) {
-      const cutoffDate = new Date();
-      cutoffDate.setFullYear(cutoffDate.getFullYear() - nYears);
-      cutOffYear = cutoffDate.getFullYear();
+      cutOffYear = new Date().getFullYear() - nYears;
     }
 
     // Institution section, get history within the last n years, excluding internships
@@ -677,21 +730,73 @@ export default class Tools {
     }
 
     // Publications section: get publications within last n years
-    for (const publication of (profile.content?.publications || [])) {
-      let year = -1;
-      if (publication.content?.year) {
-        const convertedYear = parseInt(publication.content.year, 10);
-        if (convertedYear <= currentYear) {
-          year = convertedYear;
+    publications = Tools.filterPublicationsByYear(profile.content?.publications || [], cutOffYear)
+
+    return {
+      id: profile.id,
+      domains,
+      emails,
+      relations,
+      publications
+    };
+  }
+
+  /**
+   * Get the profile information for a given profile including the domains, emails, relations and publications.
+   *
+   * @param {object} profile - The profile object.
+   * @param {number} nYears - The number of years to consider for the profile.
+   * @returns {object} The profile information.
+   * @throws {Error} If the profile has obfuscated emails.
+   */
+  getComprehensiveProfileInfo(profile, nYears) {
+    const domains = new Set();
+    const emails = new Set();
+    const relations = new Set();
+    let publications = new Set();
+
+    let cutOffYear = -1;
+    if (nYears) {
+      cutOffYear = new Date().getFullYear() - nYears;
+    }
+
+    // Institution section, get history within the last n years
+    for (const history of (profile.content?.history || [])) {
+      const position = history.position;
+      if (!position || (typeof position === 'string')) {
+        const end = parseInt(history.end || 0, 10);
+        if (!end || end > cutOffYear) {
+          const domain = history.institution?.domain || '';
+          domains.add(domain);
         }
-      } else {
-        const timestamp = publication.pdate || publication.cdate || publication.tcdate;
-        year = new Date(timestamp).getFullYear();
-      }
-      if (year > cutOffYear) {
-        publications.add(publication.id);
       }
     }
+
+    // Relations section, get coauthor/coworker relations within the last n years + all the other relations
+    for (const relObj of profile.content?.relations || []) {
+      const relation = (relObj.relation || '').toLowerCase();
+      const relationEnd = parseInt(relObj.end || 0, 10);
+      const relationUsername = relObj.username || relObj.email;
+      if (relation === 'coauthor' || relation === 'coworker') {
+        if (!relationEnd || relationEnd > cutOffYear) {
+          relations.add(relationUsername);
+        }
+      } else {
+        relations.add(relationUsername);
+      }
+    }
+
+    // Emails section
+    // if institution section is empty, add email domains
+    if (domains.size === 0) {
+      for (const email of (profile.content?.emails || [])) {
+        const domain = email.split('@')[1];
+        domains.add(domain);
+      }
+    }
+
+    // Publications section: get publications within last n years
+    publications = Tools.filterPublicationsByYear(profile.content?.publications || [], cutOffYear)
 
     return {
       id: profile.id,
