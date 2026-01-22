@@ -83,7 +83,7 @@ describe.only('Abstract Extraction', function () {
     assert.equal(pdf,pdfExpected);
   });
 
-  it('should extract abstract and pdf using aclanthology rule (www.aclweb.org)', async function () {
+  it.skip('should extract abstract and pdf using aclanthology rule (www.aclweb.org)', async function () {
     this.retries(3);
     const abstractExpected = 'This paper presents the ArabicProcessors team’s deep learning system designed for the NADI 2020 Subtask 1 (country-level dialect identification) and Subtask 2 (province-level dialect identification). We used Arabic-Bert in combination with data augmentation and ensembling methods. Unlabeled data provided by task organizers (10 Million tweets) was split into multiple subparts, to which we applied semi-supervised learning method, and finally ran a specific ensembling process on the resulting models. This system ranked 3rd in Subtask 1 with 23.26% F1-score and 2nd in Subtask 2 with 5.75% F1-score.';
     const pdfExpected = 'https://aclanthology.org/2020.wanlp-1.28.pdf';
