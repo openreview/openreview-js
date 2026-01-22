@@ -8,7 +8,7 @@
   "scripts": {
     "test": "npm install && lerna run test",
     "coverage": "npm install --include=optional && lerna run coverage",
-    "npm-publish": "lerna publish from-package -y"
+    "npm-publish": "npm publish -w @openreview/client --provenance --access public || true; npm publish -w @openreview/meta-extraction --provenance --access public || true"
   },
   "repository": {
     "type": "git",
