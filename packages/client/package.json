@@ -33,7 +33,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "fast-xml-parser": "^4.5.0",
+    "fast-xml-parser": "^5.3.4",
     "form-data-encoder": "^4.0.2",
     "formdata-node": "^6.0.3"
   },
