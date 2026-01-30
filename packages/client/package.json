@@ -1,6 +1,6 @@
 {
   "name": "@openreview/client",
-  "version": "0.0.47",
+  "version": "0.0.48",
   "description": "Node.js client library for OpenReview's academic publishing API",
   "main": "src/index.js",
   "type": "module",
@@ -26,6 +26,9 @@
     "url": "https://github.com/openreview/openreview-js/issues"
   },
   "homepage": "https://github.com/openreview/openreview-js#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=20.0.0"
   },

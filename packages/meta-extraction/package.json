@@ -1,6 +1,6 @@
 {
   "name": "@openreview/meta-extraction",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Extract abstracts for DBLP papers",
   "main": "src/index.js",
   "type": "module",
@@ -42,5 +42,8 @@
     "url": "https://github.com/openreview/openreview-js/issues"
   },
   "homepage": "https://github.com/openreview/openreview-js#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "gitHead": "e83fe20886ca81f61c67c1884941b8df937c24c3"
 }

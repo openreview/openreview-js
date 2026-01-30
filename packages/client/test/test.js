@@ -18,31 +18,24 @@ describe('OpenReview Client', function () {
   });
 
   it('should register a new user', async function () {
-    const { user, error } = await this.superClient.registerUser({
+    const { status, error } = await this.superClient.registerUser({
       email: 'new_user@email.com',
-      first: 'New',
+      fullname: 'New User',
       last: 'User',
       password: this.strongPassword
     });
-    assert.equal(user.id.startsWith('~New_User'), true);
-    assert.equal(user.state, 'Inactive');
+    assert.equal(status, 'ok');
     assert.equal(error, null);
   });
 
   it('should search profiles', async function () {
-    const { user } = await this.superClient.registerUser({
+    const { status, error } = await this.superClient.registerUser({
       email: 'searchable_user@email.com',
-      first: 'Searchable',
-      last: 'User',
+      fullname: 'Searchable User',
       password: this.strongPassword
     });
-    assert.equal(user.id.startsWith('~Searchable_User'), true);
-    assert.equal(user.state, 'Inactive');
-
-    const termData = await this.superClient.searchProfiles({ term: 'Searchable' });
-    assert.equal(termData.profiles.length === 1, true);
-    assert.equal(termData.count === 1, true);
-    assert.equal(termData.error, null);
+    assert.equal(status, 'ok');
+    assert.equal(error, null);
 
     const emailData = await this.superClient.searchProfiles({
       emails: [ 'searchable_user@email.com' ]
@@ -50,9 +43,15 @@ describe('OpenReview Client', function () {
     assert.equal(emailData.profiles.length === 1, true);
     assert.equal(emailData.count === 1, true);
     assert.equal(emailData.error, null);
+    const profileId = emailData.profiles[0].id;
+
+    const termData = await this.superClient.searchProfiles({ term: 'Searchable' });
+    assert.equal(termData.profiles.length === 1, true);
+    assert.equal(termData.count === 1, true);
+    assert.equal(termData.error, null);
 
     const tildeData = await this.superClient.searchProfiles({
-      ids: [ '~Searchable_User1' ]
+      ids: [ profileId ]
     });
     assert.equal(tildeData.profiles.length === 1, true);
     assert.equal(tildeData.count === 1, true);
@@ -554,37 +553,43 @@ describe('OpenReview Client', function () {
   });
 
   it('should moderate a Profile', async function () {
-    const { user, error } = await this.superClient.registerUser({
+    const { status, error } = await this.superClient.registerUser({
       email: 'moderated_profile@email.com',
-      first: 'Moderate',
-      last: 'User',
+      fullname: 'Moderate User',
       password: this.strongPassword
     });
-    assert.equal(user.id.startsWith('~Moderate_User'), true);
-    assert.equal(user.state, 'Inactive');
+    assert.equal(status, 'ok');
     assert.equal(error, null);
 
+    const emailData = await this.superClient.searchProfiles({
+      emails: [ 'moderated_profile@email.com' ]
+    });
+    assert.equal(emailData.profiles.length === 1, true);
+    assert.equal(emailData.count === 1, true);
+    assert.equal(emailData.error, null);
+    const profileId = emailData.profiles[0].id;
+
     const { error: blockError } = await this.superClient.moderateProfile({
-      profileId: user.id,
+      profileId: profileId,
       decision: 'block'
     });
     assert.equal(blockError, null);
 
     let { profiles, error: profileError } = await this.superClient.getProfiles({
-      id: user.id,
+      id: profileId,
       withBlocked: true
     });
     assert.equal(profileError, null);
     assert.equal(profiles[0].state, 'Blocked');
 
     const { error: UnblockError } = await this.superClient.moderateProfile({
-      profileId: user.id,
+      profileId: profileId,
       decision: 'unblock'
     });
     assert.equal(UnblockError, null);
 
     ({ profiles, error: profileError } = await this.superClient.getProfiles({
-      id: user.id,
+      id: profileId,
       withBlocked: true
     }));
     assert.equal(profileError, null);
@@ -675,27 +680,37 @@ describe('OpenReview Client', function () {
   });
 
   it('should calculate conflicts between profiles', async function () {
-    let { user, error } = await this.superClient.registerUser({
+    let { status, error } = await this.superClient.registerUser({
       email: 'conflict_user_one@fb.com',
-      first: 'Conflict',
-      last: 'User One',
+      fullname: 'Conflict User One',
       password: this.strongPassword
     });
-    assert.equal(user.id.startsWith('~Conflict_User_One'), true);
-    assert.equal(user.state, 'Inactive');
+    assert.equal(status, 'ok');
     assert.equal(error, null);
-    const profileId1 = user.id;
 
-    ({ user, error } = await this.superClient.registerUser({
+    let emailData = await this.superClient.searchProfiles({
+      emails: [ 'conflict_user_one@fb.com' ]
+    });
+    assert.equal(emailData.profiles.length === 1, true);
+    assert.equal(emailData.count === 1, true);
+    assert.equal(emailData.error, null);
+    const profileId1 = emailData.profiles[0].id;
+
+    ({ status, error } = await this.superClient.registerUser({
       email: 'conflict_user_two@facebook.com',
-      first: 'Conflict',
-      last: 'User Two',
+      fullname: 'Conflict User Two',
       password: this.strongPassword
     }));
-    assert.equal(user.id.startsWith('~Conflict_User_Two'), true);
-    assert.equal(user.state, 'Inactive');
+    assert.equal(status, 'ok');
     assert.equal(error, null);
-    const profileId2 = user.id;
+
+    emailData = await this.superClient.searchProfiles({
+      emails: [ 'conflict_user_two@facebook.com' ]
+    });
+    assert.equal(emailData.profiles.length === 1, true);
+    assert.equal(emailData.count === 1, true);
+    assert.equal(emailData.error, null);
+    const profileId2 = emailData.profiles[0].id;
 
     const { profiles: [ profile1 ] } = await this.superClient.getProfiles({ id: profileId1 });
     const { profiles: [ profile2 ] } = await this.superClient.getProfiles({ id: profileId2 });
