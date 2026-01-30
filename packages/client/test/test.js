@@ -776,8 +776,89 @@ describe('OpenReview Client', function () {
 
     conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile3, 'default', 5);
     assert.equal(conflicts.length, 1);
-    assert.equal(conflicts[0], 'melisa@mail.com');    
+    assert.equal(conflicts[0], 'melisa@mail.com');
 
+    // Test comprehensive conflict policy
+
+    // Test relations
+    profile3.content.history = [
+      {
+        position: 'Intern',
+        start: 2020,
+        end: 2022,
+        institution: {
+          domain: 'facebook.com',
+          name: 'Facebook'
+        }
+      }
+    ]
+
+    // Intern ignored
+    conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile3, 'NeurIPS', 5);
+    assert.equal(conflicts.length, 1);
+    assert.equal(conflicts[0], 'melisa@mail.com');
+
+    // Intern caught
+    conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile3, 'Comprehensive', 5);
+    assert.equal(conflicts.length, 2);
+    assert.equal(conflicts[0], 'facebook.com');
+    assert.equal(conflicts[1], 'melisa@mail.com');
+
+    // Test publications
+    const now = new Date();
+    const lastYear = new Date(now);
+    lastYear.setFullYear(now.getFullYear() - 1);
+    const timestampLastYear = lastYear.getTime();
+
+    // Detect conflict due to pdate
+    let expectedNote = {
+      id: 'noteId1',
+      pdate: timestampLastYear,
+      content: {
+        title: { value: "Title" },
+        authors: {
+          value: [ "Conflict User One", "Conflict User Two" ]
+        },
+        authorids: {
+          value: [ '~Conflict_User_One', '~Conflict_User_Two' ]
+        },
+        abstract: { value: "Abstract" },
+        year: { "value": 2000 }
+      }
+    }
+
+    profile1.content.publications = [ expectedNote ]
+    profile2.content.publications = [ expectedNote ]
+
+    conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile2, 'Comprehensive', 5);
+
+    assert.equal(conflicts.length, 2);
+    assert(conflicts.includes('facebook.com'));
+    assert(conflicts.includes('noteId1'));
+
+    // Remove pdate, check content.year in API 2 note, detect no conflict
+    expectedNote = {
+      id: 'noteId1',
+      content: {
+        title: { value: "Title" },
+        authors: {
+          value: [ "Conflict User One", "Conflict User Two" ]
+        },
+        authorids: {
+          value: [ '~Conflict_User_One', '~Conflict_User_Two' ]
+        },
+        abstract: { value: "Abstract" },
+        year: { "value": 2000 }
+      }
+    }
+
+    profile1.content.publications = [ expectedNote ]
+    profile2.content.publications = [ expectedNote ]
+
+    conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile2, 'Comprehensive', 5);
+
+    assert.equal(conflicts.length, 1);
+    assert(conflicts.includes('facebook.com'));
   });
 
   it('should convert DBLP xml to Note Edit', async function () {
@@ -1852,4 +1933,5 @@ describe('OpenReview Client', function () {
 
   });
 
-});
+}
+);
