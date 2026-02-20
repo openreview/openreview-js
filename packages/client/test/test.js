@@ -880,9 +880,9 @@ describe('OpenReview Client', function () {
           _bibtex: { value: '@inproceedings{DBLP:conf/acl/KimBL16,\n  author={Seokhwan Kim and Rafael E. Banchs and Haizhou Li},\n  title={Exploring Convolutional and Recurrent Neural Networks in Sequential Labelling for Dialogue Topic Tracking},\n  year={2016},\n  cdate={1451606400000},\n  url={http://aclweb.org/anthology/P/P16/P16-1091.pdf},\n  booktitle={ACL (1)},\n  crossref={conf/acl/2016-1}\n}\n' },
           authors: { value: [ 'Seokhwan Kim', 'Rafael E. Banchs', 'Haizhou Li' ] },
           authorids: { value: [
-            'https://dblp.org/search/pid/api?q=author:Seokhwan_Kim:',
-            'https://dblp.org/search/pid/api?q=author:Rafael_E._Banchs:',
-            'https://dblp.org/search/pid/api?q=author:Haizhou_Li_0001:'
+            '',
+            '',
+            ''
           ] },
           'pdf': { value: 'http://aclweb.org/anthology/P/P16/P16-1091.pdf' },
           'title': { value: 'Exploring Convolutional and Recurrent Neural Networks in Sequential Labelling for Dialogue Topic Tracking' }
@@ -909,7 +909,7 @@ describe('OpenReview Client', function () {
           venueid: { value: 'dblp.org/conf/ACL/1995' },
           _bibtex: { value: '@inproceedings{DBLP:conf/acl/Rajasekaran95,\n  author={Sanguthevar Rajasekaran},\n  title={TAL Recognition in O(M(n)) Time},\n  year={1995},\n  cdate={788918400000},\n  pages={166-173},\n  url={http://aclweb.org/anthology/P/P95/P95-1023.pdf},\n  booktitle={ACL},\n  crossref={conf/acl/1995}\n}\n' },
           authors: { value: [ 'Sanguthevar Rajasekaran' ] },
-          authorids: { value: [ 'https://dblp.org/search/pid/api?q=author:Sanguthevar_Rajasekaran:' ] },
+          authorids: { value: [ '' ] },
           pdf: { value: 'http://aclweb.org/anthology/P/P95/P95-1023.pdf' },
           title: { value: 'TAL Recognition in O(M(n)) Time' }
         }
@@ -923,12 +923,12 @@ describe('OpenReview Client', function () {
           _bibtex: { value: '@inproceedings{DBLP:conf/aaai/TanYWHTS16,\n  author={Mingkui Tan and Yan Yan and Li Wang and Anton van den Hengel and Ivor W. Tsang and Qinfeng Javen Shi},\n  title={Learning Sparse Confidence-Weighted Classifier on Very High Dimensional Data},\n  year={2016},\n  cdate={1451606400000},\n  pages={2080-2086},\n  url={http://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/view/12329},\n  booktitle={AAAI},\n  crossref={conf/aaai/2016}\n}\n' },
           authors: { value: [ 'Mingkui Tan', 'Yan Yan', 'Li Wang', 'Anton van den Hengel', 'Ivor W. Tsang', 'Qinfeng Javen Shi' ] },
           authorids: { value: [
-            'https://dblp.org/search/pid/api?q=author:Mingkui_Tan:',
-            'https://dblp.org/search/pid/api?q=author:Yan_Yan_0006:',
-            'https://dblp.org/search/pid/api?q=author:Li_Wang_0033:',
-            'https://dblp.org/search/pid/api?q=author:Anton_van_den_Hengel:',
-            'https://dblp.org/search/pid/api?q=author:Ivor_W._Tsang:',
-            'https://dblp.org/search/pid/api?q=author:Qinfeng_(Javen)_Shi:'
+            '',
+            '',
+            '',
+            '',
+            '',
+            ''
           ]},
           html: { value: 'http://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/view/12329' },
           title: { value: 'Learning Sparse Confidence-Weighted Classifier on Very High Dimensional Data' }
@@ -941,7 +941,7 @@ describe('OpenReview Client', function () {
           title: {value: 'The Utilities of Evolutionary Multiobjective Optimization for Neural Architecture Search - An Empirical Perspective'},
           _bibtex: {value: '@inproceedings{DBLP:conf/bic-ta/Liu22,\n  author={Xukun Liu},\n  title={The Utilities of Evolutionary Multiobjective Optimization for Neural Architecture Search - An Empirical Perspective},\n  year={2022},\n  cdate={1640995200000},\n  pages={179-195},\n  url={https://doi.org/10.1007/978-981-99-1549-1_15},\n  booktitle={BIC-TA},\n  crossref={conf/bic-ta/2022}\n}\n'},
           authors: { value: ['Xukun Liu'] },
-          authorids: { value: ['https://dblp.org/search/pid/api?q=author:Xukun_Liu:'] },
+          authorids: { value: [''] },
           venue: { value: 'BIC-TA 2022' },
           venueid: { value: 'dblp.org/conf/BIC-TA/2022' },
           html: { value: 'https://doi.org/10.1007/978-981-99-1549-1_15' }
