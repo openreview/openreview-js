@@ -85,3 +85,11 @@ jobs:
         run: |
           cd openreview-js
           npm run coverage
+      - name: Upload API logs
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: api-logs-node-${{ matrix.node-version }}
+          path: openreview-api/logs
+          if-no-files-found: warn
+          retention-days: 3
