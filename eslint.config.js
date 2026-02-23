@@ -89,8 +89,6 @@ export default [
       'space-infix-ops': ['off'],
       'spaced-comment': ['off'],
       'vars-on-top': ['off'],
-      'import/extensions': ['off'],
-      'import/prefer-default-export': ['off'],
     },
   }
 ];
