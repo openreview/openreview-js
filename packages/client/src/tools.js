@@ -851,7 +851,7 @@ export default class Tools {
       const author = getRawDataValue(authorData);
       return {
         author: author.replace(removeDigitsRegEx, '').replaceAll('(', '').replaceAll(')', ''),
-        authorid: `https://dblp.org/search/pid/api?q=author:${author.split(' ').join('_')}:`
+        authorid: ''
       };
     };
 
