@@ -920,7 +920,7 @@ export default class Tools {
 
         let valueString;
         if (Array.isArray(value)) {
-          valueString = value.join(' and ');
+          valueString = value.map(v => typeof v === 'object' && v !== null ? v.fullname : v).join(' and ');
           if (field.endsWith('s')) {
             field = field.substring(0, field.length - 1);
           }
@@ -956,8 +956,7 @@ export default class Tools {
       content: {
         title: { value: data.title },
         _bibtex: { value: dataToBibtex(data) },
-        authors: { value: data.authors },
-        authorids: { value: data.authorids }
+        authors: { value: data.authors.map((name, i) => ({ fullname: name, username: data.authorids[i] || '' })) }
       }
     };
 
@@ -1015,7 +1014,15 @@ export default class Tools {
     const rawMonth = workNode['publication-date']?.month?.value
     const rawDay = workNode['publication-date']?.day?.value
     const externalId = `doi:${workNode['external-ids']?.['external-id']?.find((p) => p['external-id-type'] === 'doi')?.['external-id-value'].toLowerCase()}`
-    const authorNames = workNode.contributors?.contributor.map((p) => p['credit-name']?.value.replaceAll(',', '').trim())
+    const formatCreditName = (name) => {
+      if (!name) return ''
+      const commaIndex = name.indexOf(',')
+      if (commaIndex === -1) return name.trim()
+      const last = name.substring(0, commaIndex).trim()
+      const first = name.substring(commaIndex + 1).trim()
+      return first ? `${first} ${last}` : last
+    }
+    const authorNames = workNode.contributors?.contributor.map((p) => formatCreditName(p['credit-name']?.value))
     const abstract = workNode['short-description']
     const citationNode = workNode['citation']
     const bibtex = citationNode?.['citation-type'] === 'bibtex' ? citationNode['citation-value'] : undefined
@@ -1029,7 +1036,7 @@ export default class Tools {
         authorId = p['contributor-orcid'].uri
       }
       if (!authorId) {
-        return `https://orcid.org/orcid-search/search?searchQuery=${p['credit-name']?.value.replaceAll(',', '').trim()}`
+        return `https://orcid.org/orcid-search/search?searchQuery=${formatCreditName(p['credit-name']?.value)}`
       }
       return authorId
     })
@@ -1044,8 +1051,7 @@ export default class Tools {
       pdate: new Date(year, month, day).getTime(),
       content: {
         title: { value: title },
-        authors: { value: authorNames },
-        authorids: { value: authorIds },
+        authors: { value: authorNames.map((name, i) => ({ fullname: name, username: authorIds?.[i] || '' })) },
         ...(abstract && { abstract: { value: abstract } }),
         ...(bibtex && { _bibtex: { value: bibtex } }),
         ...(venue && { venue: { value: venue } }),
@@ -1097,10 +1103,7 @@ export default class Tools {
           value: abstract,
         },
         authors: {
-          value: authorNames,
-        },
-        authorids: {
-          value: authorIds,
+          value: authorNames.map((name, i) => ({ fullname: name, username: authorIds?.[i] || '' })),
         },
         // eslint-disable-next-line camelcase
         subject_areas: {
