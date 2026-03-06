@@ -1,6 +1,6 @@
 {
   "name": "@openreview/client",
-  "version": "0.0.36",
+  "version": "0.0.49",
   "description": "Node.js client library for OpenReview's academic publishing API",
   "main": "src/index.js",
   "type": "module",
@@ -26,19 +26,20 @@
     "url": "https://github.com/openreview/openreview-js/issues"
   },
   "homepage": "https://github.com/openreview/openreview-js#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "fast-xml-parser": "^4.5.0",
+    "fast-xml-parser": "^5.3.8",
     "form-data-encoder": "^4.0.2",
     "formdata-node": "^6.0.3"
   },
   "devDependencies": {
-    "eslint": "^9.14.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.31.0",
-    "mocha": "^10.8.2"
+    "eslint": "^10.0.0",
+    "mocha": "^11.1.0"
   },
   "gitHead": "e83fe20886ca81f61c67c1884941b8df937c24c3"
 }

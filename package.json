@@ -6,9 +6,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "npm install && lerna run test",
-    "coverage": "npm install --include=optional && lerna run coverage",
-    "npm-publish": "lerna publish from-package -y"
+    "test": "npm install && npm run --workspaces test",
+    "coverage": "npm install --include=optional && npm run --workspaces coverage",
+    "npm-publish": "npm publish -w @openreview/client --provenance --access public || true; npm publish -w @openreview/meta-extraction --provenance --access public || true"
   },
   "repository": {
     "type": "git",
@@ -31,10 +31,11 @@
     "packages/meta-extraction"
   ],
   "devDependencies": {
-    "globals": "^15.12.0",
-    "lerna": "^8.1.9"
+    "globals": "^15.12.0"
   },
-  "optionalDependencies": {
-    "@nx/nx-linux-x64-gnu": "^20.1.0"
+  "overrides": {
+    "tar": "^7.5.8",
+    "minimatch": "^10.2.1",
+    "diff": "^8.0.3"
   }
 }

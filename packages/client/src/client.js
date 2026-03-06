@@ -167,18 +167,18 @@ export default class OpenReviewClient {
    * @param {string} password - Password used to log into OpenReview.
    * @returns {Promise<object>} Dictionary containing the new user information including his ID, username, email(s), readers, writers, etc.
    */
-  async registerUser({ email, first, last, middle, password }) {
+  async registerUser({ email, first, last, middle, fullname, password }) {
     const registerPayload = {
       email,
-      name: { first, last, middle },
-      password
+      password,
+      fullname: fullname ?? [first, middle, last].filter(name => name).join(' ')
     };
 
     const data = await this._handleResponse(fetch(this.registerUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(registerPayload)
-    }), { user: {} }, 'user');
+    }), { status: '' });
 
     return data;
   }
@@ -526,10 +526,7 @@ export default class OpenReviewClient {
    * @returns {Promise<{groups: Array<Object>, count: number}>} - Object containing an array of Groups and the count of all Groups.
    */
   async getAllGroups(params) {
-    delete params.limit;
-    delete params.offset;
-    params.stream = true;
-    return this.getGroups(params);
+    return this.tools.getAll(this.getGroups.bind(this), params);
   }
 
   /**

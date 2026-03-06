@@ -18,31 +18,24 @@ describe('OpenReview Client', function () {
   });
 
   it('should register a new user', async function () {
-    const { user, error } = await this.superClient.registerUser({
+    const { status, error } = await this.superClient.registerUser({
       email: 'new_user@email.com',
-      first: 'New',
+      fullname: 'New User',
       last: 'User',
       password: this.strongPassword
     });
-    assert.equal(user.id.startsWith('~New_User'), true);
-    assert.equal(user.state, 'Inactive');
+    assert.equal(status, 'ok');
     assert.equal(error, null);
   });
 
   it('should search profiles', async function () {
-    const { user } = await this.superClient.registerUser({
+    const { status, error } = await this.superClient.registerUser({
       email: 'searchable_user@email.com',
-      first: 'Searchable',
-      last: 'User',
+      fullname: 'Searchable User',
       password: this.strongPassword
     });
-    assert.equal(user.id.startsWith('~Searchable_User'), true);
-    assert.equal(user.state, 'Inactive');
-
-    const termData = await this.superClient.searchProfiles({ term: 'Searchable' });
-    assert.equal(termData.profiles.length === 1, true);
-    assert.equal(termData.count === 1, true);
-    assert.equal(termData.error, null);
+    assert.equal(status, 'ok');
+    assert.equal(error, null);
 
     const emailData = await this.superClient.searchProfiles({
       emails: [ 'searchable_user@email.com' ]
@@ -50,9 +43,15 @@ describe('OpenReview Client', function () {
     assert.equal(emailData.profiles.length === 1, true);
     assert.equal(emailData.count === 1, true);
     assert.equal(emailData.error, null);
+    const profileId = emailData.profiles[0].id;
+
+    const termData = await this.superClient.searchProfiles({ term: 'Searchable' });
+    assert.equal(termData.profiles.length === 1, true);
+    assert.equal(termData.count === 1, true);
+    assert.equal(termData.error, null);
 
     const tildeData = await this.superClient.searchProfiles({
-      ids: [ '~Searchable_User1' ]
+      ids: [ profileId ]
     });
     assert.equal(tildeData.profiles.length === 1, true);
     assert.equal(tildeData.count === 1, true);
@@ -81,7 +80,7 @@ describe('OpenReview Client', function () {
     assert.equal(res.edit.invitation.signatures[0], this.superUser);
     assert.equal(res.edit.invitation.edit, true);
 
-    res = await this.superClient.getInvitations({
+    res = await this.superClient.getAllInvitations({
       id: `${this.superUser}/-/Edit`
     });
     assert.equal(res.error, null);
@@ -122,7 +121,7 @@ describe('OpenReview Client', function () {
     });
     assert.equal(res.error, null);
 
-    res = await this.superClient.getGroups({
+    res = await this.superClient.getAllGroups({
       id: `${this.superUser}/Test_Group`
     });
     assert.equal(res.error, null);
@@ -134,7 +133,7 @@ describe('OpenReview Client', function () {
     res = await this.superClient.addMembersToGroup(`${this.superUser}/Test_Group`, [ newMember ]);
     assert.equal(res.error, null);
 
-    res = await this.superClient.getGroups({
+    res = await this.superClient.getAllGroups({
       id: `${this.superUser}/Test_Group`
     });
     assert.equal(res.error, null);
@@ -146,7 +145,7 @@ describe('OpenReview Client', function () {
 
     res = await this.superClient.removeMembersFromGroup(`${this.superUser}/Test_Group`, [ newMember ]);
 
-    res = await this.superClient.getGroups({
+    res = await this.superClient.getAllGroups({
       id: `${this.superUser}/Test_Group`
     });
     assert.equal(res.error, null);
@@ -205,6 +204,14 @@ describe('OpenReview Client', function () {
 
     res = await this.superClient.getNotes({
       id: noteId
+    });
+    assert.equal(res.error, null);
+    assert.equal(res.notes.length, 1);
+    assert.equal(res.notes[0].id, noteId);
+    assert.equal(res.count, 1);
+
+    res = await this.superClient.getAllNotes({
+      invitation: `${this.superUser}/-/Edit`,
     });
     assert.equal(res.error, null);
     assert.equal(res.notes.length, 1);
@@ -295,7 +302,7 @@ describe('OpenReview Client', function () {
     ]);
     assert.equal(res.error, null);
 
-    res = await this.superClient.getEdges({
+    res = await this.superClient.getAllEdges({
       head: this.superUser
     });
     assert.equal(res.error, null);
@@ -546,37 +553,43 @@ describe('OpenReview Client', function () {
   });
 
   it('should moderate a Profile', async function () {
-    const { user, error } = await this.superClient.registerUser({
+    const { status, error } = await this.superClient.registerUser({
       email: 'moderated_profile@email.com',
-      first: 'Moderate',
-      last: 'User',
+      fullname: 'Moderate User',
       password: this.strongPassword
     });
-    assert.equal(user.id.startsWith('~Moderate_User'), true);
-    assert.equal(user.state, 'Inactive');
+    assert.equal(status, 'ok');
     assert.equal(error, null);
 
+    const emailData = await this.superClient.searchProfiles({
+      emails: [ 'moderated_profile@email.com' ]
+    });
+    assert.equal(emailData.profiles.length === 1, true);
+    assert.equal(emailData.count === 1, true);
+    assert.equal(emailData.error, null);
+    const profileId = emailData.profiles[0].id;
+
     const { error: blockError } = await this.superClient.moderateProfile({
-      profileId: user.id,
+      profileId: profileId,
       decision: 'block'
     });
     assert.equal(blockError, null);
 
     let { profiles, error: profileError } = await this.superClient.getProfiles({
-      id: user.id,
+      id: profileId,
       withBlocked: true
     });
     assert.equal(profileError, null);
     assert.equal(profiles[0].state, 'Blocked');
 
     const { error: UnblockError } = await this.superClient.moderateProfile({
-      profileId: user.id,
+      profileId: profileId,
       decision: 'unblock'
     });
     assert.equal(UnblockError, null);
 
     ({ profiles, error: profileError } = await this.superClient.getProfiles({
-      id: user.id,
+      id: profileId,
       withBlocked: true
     }));
     assert.equal(profileError, null);
@@ -588,7 +601,7 @@ describe('OpenReview Client', function () {
     let res;
 
     try {
-      res = await this.superClient.getGroups({
+      res = await this.superClient.getAllGroups({
         id: `${this.superUser}/Test_Group`
       });
     } catch (error) {
@@ -598,7 +611,7 @@ describe('OpenReview Client', function () {
     }
 
     try {
-      res = await this.superClient.getNotes({
+      res = await this.superClient.getAllNotes({
         id: 'non_existent_note_id'
       });
     } catch (error) {
@@ -667,27 +680,37 @@ describe('OpenReview Client', function () {
   });
 
   it('should calculate conflicts between profiles', async function () {
-    let { user, error } = await this.superClient.registerUser({
+    let { status, error } = await this.superClient.registerUser({
       email: 'conflict_user_one@fb.com',
-      first: 'Conflict',
-      last: 'User One',
+      fullname: 'Conflict User One',
       password: this.strongPassword
     });
-    assert.equal(user.id.startsWith('~Conflict_User_One'), true);
-    assert.equal(user.state, 'Inactive');
+    assert.equal(status, 'ok');
     assert.equal(error, null);
-    const profileId1 = user.id;
 
-    ({ user, error } = await this.superClient.registerUser({
+    let emailData = await this.superClient.searchProfiles({
+      emails: [ 'conflict_user_one@fb.com' ]
+    });
+    assert.equal(emailData.profiles.length === 1, true);
+    assert.equal(emailData.count === 1, true);
+    assert.equal(emailData.error, null);
+    const profileId1 = emailData.profiles[0].id;
+
+    ({ status, error } = await this.superClient.registerUser({
       email: 'conflict_user_two@facebook.com',
-      first: 'Conflict',
-      last: 'User Two',
+      fullname: 'Conflict User Two',
       password: this.strongPassword
     }));
-    assert.equal(user.id.startsWith('~Conflict_User_Two'), true);
-    assert.equal(user.state, 'Inactive');
+    assert.equal(status, 'ok');
     assert.equal(error, null);
-    const profileId2 = user.id;
+
+    emailData = await this.superClient.searchProfiles({
+      emails: [ 'conflict_user_two@facebook.com' ]
+    });
+    assert.equal(emailData.profiles.length === 1, true);
+    assert.equal(emailData.count === 1, true);
+    assert.equal(emailData.error, null);
+    const profileId2 = emailData.profiles[0].id;
 
     const { profiles: [ profile1 ] } = await this.superClient.getProfiles({ id: profileId1 });
     const { profiles: [ profile2 ] } = await this.superClient.getProfiles({ id: profileId2 });
@@ -753,8 +776,89 @@ describe('OpenReview Client', function () {
 
     conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile3, 'default', 5);
     assert.equal(conflicts.length, 1);
-    assert.equal(conflicts[0], 'melisa@mail.com');    
+    assert.equal(conflicts[0], 'melisa@mail.com');
 
+    // Test comprehensive conflict policy
+
+    // Test relations
+    profile3.content.history = [
+      {
+        position: 'Intern',
+        start: 2020,
+        end: 2022,
+        institution: {
+          domain: 'facebook.com',
+          name: 'Facebook'
+        }
+      }
+    ]
+
+    // Intern ignored
+    conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile3, 'NeurIPS', 5);
+    assert.equal(conflicts.length, 1);
+    assert.equal(conflicts[0], 'melisa@mail.com');
+
+    // Intern caught
+    conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile3, 'Comprehensive', 5);
+    assert.equal(conflicts.length, 2);
+    assert.equal(conflicts[0], 'facebook.com');
+    assert.equal(conflicts[1], 'melisa@mail.com');
+
+    // Test publications
+    const now = new Date();
+    const lastYear = new Date(now);
+    lastYear.setFullYear(now.getFullYear() - 1);
+    const timestampLastYear = lastYear.getTime();
+
+    // Detect conflict due to pdate
+    let expectedNote = {
+      id: 'noteId1',
+      pdate: timestampLastYear,
+      content: {
+        title: { value: "Title" },
+        authors: {
+          value: [ "Conflict User One", "Conflict User Two" ]
+        },
+        authorids: {
+          value: [ '~Conflict_User_One', '~Conflict_User_Two' ]
+        },
+        abstract: { value: "Abstract" },
+        year: { "value": 2000 }
+      }
+    }
+
+    profile1.content.publications = [ expectedNote ]
+    profile2.content.publications = [ expectedNote ]
+
+    conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile2, 'Comprehensive', 5);
+
+    assert.equal(conflicts.length, 2);
+    assert(conflicts.includes('facebook.com'));
+    assert(conflicts.includes('noteId1'));
+
+    // Remove pdate, check content.year in API 2 note, detect no conflict
+    expectedNote = {
+      id: 'noteId1',
+      content: {
+        title: { value: "Title" },
+        authors: {
+          value: [ "Conflict User One", "Conflict User Two" ]
+        },
+        authorids: {
+          value: [ '~Conflict_User_One', '~Conflict_User_Two' ]
+        },
+        abstract: { value: "Abstract" },
+        year: { "value": 2000 }
+      }
+    }
+
+    profile1.content.publications = [ expectedNote ]
+    profile2.content.publications = [ expectedNote ]
+
+    conflicts = await this.superClient.tools.getConflicts([ profile1 ], profile2, 'Comprehensive', 5);
+
+    assert.equal(conflicts.length, 1);
+    assert(conflicts.includes('facebook.com'));
   });
 
   it('should convert DBLP xml to Note Edit', async function () {
@@ -768,6 +872,7 @@ describe('OpenReview Client', function () {
 
     const resolved = [
       {
+        externalId: 'dblp:conf/acl/KimBL16',
         cdate: 1451606400000,
         content: {
           venue: { value: 'ACL (1) 2016' },
@@ -775,15 +880,16 @@ describe('OpenReview Client', function () {
           _bibtex: { value: '@inproceedings{DBLP:conf/acl/KimBL16,\n  author={Seokhwan Kim and Rafael E. Banchs and Haizhou Li},\n  title={Exploring Convolutional and Recurrent Neural Networks in Sequential Labelling for Dialogue Topic Tracking},\n  year={2016},\n  cdate={1451606400000},\n  url={http://aclweb.org/anthology/P/P16/P16-1091.pdf},\n  booktitle={ACL (1)},\n  crossref={conf/acl/2016-1}\n}\n' },
           authors: { value: [ 'Seokhwan Kim', 'Rafael E. Banchs', 'Haizhou Li' ] },
           authorids: { value: [
-            'https://dblp.org/search/pid/api?q=author:Seokhwan_Kim:',
-            'https://dblp.org/search/pid/api?q=author:Rafael_E._Banchs:',
-            'https://dblp.org/search/pid/api?q=author:Haizhou_Li_0001:'
+            '',
+            '',
+            ''
           ] },
           'pdf': { value: 'http://aclweb.org/anthology/P/P16/P16-1091.pdf' },
           'title': { value: 'Exploring Convolutional and Recurrent Neural Networks in Sequential Labelling for Dialogue Topic Tracking' }
         }
       },
       {
+        externalId: 'dblp:conf/acl/1987',
         cdate: 536457600000,
         content: {
           venue: { value: 'ACL 1987' },
@@ -796,18 +902,20 @@ describe('OpenReview Client', function () {
         }
       },
       {
+        externalId: 'dblp:conf/acl/Rajasekaran95',
         cdate: 788918400000,
         content: {
           venue: { value: 'ACL 1995' },
           venueid: { value: 'dblp.org/conf/ACL/1995' },
           _bibtex: { value: '@inproceedings{DBLP:conf/acl/Rajasekaran95,\n  author={Sanguthevar Rajasekaran},\n  title={TAL Recognition in O(M(n)) Time},\n  year={1995},\n  cdate={788918400000},\n  pages={166-173},\n  url={http://aclweb.org/anthology/P/P95/P95-1023.pdf},\n  booktitle={ACL},\n  crossref={conf/acl/1995}\n}\n' },
           authors: { value: [ 'Sanguthevar Rajasekaran' ] },
-          authorids: { value: [ 'https://dblp.org/search/pid/api?q=author:Sanguthevar_Rajasekaran:' ] },
+          authorids: { value: [ '' ] },
           pdf: { value: 'http://aclweb.org/anthology/P/P95/P95-1023.pdf' },
           title: { value: 'TAL Recognition in O(M(n)) Time' }
         }
       },
       {
+        externalId: 'dblp:conf/aaai/TanYWHTS16',
         cdate: 1451606400000,
         content: {
           venue: { value: 'AAAI 2016' },
@@ -815,24 +923,25 @@ describe('OpenReview Client', function () {
           _bibtex: { value: '@inproceedings{DBLP:conf/aaai/TanYWHTS16,\n  author={Mingkui Tan and Yan Yan and Li Wang and Anton van den Hengel and Ivor W. Tsang and Qinfeng Javen Shi},\n  title={Learning Sparse Confidence-Weighted Classifier on Very High Dimensional Data},\n  year={2016},\n  cdate={1451606400000},\n  pages={2080-2086},\n  url={http://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/view/12329},\n  booktitle={AAAI},\n  crossref={conf/aaai/2016}\n}\n' },
           authors: { value: [ 'Mingkui Tan', 'Yan Yan', 'Li Wang', 'Anton van den Hengel', 'Ivor W. Tsang', 'Qinfeng Javen Shi' ] },
           authorids: { value: [
-            'https://dblp.org/search/pid/api?q=author:Mingkui_Tan:',
-            'https://dblp.org/search/pid/api?q=author:Yan_Yan_0006:',
-            'https://dblp.org/search/pid/api?q=author:Li_Wang_0033:',
-            'https://dblp.org/search/pid/api?q=author:Anton_van_den_Hengel:',
-            'https://dblp.org/search/pid/api?q=author:Ivor_W._Tsang:',
-            'https://dblp.org/search/pid/api?q=author:Qinfeng_(Javen)_Shi:'
+            '',
+            '',
+            '',
+            '',
+            '',
+            ''
           ]},
           html: { value: 'http://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/view/12329' },
           title: { value: 'Learning Sparse Confidence-Weighted Classifier on Very High Dimensional Data' }
         }
       },
       {
+        externalId: 'dblp:conf/bic-ta/Liu22',
         cdate: 1640995200000,
         content: {
           title: {value: 'The Utilities of Evolutionary Multiobjective Optimization for Neural Architecture Search - An Empirical Perspective'},
           _bibtex: {value: '@inproceedings{DBLP:conf/bic-ta/Liu22,\n  author={Xukun Liu},\n  title={The Utilities of Evolutionary Multiobjective Optimization for Neural Architecture Search - An Empirical Perspective},\n  year={2022},\n  cdate={1640995200000},\n  pages={179-195},\n  url={https://doi.org/10.1007/978-981-99-1549-1_15},\n  booktitle={BIC-TA},\n  crossref={conf/bic-ta/2022}\n}\n'},
           authors: { value: ['Xukun Liu'] },
-          authorids: { value: ['https://dblp.org/search/pid/api?q=author:Xukun_Liu:'] },
+          authorids: { value: [''] },
           venue: { value: 'BIC-TA 2022' },
           venueid: { value: 'dblp.org/conf/BIC-TA/2022' },
           html: { value: 'https://doi.org/10.1007/978-981-99-1549-1_15' }
@@ -843,6 +952,7 @@ describe('OpenReview Client', function () {
     for (let i = 0; i < dblpXmls.length; i++) {
       const note = Tools.convertDblpXmlToNote(dblpXmls[i]);
       const resolvedNote = resolved[i];
+      assert.strictEqual(note.externalId, resolvedNote.externalId);
       if (resolvedNote.pdate) {
         assert.equal(note.pdate, resolvedNote.pdate);
       }
@@ -862,6 +972,955 @@ describe('OpenReview Client', function () {
     }
   });
 
+  it('should convert raw ORCID Json object to note edit', function () {
+    // no pdf no abstact no contributer with orcid publication date with only year
+    let rawOrcidJson = {
+      "created-date": {
+        "value": 1592855844182
+      },
+      "last-modified-date": {
+        "value": 1663265211991
+      },
+      "source": {
+        "source-orcid": null,
+        "source-client-id": {
+          "uri": "https://orcid.org/client/0000-0001-9884-1913",
+          "path": "0000-0001-9884-1913",
+          "host": "orcid.org"
+        },
+        "source-name": {
+          "value": "Crossref"
+        },
+        "assertion-origin-orcid": null,
+        "assertion-origin-client-id": null,
+        "assertion-origin-name": null
+      },
+      "put-code": 76065020,
+      "path": "/0000-0002-0613-2229/work/76065020",
+      "title": {
+        "title": {
+          "value": "Cascade optical coherence tomography (C-OCT)"
+        },
+        "subtitle": null,
+        "translated-title": null
+      },
+      "journal-title": {
+        "value": "Optics Express"
+      },
+      "short-description": null,
+      "citation": {
+        "citation-type": "bibtex",
+        "citation-value": "<head>\n<META HTTP-EQUIV=\"Refresh\" CONTENT=\"0;URL=/servlet/useragent\">\n</head>\n"
+      },
+      "type": "journal-article",
+      "publication-date": {
+        "year": {
+          "value": "2020"
+        },
+        "month": null,
+        "day": null
+      },
+      "external-ids": {
+        "external-id": [
+          {
+            "external-id-type": "doi",
+            "external-id-value": "10.1364/OE.394638",
+            "external-id-normalized": {
+              "value": "10.1364/oe.394638",
+              "transient": true
+            },
+            "external-id-normalized-error": null,
+            "external-id-url": {
+              "value": "https://doi.org/10.1364/OE.394638"
+            },
+            "external-id-relationship": "self"
+          }
+        ]
+      },
+      "url": {
+        "value": "https://doi.org/10.1364/OE.394638"
+      },
+      "contributors": {
+        "contributor": [
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Andres Garcia Coleto"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Benjamin Moon"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Jonathan C. Papa"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Michael Pomerantz"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Jannick P. Rolland"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          }
+        ]
+      },
+      "language-code": null,
+      "country": null,
+      "visibility": "public"
+    }
+    let expectedNote = {
+      externalId: "doi:10.1364/oe.394638",
+      cdate: 1592855844182,
+      pdate: new Date(2020, 0, 1).getTime(),
+      content: {
+        title: { value: "Cascade optical coherence tomography (C-OCT)" },
+        authors: {
+          value: [
+            "Andres Garcia Coleto",
+            "Benjamin Moon",
+            "Jonathan C. Papa",
+            "Michael Pomerantz",
+            "Jannick P. Rolland"
+          ]
+        },
+        authorids: {
+          value: [
+            "https://orcid.org/orcid-search/search?searchQuery=Andres Garcia Coleto",
+            "https://orcid.org/orcid-search/search?searchQuery=Benjamin Moon",
+            "https://orcid.org/orcid-search/search?searchQuery=Jonathan C. Papa",
+            "https://orcid.org/orcid-search/search?searchQuery=Michael Pomerantz",
+            "https://orcid.org/orcid-search/search?searchQuery=Jannick P. Rolland"
+          ]
+        },
+        // abstract: { value: null }, empty abstract should not be included
+        _bibtex: { value: "<head>\n<META HTTP-EQUIV=\"Refresh\" CONTENT=\"0;URL=/servlet/useragent\">\n</head>\n" },
+        venue: { value: "Optics Express" },
+        html: { value: "https://doi.org/10.1364/OE.394638" },
+
+      }
+    }
+    assert.deepStrictEqual(Tools.convertORCIDJsonToNote(rawOrcidJson), expectedNote);
+
+    // publication date with year month day no bibtex
+    rawOrcidJson = {
+      "created-date": {
+        "value": 1742577867171
+      },
+      "last-modified-date": {
+        "value": 1742577867171
+      },
+      "source": {
+        "source-orcid": null,
+        "source-client-id": {
+          "uri": "https://orcid.org/client/0000-0001-9884-1913",
+          "path": "0000-0001-9884-1913",
+          "host": "orcid.org"
+        },
+        "source-name": {
+          "value": "Crossref"
+        },
+        "assertion-origin-orcid": null,
+        "assertion-origin-client-id": null,
+        "assertion-origin-name": null
+      },
+      "put-code": 180585244,
+      "path": "/0000-0002-3491-5968/work/180585244",
+      "title": {
+        "title": {
+          "value": "Introduction to the Special Issue on Knowledge Transferring for Recommender Systems"
+        },
+        "subtitle": null,
+        "translated-title": null
+      },
+      "journal-title": {
+        "value": "ACM Transactions on Recommender Systems"
+      },
+      "short-description": "test short description",
+      "citation": null,
+      "type": "journal-article",
+      "publication-date": {
+        "year": {
+          "value": "2025"
+        },
+        "month": {
+          "value": "09"
+        },
+        "day": {
+          "value": "30"
+        }
+      },
+      "external-ids": {
+        "external-id": [
+          {
+            "external-id-type": "doi",
+            "external-id-value": "10.1145/3715601",
+            "external-id-normalized": {
+              "value": "10.1145/3715601",
+              "transient": true
+            },
+            "external-id-normalized-error": null,
+            "external-id-url": {
+              "value": "https://doi.org/10.1145/3715601"
+            },
+            "external-id-relationship": "self"
+          }
+        ]
+      },
+      "url": {
+        "value": "https://doi.org/10.1145/3715601"
+      },
+      "contributors": {
+        "contributor": [
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Zhiwei Liu"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Hao Peng"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Caiming Xiong"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Julian McAuley"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Philip Yu"
+            },
+            "contributor-email": null,
+            "contributor-attributes": {
+              "contributor-sequence": null,
+              "contributor-role": "author"
+            }
+          }
+        ]
+      },
+      "language-code": null,
+      "country": null,
+      "visibility": "public"
+    }
+    expectedNote = {
+      externalId: "doi:10.1145/3715601",
+      cdate: 1742577867171,
+      pdate: new Date(2025, 8, 30).getTime(),
+      content: {
+        title: { value: "Introduction to the Special Issue on Knowledge Transferring for Recommender Systems" },
+        authors: {
+          value: [
+            "Zhiwei Liu",
+            "Hao Peng",
+            "Caiming Xiong",
+            "Julian McAuley",
+            "Philip Yu"
+          ]
+        },
+        authorids: {
+          value: [
+            "https://orcid.org/orcid-search/search?searchQuery=Zhiwei Liu",
+            "https://orcid.org/orcid-search/search?searchQuery=Hao Peng",
+            "https://orcid.org/orcid-search/search?searchQuery=Caiming Xiong",
+            "https://orcid.org/orcid-search/search?searchQuery=Julian McAuley",
+            "https://orcid.org/orcid-search/search?searchQuery=Philip Yu"
+          ]
+        },
+        abstract: { value: "test short description" },
+        venue: { value: "ACM Transactions on Recommender Systems" },
+        html: { value: "https://doi.org/10.1145/3715601" },
+
+      }
+    }
+    assert.deepStrictEqual(Tools.convertORCIDJsonToNote(rawOrcidJson), expectedNote);
+
+    // no journal titile, use source as venue
+    rawOrcidJson = {
+      "created-date": {
+        "value": 1747143994104
+      },
+      "last-modified-date": {
+        "value": 1747143994104
+      },
+      "source": {
+        "source-orcid": null,
+        "source-client-id": {
+          "uri": "https://orcid.org/client/APP-GMH5NW3CFA3HLFZ9",
+          "path": "APP-GMH5NW3CFA3HLFZ9",
+          "host": "orcid.org"
+        },
+        "source-name": {
+          "value": "University of Oxford - Symplectic Elements"
+        },
+        "assertion-origin-orcid": null,
+        "assertion-origin-client-id": null,
+        "assertion-origin-name": null
+      },
+      "put-code": 183966518,
+      "path": "/0000-0003-2391-5361/work/183966518",
+      "title": {
+        "title": {
+          "value": "High-performance automated abstract screening with large language model ensembles"
+        },
+        "subtitle": null,
+        "translated-title": null
+      },
+      "journal-title": null,
+      "short-description": null,
+      "citation": {
+        "citation-type": "bibtex",
+        "citation-value": "@misc{sanghera2024highperformanceensembles,\nauthor = {Sanghera, R and Thirunavukarasu, AJ and Khoury, ME and O'Logbon, J and Chen, Y and Watt, A and Mahmood, M and Butt, H and Nishimura, G and Soltan, A},\nmonth = {Nov},\ntitle = {High-performance automated abstract screening with large language model ensembles},\nyear = {2024},\ndoi = {10.48550/arxiv.2411.02451},\nkeyword = {46 Information and Computing Sciences},\nkeyword = {5204 Cognitive and Computational Psychology},\nkeyword = {52 Psychology},\nday = {3},\n}\n"
+      },
+      "type": "other",
+      "publication-date": {
+        "year": {
+          "value": "2024"
+        },
+        "month": {
+          "value": "11"
+        },
+        "day": {
+          "value": "03"
+        }
+      },
+      "external-ids": {
+        "external-id": [
+          {
+            "external-id-type": "arxiv",
+            "external-id-value": "arXiv:2411.02451",
+            "external-id-normalized": {
+              "value": "arXiv:2411.02451",
+              "transient": true
+            },
+            "external-id-normalized-error": null,
+            "external-id-url": null,
+            "external-id-relationship": "self"
+          },
+          {
+            "external-id-type": "doi",
+            "external-id-value": "10.48550/arxiv.2411.02451",
+            "external-id-normalized": {
+              "value": "10.48550/arxiv.2411.02451",
+              "transient": true
+            },
+            "external-id-normalized-error": null,
+            "external-id-url": null,
+            "external-id-relationship": "self"
+          },
+          {
+            "external-id-type": "source-work-id",
+            "external-id-value": "2123560",
+            "external-id-normalized": {
+              "value": "2123560",
+              "transient": true
+            },
+            "external-id-normalized-error": null,
+            "external-id-url": null,
+            "external-id-relationship": "self"
+          }
+        ]
+      },
+      "url": {
+        "value": "https://app.dimensions.ai/details/publication/pub.1182049962"
+      },
+      "contributors": {
+        "contributor": [
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Rohan Sanghera"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Arun James Thirunavukarasu"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Marc El Khoury"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Jessica O'Logbon"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Yuqing Chen"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Archie Watt"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Mustafa Mahmood"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "Hamid Butt"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          },
+          {
+            "contributor-orcid": null,
+            "credit-name": {
+              "value": "George Nishimura"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          },
+          {
+            "contributor-orcid": {
+              "uri": null,
+              "path": "0000-0003-2391-5361",
+              "host": "https://orcid.org/"
+            },
+            "credit-name": {
+              "value": "Andrew Soltan"
+            },
+            "contributor-email": null,
+            "contributor-attributes": null
+          }
+        ]
+      },
+      "language-code": null,
+      "country": null,
+      "visibility": "public"
+    }
+    expectedNote = {
+      externalId: "doi:10.48550/arxiv.2411.02451",
+      cdate: 1747143994104,
+      pdate: new Date(2024, 10, 3).getTime(),
+      content: {
+        title: {
+          value:
+            "High-performance automated abstract screening with large language model ensembles",
+        },
+        authors: {
+          value: [
+            "Rohan Sanghera",
+            "Arun James Thirunavukarasu",
+            "Marc El Khoury",
+            "Jessica O'Logbon",
+            "Yuqing Chen",
+            "Archie Watt",
+            "Mustafa Mahmood",
+            "Hamid Butt",
+            "George Nishimura",
+            "Andrew Soltan",
+          ],
+        },
+        authorids: {
+          value: [
+            "https://orcid.org/orcid-search/search?searchQuery=Rohan Sanghera",
+            "https://orcid.org/orcid-search/search?searchQuery=Arun James Thirunavukarasu",
+            "https://orcid.org/orcid-search/search?searchQuery=Marc El Khoury",
+            "https://orcid.org/orcid-search/search?searchQuery=Jessica O'Logbon",
+            "https://orcid.org/orcid-search/search?searchQuery=Yuqing Chen",
+            "https://orcid.org/orcid-search/search?searchQuery=Archie Watt",
+            "https://orcid.org/orcid-search/search?searchQuery=Mustafa Mahmood",
+            "https://orcid.org/orcid-search/search?searchQuery=Hamid Butt",
+            "https://orcid.org/orcid-search/search?searchQuery=George Nishimura",
+            "https://orcid.org/orcid-search/search?searchQuery=Andrew Soltan",
+          ],
+        },
+        _bibtex: {
+          value:
+            "@misc{sanghera2024highperformanceensembles,\nauthor = {Sanghera, R and Thirunavukarasu, AJ and Khoury, ME and O'Logbon, J and Chen, Y and Watt, A and Mahmood, M and Butt, H and Nishimura, G and Soltan, A},\nmonth = {Nov},\ntitle = {High-performance automated abstract screening with large language model ensembles},\nyear = {2024},\ndoi = {10.48550/arxiv.2411.02451},\nkeyword = {46 Information and Computing Sciences},\nkeyword = {5204 Cognitive and Computational Psychology},\nkeyword = {52 Psychology},\nday = {3},\n}\n",
+        },
+        venue: { value: "University of Oxford - Symplectic Elements" }, // no journal title so fall back to source
+        html: {
+          value: "https://app.dimensions.ai/details/publication/pub.1182049962",
+        },
+      },
+    };
+
+    assert.deepStrictEqual(Tools.convertORCIDJsonToNote(rawOrcidJson), expectedNote);
+
+    // author name has space
+    rawOrcidJson = {
+      "created-date": {
+          "value": 1714030886118
+      },
+      "last-modified-date": {
+          "value": 1714030886118
+      },
+      "source": {
+          "source-orcid": null,
+          "source-client-id": {
+              "uri": "https://orcid.org/client/0000-0001-9884-1913",
+              "path": "0000-0001-9884-1913",
+              "host": "orcid.org"
+          },
+          "source-name": {
+              "value": "Crossref"
+          },
+          "assertion-origin-orcid": null,
+          "assertion-origin-client-id": null,
+          "assertion-origin-name": null
+      },
+      "put-code": 158406720,
+      "path": "/0009-0005-1338-3228/work/158406720",
+      "title": {
+          "title": {
+              "value": "High-Precision Visual Servoing for the Neutron Diffractometer STRESS-SPEC at MLZ"
+          },
+          "subtitle": null,
+          "translated-title": null
+      },
+      "journal-title": {
+          "value": "Sensors"
+      },
+      "short-description": null,
+      "citation": null,
+      "type": "journal-article",
+      "publication-date": {
+          "year": {
+              "value": "2024"
+          },
+          "month": {
+              "value": "04"
+          },
+          "day": {
+              "value": "24"
+          }
+      },
+      "external-ids": {
+          "external-id": [
+              {
+                  "external-id-type": "doi",
+                  "external-id-value": "10.3390/s24092703",
+                  "external-id-normalized": {
+                      "value": "10.3390/s24092703",
+                      "transient": true
+                  },
+                  "external-id-normalized-error": null,
+                  "external-id-url": {
+                      "value": "https://doi.org/10.3390/s24092703"
+                  },
+                  "external-id-relationship": "self"
+              }
+          ]
+      },
+      "url": {
+          "value": "https://doi.org/10.3390/s24092703"
+      },
+      "contributors": {
+          "contributor": [
+              {
+                  "contributor-orcid": null,
+                  "credit-name": {
+                      "value": "Martin Landesberger "
+                  },
+                  "contributor-email": null,
+                  "contributor-attributes": {
+                      "contributor-sequence": null,
+                      "contributor-role": "author"
+                  }
+              },
+              {
+                  "contributor-orcid": null,
+                  "credit-name": {
+                      "value": "Oguz Kedilioglu "
+                  },
+                  "contributor-email": null,
+                  "contributor-attributes": {
+                      "contributor-sequence": null,
+                      "contributor-role": "author"
+                  }
+              },
+              {
+                  "contributor-orcid": null,
+                  "credit-name": {
+                      "value": "Lijiu Wang "
+                  },
+                  "contributor-email": null,
+                  "contributor-attributes": {
+                      "contributor-sequence": null,
+                      "contributor-role": "author"
+                  }
+              },
+              {
+                  "contributor-orcid": null,
+                  "credit-name": {
+                      "value": "Weimin Gan "
+                  },
+                  "contributor-email": null,
+                  "contributor-attributes": {
+                      "contributor-sequence": null,
+                      "contributor-role": "author"
+                  }
+              },
+              {
+                  "contributor-orcid": null,
+                  "credit-name": {
+                      "value": "Joana Rebelo Kornmeier "
+                  },
+                  "contributor-email": null,
+                  "contributor-attributes": {
+                      "contributor-sequence": null,
+                      "contributor-role": "author"
+                  }
+              },
+              {
+                  "contributor-orcid": null,
+                  "credit-name": {
+                      "value": "Sebastian Reitelshöfer "
+                  },
+                  "contributor-email": null,
+                  "contributor-attributes": {
+                      "contributor-sequence": null,
+                      "contributor-role": "author"
+                  }
+              },
+              {
+                  "contributor-orcid": null,
+                  "credit-name": {
+                      "value": "Jörg Franke "
+                  },
+                  "contributor-email": null,
+                  "contributor-attributes": {
+                      "contributor-sequence": null,
+                      "contributor-role": "author"
+                  }
+              },
+              {
+                  "contributor-orcid": null,
+                  "credit-name": {
+                      "value": "Michael Hofmann "
+                  },
+                  "contributor-email": null,
+                  "contributor-attributes": {
+                      "contributor-sequence": null,
+                      "contributor-role": "author"
+                  }
+              }
+          ]
+      },
+      "language-code": null,
+      "country": null,
+      "visibility": "public"
+    } 
+
+    expectedNote = {
+      externalId: "doi:10.3390/s24092703",
+      cdate: 1714030886118,
+      pdate: new Date(2024, 3, 24).getTime(),
+      content: {
+        title: {
+          value:
+            "High-Precision Visual Servoing for the Neutron Diffractometer STRESS-SPEC at MLZ",
+        },
+        authors: {
+          value: [
+            "Martin Landesberger",
+            "Oguz Kedilioglu",
+            "Lijiu Wang",
+            "Weimin Gan",
+            "Joana Rebelo Kornmeier",
+            "Sebastian Reitelshöfer",
+            "Jörg Franke",
+            "Michael Hofmann"
+          ],
+        },
+        authorids: {
+          value: [
+            "https://orcid.org/orcid-search/search?searchQuery=Martin Landesberger",
+            "https://orcid.org/orcid-search/search?searchQuery=Oguz Kedilioglu",
+            "https://orcid.org/orcid-search/search?searchQuery=Lijiu Wang",
+            "https://orcid.org/orcid-search/search?searchQuery=Weimin Gan",
+            "https://orcid.org/orcid-search/search?searchQuery=Joana Rebelo Kornmeier",
+            "https://orcid.org/orcid-search/search?searchQuery=Sebastian Reitelshöfer",
+            "https://orcid.org/orcid-search/search?searchQuery=Jörg Franke",
+            "https://orcid.org/orcid-search/search?searchQuery=Michael Hofmann",  
+          ],
+        },
+  
+        venue: { value: "Sensors" },
+        html: {
+          value: "https://doi.org/10.3390/s24092703",
+        },
+      },
+    };
+
+    assert.deepStrictEqual(Tools.convertORCIDJsonToNote(rawOrcidJson), expectedNote);
+
+  });
+
+  it('should convert arxiv xml to note edit', function () {
+    let rawiarxivxml = `<entry>
+            <id>http://arxiv.org/abs/2509.14206v1</id>
+            <updated>2025-09-17T17:37:25Z</updated>
+            <published>2025-09-17T17:37:25Z</published>
+            <title>Looking into the faintEst WIth MUSE (LEWIS): Exploring the nature of
+      ultra-diffuse galaxies in the Hydra-I cluster IV. A study of the Globular
+      Cluster population in four UDGs</title>
+            <summary>  As old stellar systems, globular clusters (GCs) are key fossil tracers of
+    galaxy formation and interaction histories. This paper is part of the LEWIS
+    project, an integral-field spectroscopic survey of ultra-diffuse galaxies
+    (UDGs) in the Hydra I cluster. We use MUSE spectroscopy and new VIRCAM $H$-band
+    imaging data to study the GC populations and dark matter content in four dwarf
+    galaxies. We retrieved line-of-sight velocities for all sources in the observed
+    MUSE fields. Since the spectroscopic measurements are limited to relatively
+    bright sources, we developed a multi-band photometric procedure to identify
+    additional GC candidates too faint for spectroscopic confirmation. GC
+    candidates were selected using a combination of photometric properties and
+    morphometric criteria. Additionally, the $H$-band observations were used to
+    constrain the stellar masses of the studied galaxies. Based on the
+    spectroscopic classification, we confirm one GC in UDG3, two in UDG7, and four
+    in UDG11, while UDG9 has no spectroscopically confirmed bright GCs. We identify
+    four intra-cluster GCs in the vicinity of UDG3 and UDG11, and one ultra-compact
+    dwarf with a radial velocity only $\Delta v = -85 \pm 10\mathrm{km\ s^{-1}}$
+    relative to UDG7, suggesting it may be bound to it. Considering completeness
+    corrections and accounting for possible contamination, from photometry we
+    estimate that the number of GCs ranges between 0 and $\sim40$ for the
+    investigated UDGs. Their specific frequencies suggest that three out of four
+    UDGs are either GC-rich, similar to those in the Coma cluster, or belong to an
+    intermediate population as seen in the Perseus cluster. Dark matter content
+    estimates, inferred from GC counts and stellar mass, indicate that these
+    galaxies are dark-matter dominated, with dynamical-to-stellar mass ratios of
+    $M_{\mathrm{dyn}} / M_\star \sim 10-1000$.
+    </summary>
+            <author>
+                <name>Marco Mirabile</name>
+            </author>
+            <author>
+                <name>Michele Cantiello</name>
+            </author>
+            <author>
+                <name>Marina Rejkuba</name>
+            </author>
+            <author>
+                <name>Steffen Mieske</name>
+            </author>
+            <author>
+                <name>Enrichetta Iodice</name>
+            </author>
+            <author>
+                <name>Chiara Buttitta</name>
+            </author>
+            <author>
+                <name>Maria Luisa Buzzo</name>
+            </author>
+            <author>
+                <name>Johanna Hartke</name>
+            </author>
+            <author>
+                <name>Goran Doll</name>
+            </author>
+            <author>
+                <name>Luca Rossi</name>
+            </author>
+            <author>
+                <name>Magda Arnaboldi</name>
+            </author>
+            <author>
+                <name>Marica Branchesi</name>
+            </author>
+            <author>
+                <name>Giuseppe D'Ago</name>
+            </author>
+            <author>
+                <name>Jesus Falcon-Barroso</name>
+            </author>
+            <author>
+                <name>Katja Fahrion</name>
+            </author>
+            <author>
+                <name>Duncan A. Forbes</name>
+            </author>
+            <author>
+                <name>Marco Gullieuszik</name>
+            </author>
+            <author>
+                <name>Michael Hilker</name>
+            </author>
+            <author>
+                <name>Felipe S. Lohmann</name>
+            </author>
+            <author>
+                <name>Maurizio Paolillo</name>
+            </author>
+            <author>
+                <name>Gabriele Riccio</name>
+            </author>
+            <author>
+                <name>Tom Richtler</name>
+            </author>
+            <author>
+                <name>Marilena Spavone</name>
+            </author>
+            <arxiv:comment xmlns:arxiv="http://arxiv.org/schemas/atom">25 pages, 24 figures, 7 tables. Accepted for publication in A&amp;A</arxiv:comment>
+            <link href="http://arxiv.org/abs/2509.14206v1" rel="alternate" type="text/html"/>
+            <link title="pdf" href="http://arxiv.org/pdf/2509.14206v1" rel="related" type="application/pdf"/>
+            <arxiv:primary_category xmlns:arxiv="http://arxiv.org/schemas/atom" term="astro-ph.GA" scheme="http://arxiv.org/schemas/atom"/>
+            <category term="astro-ph.GA" scheme="http://arxiv.org/schemas/atom"/>
+        </entry>`
+    let expectedNote={
+      content: {
+        title: {
+          value: 'Looking into the faintEst WIth MUSE (LEWIS): Exploring the nature of ultra-diffuse galaxies in the Hydra-I cluster IV. A study of the Globular Cluster population in four UDGs'
+        },
+        abstract: {
+          value: 'As old stellar systems, globular clusters (GCs) are key fossil tracers of galaxy formation and interaction histories. This paper is part of the LEWIS project, an integral-field spectroscopic survey of ultra-diffuse galaxies (UDGs) in the Hydra I cluster. We use MUSE spectroscopy and new VIRCAM $H$-band imaging data to study the GC populations and dark matter content in four dwarf galaxies. We retrieved line-of-sight velocities for all sources in the observed MUSE fields. Since the spectroscopic measurements are limited to relatively bright sources, we developed a multi-band photometric procedure to identify additional GC candidates too faint for spectroscopic confirmation. GC candidates were selected using a combination of photometric properties and morphometric criteria. Additionally, the $H$-band observations were used to constrain the stellar masses of the studied galaxies. Based on the spectroscopic classification, we confirm one GC in UDG3, two in UDG7, and four in UDG11, while UDG9 has no spectroscopically confirmed bright GCs. We identify four intra-cluster GCs in the vicinity of UDG3 and UDG11, and one ultra-compact dwarf with a radial velocity only $Delta v = -85 pm 10mathrm{km s^{-1}}$ relative to UDG7, suggesting it may be bound to it. Considering completeness corrections and accounting for possible contamination, from photometry we estimate that the number of GCs ranges between 0 and $sim40$ for the investigated UDGs. Their specific frequencies suggest that three out of four UDGs are either GC-rich, similar to those in the Coma cluster, or belong to an intermediate population as seen in the Perseus cluster. Dark matter content estimates, inferred from GC counts and stellar mass, indicate that these galaxies are dark-matter dominated, with dynamical-to-stellar mass ratios of $M_{mathrm{dyn}} / M_star sim 10-1000$.'
+        },
+        authors: {
+          value: [
+            'Marco Mirabile',    
+            'Michele Cantiello',
+            'Marina Rejkuba',    
+            'Steffen Mieske',
+            'Enrichetta Iodice', 
+            'Chiara Buttitta',
+            'Maria Luisa Buzzo', 
+            'Johanna Hartke',
+            'Goran Doll',        
+            'Luca Rossi',
+            'Magda Arnaboldi',   
+            'Marica Branchesi',
+            "Giuseppe D'Ago",    
+            'Jesus Falcon-Barroso',
+            'Katja Fahrion',     
+            'Duncan A. Forbes',
+            'Marco Gullieuszik', 
+            'Michael Hilker',
+            'Felipe S. Lohmann', 
+            'Maurizio Paolillo',
+            'Gabriele Riccio',   
+            'Tom Richtler',
+            'Marilena Spavone'
+          ]
+        },
+        authorids: {
+          value: [
+            'https://arxiv.org/search/?query=Marco%20Mirabile&searchtype=all',
+            'https://arxiv.org/search/?query=Michele%20Cantiello&searchtype=all',
+            'https://arxiv.org/search/?query=Marina%20Rejkuba&searchtype=all',
+            'https://arxiv.org/search/?query=Steffen%20Mieske&searchtype=all',
+            'https://arxiv.org/search/?query=Enrichetta%20Iodice&searchtype=all',
+            'https://arxiv.org/search/?query=Chiara%20Buttitta&searchtype=all',
+            'https://arxiv.org/search/?query=Maria%20Luisa%20Buzzo&searchtype=all',
+            'https://arxiv.org/search/?query=Johanna%20Hartke&searchtype=all',
+            'https://arxiv.org/search/?query=Goran%20Doll&searchtype=all',
+            'https://arxiv.org/search/?query=Luca%20Rossi&searchtype=all',
+            'https://arxiv.org/search/?query=Magda%20Arnaboldi&searchtype=all',
+            'https://arxiv.org/search/?query=Marica%20Branchesi&searchtype=all',
+            "https://arxiv.org/search/?query=Giuseppe%20D'Ago&searchtype=all",
+            'https://arxiv.org/search/?query=Jesus%20Falcon-Barroso&searchtype=all',
+            'https://arxiv.org/search/?query=Katja%20Fahrion&searchtype=all',
+            'https://arxiv.org/search/?query=Duncan%20A.%20Forbes&searchtype=all',
+            'https://arxiv.org/search/?query=Marco%20Gullieuszik&searchtype=all',
+            'https://arxiv.org/search/?query=Michael%20Hilker&searchtype=all',
+            'https://arxiv.org/search/?query=Felipe%20S.%20Lohmann&searchtype=all',
+            'https://arxiv.org/search/?query=Maurizio%20Paolillo&searchtype=all',
+            'https://arxiv.org/search/?query=Gabriele%20Riccio&searchtype=all',
+            'https://arxiv.org/search/?query=Tom%20Richtler&searchtype=all',
+            'https://arxiv.org/search/?query=Marilena%20Spavone&searchtype=all'
+          ]
+        },
+        ['subject_areas']: { value: [ 'astro-ph.GA' ] },
+        pdf: { value: 'http://arxiv.org/pdf/2509.14206v1' }
+      },
+      pdate: 1758130645000,
+      mdate: 1758130645000,
+      externalId: 'arxiv:2509.14206v1'
+    }
+    assert.deepStrictEqual(Tools.convertArxivXmlToNote(rawiarxivxml), expectedNote);
+  });
+
   it('should try to extract the abstract but get a 404 error', async function () {
 
     try {
@@ -874,4 +1933,5 @@ describe('OpenReview Client', function () {
 
   });
 
-});
+}
+);
