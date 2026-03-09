@@ -560,48 +560,32 @@ export default class Tools {
   }
 
   /**
-   * Checks if a profile meets the minimum requirements defined by a venue.
+   * Check if a profile meets the minimum requirements specified by a venue.
+   * Supported keys in minRequirements:
+   * - 'history': profile must have at least 1 history entry
+   * - 'relations': profile must have at least 1 relations entry
+   * - 'expertise': profile must have at least 1 expertise entry
+   * - 'publications': profile must have at least 1 public paper
+   * - 'active': profile must be active
    *
-   * @param {object} profile - The profile object.
-   * @param {object} profileReqs - An object defining the required profile fields and conditions.
-   * @returns {boolean} - Returns true if the profile satisfies all requirements, false otherwise.
+   * @param {object} profile - Profile to check against requirements.
+   * @param {object} minRequirements - An object mapping requirement name to true/false.
+   * @returns {boolean} - Returns true if profile meets all requirements, false otherwise.
    */
-  isProfileComplete(profile, profileReqs) {
-    // If no profile or no requirements, skip check
-    if (!profile.id.startsWith('~') || !profileReqs) {
-      return true;
-    }
+  checkProfileMinimumRequirements(profile, minRequirements) {
+    for (const [field, required] of Object.entries(minRequirements)) {
+      if (!required) continue;
 
-    for (const [profilePath, expectedValue] of Object.entries(profileReqs)) {
-      const pathItems = profilePath.split('.');
-      let actualValue = profile;
-
-      // Resolve actual value from the profile
-      for (const item of pathItems) {
-        if (actualValue && typeof actualValue === 'object') {
-          actualValue = actualValue?.[item];
-        } else {
-          actualValue = null;
-        }
-  
-        if (actualValue === null || actualValue === undefined) {
-          break;
-        }
+      if (field === 'publications') {
+        const publications = profile.content?.publications ?? [];
+        const hasPublic = publications.some(pub => pub.readers?.includes('everyone'));
+        if (!hasPublic) return false;
+      } else if (field === 'relations' || field === 'expertise' || field === 'history') {
+        if (!profile.content?.[field]?.length) return false;
+      } else if (field === 'active') {
+        if (!profile.state?.toLowerCase().includes('active')) return false;
       }
-
-      // Check number of entries
-      if (typeof expectedValue === 'number') {
-        if (actualValue?.length < expectedValue) {
-          return false;
-        }
-      // Check if field exists in profile (e.g. links)
-      } else if (expectedValue === true && !actualValue) {
-        return false;
-      } else {
-        console.log(`Invalid path: ${profilePath}`);
-      }
-    }
-
+    } // else: unsupported field, ignore
     return true;
   }
 
