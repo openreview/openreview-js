@@ -1933,5 +1933,94 @@ describe('OpenReview Client', function () {
 
   });
 
+  it('should check profile minimum requirements', async function () {
+    const tools = this.superClient.tools;
+
+    const profile = {
+      id: '~User1',
+      state: 'Active',
+      content: {
+        history: [{ position: 'PhD Student', institution: { name: 'MIT' } }],
+        relations: [{ name: 'Jane Doe', relation: 'Advisor' }],
+        expertise: [{ keywords: ['machine learning'] }],
+        publications: [
+          { id: 'note1', readers: ['everyone'] },
+          { id: 'note2', readers: ['ICLR.cc/2023/Conference'] }
+        ]
+      }
+    };
+
+    // Required field set to false is skipped → true
+    const profileNoContent = { id: '~User2', state: 'Blocked', content: {} };
+    assert.equal(tools.checkProfileMinimumRequirements(profileNoContent, { relations: false }), true);
+
+    // history: has entries → true
+    assert.equal(tools.checkProfileMinimumRequirements(profile, { history: true }), true);
+
+    // history: missing → false
+    assert.equal(tools.checkProfileMinimumRequirements(profileNoContent, { history: true }), false);
+
+    // history: empty array → false
+    const profileEmptyHistory = { id: '~User2', content: { history: [] } };
+    assert.equal(tools.checkProfileMinimumRequirements(profileEmptyHistory, { history: true }), false);
+    
+    // relations: missing → false
+    assert.equal(tools.checkProfileMinimumRequirements(profileNoContent, { relations: true }), false);
+
+    // relations: has entries → true
+    assert.equal(tools.checkProfileMinimumRequirements(profile, { relations: true }), true);
+
+    // relations: empty array → false
+    const profileEmptyRelations = { id: '~User2', content: { relations: [] } };
+    assert.equal(tools.checkProfileMinimumRequirements(profileEmptyRelations, { relations: true }), false);
+
+    // expertise: has entries → true
+    assert.equal(tools.checkProfileMinimumRequirements(profile, { expertise: true }), true);
+
+    // expertise: missing → false
+    assert.equal(tools.checkProfileMinimumRequirements(profileNoContent, { expertise: true }), false);
+
+    // publications: has at least one public entry → true
+    assert.equal(tools.checkProfileMinimumRequirements(profile, { publications: true }), true);
+
+    // publications: empty array → false
+    const profileNoPubs = { id: '~User2', content: { publications: [] } };
+    assert.equal(tools.checkProfileMinimumRequirements(profileNoPubs, { publications: true }), false);
+
+    // publications: missing from content → false
+    assert.equal(tools.checkProfileMinimumRequirements(profileNoContent, { publications: true }), false);
+
+    // active: state is active → true
+    assert.equal(tools.checkProfileMinimumRequirements(profile, { active: true }), true);
+
+    // active: state is not active → false
+    assert.equal(tools.checkProfileMinimumRequirements(profileNoContent, { active: true }), false);
+
+    // Multiple requirements: all met → true
+    assert.equal(
+      tools.checkProfileMinimumRequirements(profile, { relations: true, expertise: true, publications: true }),
+      true
+    );
+
+    // Multiple requirements: one fails → false
+    const profileMissingOnlyPubs = {
+      id: '~User2',
+      state: 'Active',
+      content: {
+        history: [{ position: 'PhD Student', institution: { name: 'MIT' } }],
+        relations: [{ name: 'Jane Doe', relation: 'Advisor' }],
+        expertise: [{ keywords: ['nlp'] }],
+        publications: []
+      }
+    };
+    assert.equal(
+      tools.checkProfileMinimumRequirements(profileMissingOnlyPubs, { history: true, relations: true, expertise: true, publications: true, active: true }),
+      false
+    );
+
+    // Unknown key is ignored → true regardless of whether it exists in profile.content
+    assert.equal(tools.checkProfileMinimumRequirements(profileNoContent, { foo: true }), true);
+    assert.equal(tools.checkProfileMinimumRequirements(profileNoContent, { foo: false }), true);
+  });
 }
 );
