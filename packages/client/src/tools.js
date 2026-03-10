@@ -565,7 +565,7 @@ export default class Tools {
    * - 'history': profile must have at least 1 history entry
    * - 'relations': profile must have at least 1 relations entry
    * - 'expertise': profile must have at least 1 expertise entry
-   * - 'publications': profile must have at least 1 public paper
+   * - 'publications': profile must have at least 1 publication
    * - 'active': profile must be active
    *
    * @param {object} profile - Profile to check against requirements.
@@ -575,12 +575,8 @@ export default class Tools {
   checkProfileMinimumRequirements(profile, minRequirements) {
     for (const [field, required] of Object.entries(minRequirements)) {
       if (!required) continue;
-
-      if (field === 'publications') {
-        const publications = profile.content?.publications ?? [];
-        const hasPublic = publications.some(pub => pub.readers?.includes('everyone'));
-        if (!hasPublic) return false;
-      } else if (field === 'relations' || field === 'expertise' || field === 'history') {
+    
+      if (field === 'relations' || field === 'expertise' || field === 'history' || field === 'publications') {
         if (!profile.content?.[field]?.length) return false;
       } else if (field === 'active') {
         if (!profile.state?.toLowerCase().includes('active')) return false;

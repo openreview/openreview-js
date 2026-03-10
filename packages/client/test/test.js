@@ -1983,18 +1983,6 @@ describe('OpenReview Client', function () {
     // publications: has at least one public entry → true
     assert.equal(tools.checkProfileMinimumRequirements(profile, { publications: true }), true);
 
-    // publications: none are public → false
-    const profilePrivatePubs = {
-      id: '~User2',
-      content: { 
-        expertise: [{ keywords: ['machine learning'] }],
-        publications: [
-          { id: 'note1', readers: ['ICLR.cc/2023/Conference'] }
-        ] 
-      }
-    };
-    assert.equal(tools.checkProfileMinimumRequirements(profilePrivatePubs, { publications: true }), false);
-
     // publications: empty array → false
     const profileNoPubs = { id: '~User2', content: { publications: [] } };
     assert.equal(tools.checkProfileMinimumRequirements(profileNoPubs, { publications: true }), false);
@@ -2015,8 +2003,18 @@ describe('OpenReview Client', function () {
     );
 
     // Multiple requirements: one fails → false
+    const profileMissingOnlyPubs = {
+      id: '~User2',
+      state: 'Active',
+      content: {
+        history: [{ position: 'PhD Student', institution: { name: 'MIT' } }],
+        relations: [{ name: 'Jane Doe', relation: 'Advisor' }],
+        expertise: [{ keywords: ['nlp'] }],
+        publications: []
+      }
+    };
     assert.equal(
-      tools.checkProfileMinimumRequirements(profilePrivatePubs, { relations: false, expertise: true, publications: true }),
+      tools.checkProfileMinimumRequirements(profileMissingOnlyPubs, { history: true, relations: true, expertise: true, publications: true, active: true }),
       false
     );
 
