@@ -476,6 +476,7 @@ describe('OpenReview Client', function () {
 
     res = await this.superClient.postMessage({
       invitation: `${this.superUser}/-/Edit`,
+      signature: this.superUser,
       subject: 'test',
       groups: [ `${this.superUser}/Message_Group` ],
       message: 'test message'
@@ -493,6 +494,7 @@ describe('OpenReview Client', function () {
     const recipient2 = 'recipient2@email.com';
     res = await this.superClient.postMessage({
       invitation: `${this.superUser}/-/Edit`,
+      signature: this.superUser,
       subject: 'test 2',
       groups: [ recipient2 ],
       message: 'test message 2'
