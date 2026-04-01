@@ -1937,3 +1937,142 @@ describe('OpenReview Client', function () {
 
 }
 );
+
+describe('Rate Limit Handling', function () {
+  it('should retry on 429 and succeed after rate limit clears', async function () {
+    const client = new OpenReviewClient('http://localhost:3001');
+
+    const originalFetch = globalThis.fetch;
+    let callCount = 0;
+
+    globalThis.fetch = async () => {
+      callCount++;
+      if (callCount <= 2) {
+        return new Response(
+          JSON.stringify({ name: 'RateLimitError', message: 'Too many requests', status: 429 }),
+          { status: 429, headers: { 'Retry-After': '0' } }
+        );
+      }
+      return new Response(
+        JSON.stringify({ notes: [{ id: 'test-note' }], count: 1 }),
+        { status: 200 }
+      );
+    };
+
+    try {
+      const result = await client.getNotes({ id: 'test-note' });
+      assert.equal(result.error, null);
+      assert.equal(result.notes.length, 1);
+      assert.equal(callCount, 3);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('should exhaust retries and return error when throwErrors is false', async function () {
+    const client = new OpenReviewClient('http://localhost:3001', { maxRetries: 2 });
+
+    const originalFetch = globalThis.fetch;
+    let callCount = 0;
+
+    globalThis.fetch = async () => {
+      callCount++;
+      return new Response(
+        JSON.stringify({ name: 'RateLimitError', message: 'Too many requests', status: 429 }),
+        { status: 429, headers: { 'Retry-After': '0' } }
+      );
+    };
+
+    try {
+      const result = await client.getNotes({ id: 'test-note' });
+      assert.equal(result.error.name, 'RateLimitError');
+      assert.equal(result.error.status, 429);
+      assert.equal(callCount, 3);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('should exhaust retries and throw when throwErrors is true', async function () {
+    const client = new OpenReviewClient('http://localhost:3001', {
+      throwErrors: true, maxRetries: 1
+    });
+
+    const originalFetch = globalThis.fetch;
+    let callCount = 0;
+
+    globalThis.fetch = async () => {
+      callCount++;
+      return new Response(
+        JSON.stringify({ name: 'RateLimitError', message: 'Too many requests', status: 429 }),
+        { status: 429, headers: { 'Retry-After': '0' } }
+      );
+    };
+
+    try {
+      await assert.rejects(
+        () => client.getNotes({ id: 'test-note' }),
+        (error) => {
+          assert.equal(error.name, 'RateLimitError');
+          assert.equal(error.status, 429);
+          return true;
+        }
+      );
+      assert.equal(callCount, 2);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('should respect Retry-After header', async function () {
+    const client = new OpenReviewClient('http://localhost:3001', { maxRetries: 1 });
+
+    const originalFetch = globalThis.fetch;
+    const timestamps = [];
+
+    globalThis.fetch = async () => {
+      timestamps.push(Date.now());
+      if (timestamps.length === 1) {
+        return new Response(
+          JSON.stringify({ name: 'RateLimitError', message: 'Too many requests', status: 429 }),
+          { status: 429, headers: { 'Retry-After': '1' } }
+        );
+      }
+      return new Response(
+        JSON.stringify({ notes: [], count: 0 }),
+        { status: 200 }
+      );
+    };
+
+    try {
+      await client.getNotes({ id: 'test-note' });
+      const elapsed = timestamps[1] - timestamps[0];
+      assert.ok(elapsed >= 900, `Expected at least 900ms delay, got ${elapsed}ms`);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('should not retry on non-429 errors', async function () {
+    const client = new OpenReviewClient('http://localhost:3001');
+
+    const originalFetch = globalThis.fetch;
+    let callCount = 0;
+
+    globalThis.fetch = async () => {
+      callCount++;
+      return new Response(
+        JSON.stringify({ name: 'NotFoundError', message: 'Not found', status: 404 }),
+        { status: 404 }
+      );
+    };
+
+    try {
+      const result = await client.getNotes({ id: 'missing' });
+      assert.equal(callCount, 1);
+      assert.equal(result.error.status, 404);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+});

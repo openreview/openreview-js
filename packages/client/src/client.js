@@ -19,6 +19,11 @@ export default class OpenReviewClient {
     this.tools = new Tools(this);
 
     this.throwErrors = options.throwErrors || false;
+    this.retryOptions = {
+      maxRetries: options.maxRetries ?? 3,
+      defaultRetryAfterMs: options.defaultRetryAfterMs ?? 1000,
+      maxRetryAfterMs: options.maxRetryAfterMs ?? 60000,
+    };
 
     this.registerUrl = `${this.baseUrl}/register`;
     this.loginUrl = `${this.baseUrl}/login`;
@@ -66,17 +71,17 @@ export default class OpenReviewClient {
   }
 
   /**
-   * Handles the response returned by the OpenReview API.
+   * Handles the response returned by the OpenReview API with automatic retry on rate limiting.
    *
    * @private
-   * @param {Promise} fetchPromise - Promise returned by the fetch function.
+   * @param {Function} fetchFn - Function that returns a fetch promise.
    * @param {object} onErrorData - Data to return in case of error.
    * @param {string} dataName - Name of the data to return.
    * @returns {Promise} Promise that resolves to the response data.
    * @async
    */
-  _handleResponse(fetchPromise, onErrorData, dataName) {
-    return handleResponse(this.throwErrors)(fetchPromise, onErrorData, dataName);
+  _handleResponse(fetchFn, onErrorData, dataName) {
+    return handleResponse(this.throwErrors, this.retryOptions)(fetchFn, onErrorData, dataName);
   }
 
   /**
@@ -126,7 +131,7 @@ export default class OpenReviewClient {
       this.user = this._formatUserProfile(data.profiles[0]);
       return { user: this.user, token: this.token, error: null };
     } else {
-      const data = await this._handleResponse(fetch(this.loginUrl, {
+      const data = await this._handleResponse(() => fetch(this.loginUrl, {
         method: 'POST',
         headers: this.headers,
         body: JSON.stringify({ id: username, password })
@@ -147,7 +152,7 @@ export default class OpenReviewClient {
    */
   async resetPassword(token, password) {
     const url = `${this.baseUrl}/reset/${token}`;
-    const data = await this._handleResponse(fetch(url, {
+    const data = await this._handleResponse(() => fetch(url, {
       method: 'PUT',
       headers: this.headers,
       body: JSON.stringify({ password })
@@ -174,7 +179,7 @@ export default class OpenReviewClient {
       fullname: fullname ?? [first, middle, last].filter(name => name).join(' ')
     };
 
-    const data = await this._handleResponse(fetch(this.registerUrl, {
+    const data = await this._handleResponse(() => fetch(this.registerUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(registerPayload)
@@ -207,7 +212,7 @@ export default class OpenReviewClient {
   async activateUser(token, content) {
     const url = `${this.baseUrl}/activate/${token}`;
 
-    const data = await this._handleResponse(fetch(url, {
+    const data = await this._handleResponse(() => fetch(url, {
       method: 'PUT',
       headers: this.headers,
       body: JSON.stringify({ content })
@@ -227,7 +232,7 @@ export default class OpenReviewClient {
   async getActivatable(token) {
     const url = `${this.baseurl}/activatable/${token}`;
 
-    const data = await this._handleResponse(fetch(url, {
+    const data = await this._handleResponse(() => fetch(url, {
       method: 'GET',
       headers: this.headers
     }), { user: {}, token: '' });
@@ -251,7 +256,7 @@ export default class OpenReviewClient {
    */
   async searchProfiles({ confirmedEmails, emails, ids, term, first, middle, last }) {
     if (term) {
-      const data = await this._handleResponse(fetch(`${this.profilesSearchUrl}?term=${term}`, {
+      const data = await this._handleResponse(() => fetch(`${this.profilesSearchUrl}?term=${term}`, {
         method: 'GET',
         headers: this.headers
       }), { profiles: [], count: 0 });
@@ -264,7 +269,7 @@ export default class OpenReviewClient {
       const batches = Tools.splitArray(emails, this.RESPONSE_SIZE);
       let data;
       for (let emailBatch of batches) {
-        data = await this._handleResponse(fetch(this.profilesSearchUrl, {
+        data = await this._handleResponse(() => fetch(this.profilesSearchUrl, {
           method: 'POST',
           headers: this.headers,
           body: JSON.stringify({ emails: emailBatch })
@@ -285,7 +290,7 @@ export default class OpenReviewClient {
       const batches = Tools.splitArray(confirmedEmails, this.RESPONSE_SIZE);
       let data;
       for (let emailBatch of batches) {
-        data = await this._handleResponse(fetch(this.profilesSearchUrl, {
+        data = await this._handleResponse(() => fetch(this.profilesSearchUrl, {
           method: 'POST',
           headers: this.headers,
           body: JSON.stringify({ emails: emailBatch })
@@ -306,7 +311,7 @@ export default class OpenReviewClient {
       const batches = Tools.splitArray(ids, this.RESPONSE_SIZE);
       let data;
       for (let batch of batches) {
-        data = await this._handleResponse(fetch(this.profilesSearchUrl, {
+        data = await this._handleResponse(() => fetch(this.profilesSearchUrl, {
           method: 'POST',
           headers: this.headers,
           body: JSON.stringify({ ids: batch })
@@ -324,7 +329,7 @@ export default class OpenReviewClient {
 
     if (first || middle || last) {
       const params = new URLSearchParams({ first, middle, last });
-      const data = await this._handleResponse(fetch(`${this.profilesUrl}?${params}`, {
+      const data = await this._handleResponse(() => fetch(`${this.profilesUrl}?${params}`, {
         method: 'GET',
         headers: this.headers
       }), { profiles: [], count: 0 });
@@ -359,7 +364,7 @@ export default class OpenReviewClient {
   async getProfiles(params) {
     const queryString = generateQueryString(params);
 
-    const data = await this._handleResponse(fetch(`${this.profilesUrl}?${queryString}`, {
+    const data = await this._handleResponse(() => fetch(`${this.profilesUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers,
     }), { profiles: [], count: 0 });
@@ -423,7 +428,7 @@ export default class OpenReviewClient {
 
     const encoder = new FormDataEncoder(formData);
 
-    const data = await this._handleResponse(fetch(this.attachmentUrl, {
+    const data = await this._handleResponse(() => fetch(this.attachmentUrl, {
       method: 'PUT',
       headers: { ...this.headers, ...encoder.headers },
       body: Readable.from(encoder),
@@ -440,7 +445,7 @@ export default class OpenReviewClient {
    * @return {Profile} The new updated Profile
    */
   async postProfile(profile) {
-    const data = await this._handleResponse(fetch(this.profilesUrl, {
+    const data = await this._handleResponse(() => fetch(this.profilesUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(profile),
@@ -458,7 +463,7 @@ export default class OpenReviewClient {
    * @returns {Profile} The new updated Profile
    */
   async mergeProfiles(profileTo, profileFrom) {
-    const data = await this._handleResponse(fetch(this.profilesMergeUrl, {
+    const data = await this._handleResponse(() => fetch(this.profilesMergeUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify({ to: profileTo, from: profileFrom }),
@@ -477,7 +482,7 @@ export default class OpenReviewClient {
    * @returns {object} The new updated Profile
    */
   async moderateProfile({ profileId, decision, reason }) {
-    const data = await this._handleResponse(fetch(this.profilesModerateUrl, {
+    const data = await this._handleResponse(() => fetch(this.profilesModerateUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify({ id: profileId, decision, reason }),
@@ -504,7 +509,7 @@ export default class OpenReviewClient {
   async getGroups(params) {
     const queryString = generateQueryString(params);
 
-    const data = await this._handleResponse(fetch(`${this.groupsUrl}?${queryString}`, {
+    const data = await this._handleResponse(() => fetch(`${this.groupsUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers
     }), { groups: [], count: 0 });
@@ -560,7 +565,7 @@ export default class OpenReviewClient {
   async getInvitations(params) {
     const queryString = generateQueryString(params);
 
-    const data = await this._handleResponse(fetch(`${this.invitationsUrl}?${queryString}`, {
+    const data = await this._handleResponse(() => fetch(`${this.invitationsUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers,
     }), { invitations: [], count: 0 });
@@ -619,7 +624,7 @@ export default class OpenReviewClient {
       sort: params?.sort,
     });
 
-    const data = await this._handleResponse(fetch(`${this.invitationEditsUrl}?${queryString}`, {
+    const data = await this._handleResponse(() => fetch(`${this.invitationEditsUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers
     }), { edits: [], count: 0 });
@@ -661,7 +666,7 @@ export default class OpenReviewClient {
     }
     const queryString = generateQueryString(params);
 
-    const data = await this._handleResponse(fetch(`${this.notesUrl}?${queryString}`, {
+    const data = await this._handleResponse(() => fetch(`${this.notesUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers,
     }), { notes: [], count: 0 });
@@ -732,7 +737,7 @@ export default class OpenReviewClient {
 
     const v1Url = this.tools.convertUrlToV1(this.notesUrl);
 
-    const data = await this._handleResponse(fetch(`${v1Url}?${queryString}`, {
+    const data = await this._handleResponse(() => fetch(`${v1Url}?${queryString}`, {
       method: 'GET',
       headers: this.headers,
     }), { notes: [], count: 0 });
@@ -785,7 +790,7 @@ export default class OpenReviewClient {
       sort: params.sort
     });
 
-    const data = await this._handleResponse(fetch(`${this.noteEditsUrl}?${queryString}`, {
+    const data = await this._handleResponse(() => fetch(`${this.noteEditsUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers
     }), { edits: [], count: 0 });
@@ -810,7 +815,7 @@ export default class OpenReviewClient {
   async getTags(params) {
     const queryString = generateQueryString(params);
 
-    const data = await this._handleResponse(fetch(`${this.tagsUrl}?${queryString}`, {
+    const data = await this._handleResponse(() => fetch(`${this.tagsUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers,
     }), { tags: [], count: 0 });
@@ -853,7 +858,7 @@ export default class OpenReviewClient {
   async getEdges(params) {
     const queryString = generateQueryString(params);
 
-    const data = await this._handleResponse(fetch(`${this.edgesUrl}?${queryString}`, {
+    const data = await this._handleResponse(() => fetch(`${this.edgesUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers
     }), params.groupBy ? { groupedEdges: [] } : { edges: [], count: 0 });
@@ -894,7 +899,7 @@ export default class OpenReviewClient {
   async getEdgesCount(params) {
     const queryString = generateQueryString(params);
 
-    const data = await this._handleResponse(fetch(`${this.edgesCountUrl}?${queryString}`, {
+    const data = await this._handleResponse(() => fetch(`${this.edgesCountUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers
     }), { count: 0 });
@@ -910,7 +915,7 @@ export default class OpenReviewClient {
    * @returns {Promise<object>} Promise object representing the posted Edge object.
    */
   async postEdge(edge) {
-    const data = await this._handleResponse(fetch(this.edgesUrl, {
+    const data = await this._handleResponse(() => fetch(this.edgesUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(edge),
@@ -927,7 +932,7 @@ export default class OpenReviewClient {
    * @returns {Promise<array>} Promise object representing an array of updated Edge objects with their ids.
    */
   async postEdges(edges) {
-    const data = await this._handleResponse(fetch(this.bulkEdgesUrl, {
+    const data = await this._handleResponse(() => fetch(this.bulkEdgesUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(edges),
@@ -954,7 +959,7 @@ export default class OpenReviewClient {
     deleteQuery.waitToFinish ??= true;
     deleteQuery.softDelete ??= false;
 
-    const data = await this._handleResponse(fetch(this.edgesUrl, {
+    const data = await this._handleResponse(() => fetch(this.edgesUrl, {
       method: 'DELETE',
       headers: this.headers,
       body: JSON.stringify(deleteQuery),
@@ -971,7 +976,7 @@ export default class OpenReviewClient {
    * @returns {Promise<object>} Promise object representing the response from the API.
    */
   async deleteProfileReference(referenceId) {
-    const data = await this._handleResponse(fetch(`${this.profilesUrl}/reference`, {
+    const data = await this._handleResponse(() => fetch(`${this.profilesUrl}/reference`, {
       method: 'DELETE',
       headers: this.headers,
       body: JSON.stringify({ id: referenceId }),
@@ -988,7 +993,7 @@ export default class OpenReviewClient {
    * @returns {Promise<object>} Promise object representing the response from the API.
    */
   async deleteGroup(groupId) {
-    const data = await this._handleResponse(fetch(this.groupsUrl, {
+    const data = await this._handleResponse(() => fetch(this.groupsUrl, {
       method: 'DELETE',
       headers: this.headers,
       body: JSON.stringify({ id: groupId }),
@@ -1016,7 +1021,7 @@ export default class OpenReviewClient {
   async postMessage(params) {
     const body = removeNilValues(params);
 
-    const data = await this._handleResponse(fetch(`${this.messagesUrl}/requests`, {
+    const data = await this._handleResponse(() => fetch(`${this.messagesUrl}/requests`, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(body)
@@ -1063,7 +1068,7 @@ export default class OpenReviewClient {
         error: null
       };
     } else {
-      const data = await this._handleResponse(fetch(`${this.groupsUrl}/members`, {
+      const data = await this._handleResponse(() => fetch(`${this.groupsUrl}/members`, {
         method: 'PUT',
         headers: this.headers,
         body: JSON.stringify({
@@ -1114,7 +1119,7 @@ export default class OpenReviewClient {
         error: null
       };
     } else {
-      const data = await this._handleResponse(fetch(`${this.groupsUrl}/members`, {
+      const data = await this._handleResponse(() => fetch(`${this.groupsUrl}/members`, {
         method: 'DELETE',
         headers: this.headers,
         body: JSON.stringify({
@@ -1148,7 +1153,7 @@ export default class OpenReviewClient {
 
     const queryString = generateQueryString(params);
 
-    const data = await this._handleResponse(fetch(`${this.notesUrl}/search?${queryString}`, {
+    const data = await this._handleResponse(() => fetch(`${this.notesUrl}/search?${queryString}`, {
       method: 'GET',
       headers: this.headers
     }), { notes: [], count: 0 });
@@ -1167,7 +1172,7 @@ export default class OpenReviewClient {
    */
   async getTildeUsername(first, last, middle = null) {
     const queryString = generateQueryString({ first, last, middle });
-    const data = await this._handleResponse(fetch(`${this.tildeusernameUrl}?${queryString}`, {
+    const data = await this._handleResponse(() => fetch(`${this.tildeusernameUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers,
     }), { username: '' });
@@ -1189,7 +1194,7 @@ export default class OpenReviewClient {
   */
   async getMessages(params) {
     const queryString = generateQueryString(params);
-    const data = await this._handleResponse(fetch(`${this.messagesUrl}?${queryString}`, {
+    const data = await this._handleResponse(() => fetch(`${this.messagesUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers
     }), { messages: [], count: 0 });
@@ -1208,7 +1213,7 @@ export default class OpenReviewClient {
    */
   async getProcessLogs(id, invitation, status) {
     const queryString = generateQueryString({ id, invitation, status });
-    const data = await this._handleResponse(fetch(`${this.processLogsUrl}?${queryString}`, {
+    const data = await this._handleResponse(() => fetch(`${this.processLogsUrl}?${queryString}`, {
       method: 'GET',
       headers: this.headers
     }), { logs: [], count: 0 });
@@ -1233,7 +1238,7 @@ export default class OpenReviewClient {
    * }
    */
   async getDuplicateDomains() {
-    const data = await this._handleResponse(fetch(this.duplicateDomainsUrl, {
+    const data = await this._handleResponse(() => fetch(this.duplicateDomainsUrl, {
       method: 'GET',
       headers: this.headers
     }), { duplicates: {} });
@@ -1258,7 +1263,7 @@ export default class OpenReviewClient {
   async postInvitationEdit(invitaionEdit) {
     const body = removeNilValues(invitaionEdit);
 
-    const data = await this._handleResponse(fetch(this.invitationEditsUrl, {
+    const data = await this._handleResponse(() => fetch(this.invitationEditsUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(body)
@@ -1281,7 +1286,7 @@ export default class OpenReviewClient {
    */
   async postNoteEdit(noteEdit) {
     const body = removeNilValues(noteEdit);
-    const data = await this._handleResponse(fetch(this.noteEditsUrl, {
+    const data = await this._handleResponse(() => fetch(this.noteEditsUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(body)
@@ -1304,7 +1309,7 @@ export default class OpenReviewClient {
    */
   async postGroupEdit(groupEdit) {
     const body = removeNilValues(groupEdit);
-    const data = await this._handleResponse(fetch(this.groupEditsUrl, {
+    const data = await this._handleResponse(() => fetch(this.groupEditsUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(body)
@@ -1359,7 +1364,7 @@ export default class OpenReviewClient {
       model: { name: model }
     };
 
-    const data = await this._handleResponse(fetch(this.expertiseUrl, {
+    const data = await this._handleResponse(() => fetch(this.expertiseUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(body)
@@ -1397,7 +1402,7 @@ export default class OpenReviewClient {
       model: { name: model }
     };
 
-    const data = await this._handleResponse(fetch(this.expertiseUrl, {
+    const data = await this._handleResponse(() => fetch(this.expertiseUrl, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(expertiseRequest)
@@ -1414,7 +1419,7 @@ export default class OpenReviewClient {
    * @return {Promise<object>} - The JSON response from the API.
    */
   async getExpertiseStatus(jobId) {
-    const data = await this._handleResponse(fetch(this.expertiseStatusUrl, {
+    const data = await this._handleResponse(() => fetch(this.expertiseStatusUrl, {
       method: 'GET',
       headers: this.headers,
       params: { jobId }
@@ -1460,7 +1465,7 @@ export default class OpenReviewClient {
       }
       throw new Error('Unknown error, description: ' + statusResponse.description);
     } else {
-      const data = await this._handleResponse(fetch(this.expertiseResultsUrl, {
+      const data = await this._handleResponse(() => fetch(this.expertiseResultsUrl, {
         method: 'GET',
         headers: this.headers,
         params: { jobId }
