@@ -1,48 +1,71 @@
 import OpenReviewError from './errors.js';
 
 /**
- * Handles the response returned by the OpenReview API.
+ * Handles the response returned by the OpenReview API with automatic retry on rate limiting (429).
  *
- * @param {Promise} fetchPromise - Promise returned by the fetch function.
- * @param {object} onErrorData - Data to return in case of error.
- * @param {string} dataName - Name of the data to return.
- * @returns {Promise} Promise that resolves to the response data.
- * @async
+ * @param {boolean} throwErrors - Whether to throw errors or return them in the response.
+ * @param {object} retryOptions - Options for retry behavior on rate limiting.
+ * @param {number} [retryOptions.maxRetries=3] - Maximum number of retry attempts after a 429.
+ * @param {number} [retryOptions.defaultRetryAfterMs=1000] - Fallback wait time if Retry-After header is missing.
+ * @param {number} [retryOptions.maxRetryAfterMs=60000] - Cap on how long to wait per retry.
+ * @returns {Function} Async function that accepts (fetchFn, onErrorData, dataName).
  */
-const handleResponse = throwErrors => async (fetchPromise, onErrorData, dataName) => {
-  let response;
-  let data;
-  try {
-    response = await fetchPromise;
-    data = await response.json();
-  } catch (error) {
-    throw new OpenReviewError({
-      name: error.name || 'Error',
-      message: error.message,
-      status: error.status || 500,
-      cause: error
-    });
-  }
+const handleResponse = (throwErrors, retryOptions = {}) => async (fetchFn, onErrorData, dataName) => {
+  const {
+    maxRetries = 3,
+    defaultRetryAfterMs = 1000,
+    maxRetryAfterMs = 60000,
+  } = retryOptions;
 
-  if (throwErrors) {
-    if (response.status !== 200) {
-      if (data.errors) {
-        throw new AggregateError(data.errors.map(error => new OpenReviewError(error)), data.errors?.[0]?.message ?? 'Error');
-      } else {
-        throw new OpenReviewError(data);
-      }
-    } else if (dataName) {
-      return { [dataName]: data };
-    } else {
-      return data;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    let response;
+    let data;
+    try {
+      response = await fetchFn();
+      data = await response.json();
+    } catch (error) {
+      throw new OpenReviewError({
+        name: error.name || 'Error',
+        message: error.message,
+        status: error.status || 500,
+        cause: error
+      });
     }
-  } else {
-    if (response.status !== 200) {
-      return { ...onErrorData, error: data };
-    } else if (dataName) {
-      return { [dataName]: data, error: null };
+
+    if (response.status === 429 && attempt < maxRetries) {
+      const retryAfterHeader = response.headers.get('Retry-After');
+      let waitMs = defaultRetryAfterMs;
+      if (retryAfterHeader) {
+        const parsed = Number(retryAfterHeader);
+        if (!Number.isNaN(parsed) && parsed > 0) {
+          waitMs = parsed * 1000;
+        }
+      }
+      waitMs = Math.min(waitMs, maxRetryAfterMs);
+      await new Promise(resolve => setTimeout(resolve, waitMs));
+      continue;
+    }
+
+    if (throwErrors) {
+      if (response.status !== 200) {
+        if (data.errors) {
+          throw new AggregateError(data.errors.map(error => new OpenReviewError(error)), data.errors?.[0]?.message ?? 'Error');
+        } else {
+          throw new OpenReviewError(data);
+        }
+      } else if (dataName) {
+        return { [dataName]: data };
+      } else {
+        return data;
+      }
     } else {
-      return { ...data, error: null };
+      if (response.status !== 200) {
+        return { ...onErrorData, error: data };
+      } else if (dataName) {
+        return { [dataName]: data, error: null };
+      } else {
+        return { ...data, error: null };
+      }
     }
   }
 };
