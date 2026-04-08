@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "htmltidy2": "^1.2.0",
-    "lodash": "^4.17.21",
+    "lodash": "^4.18.1",
     "puppeteer": "^24.6.1",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-anonymize-ua": "^2.4.6",
