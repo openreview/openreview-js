@@ -869,7 +869,8 @@ describe('OpenReview Client', function () {
       '<proceedings key="conf/acl/1987" mdate="2017-05-10">\n<editor>Candy L. Sidner</editor>\n<title>25th Annual Meeting of the Association for Computational Linguistics, Stanford University, Stanford, California, USA, July 6-9, 1987.</title>\n<booktitle>ACL</booktitle>\n<publisher>ACL</publisher>\n<year>1987</year>\n<ee>http://aclweb.org/anthology/P/P87/</ee>\n<url>db/conf/acl/acl1987.html</url>\n</proceedings>\n\n',
       '<inproceedings key="conf/acl/Rajasekaran95" mdate="2016-12-19">\n<author>Sanguthevar Rajasekaran</author>\n<title>TAL Recognition in O(M(n<sup>2</sup>)) Time.</title>\n<pages>166-173</pages>\n<year>1995</year>\n<crossref>conf/acl/1995</crossref>\n<booktitle>ACL</booktitle>\n<url>db/conf/acl/acl95.html#Rajasekaran95</url>\n<ee>http://aclweb.org/anthology/P/P95/P95-1023.pdf</ee>\n</inproceedings>',
       '<inproceedings key="conf/aaai/TanYWHTS16" mdate="2018-11-20">\n<author>Mingkui Tan</author>\n<author>Yan Yan 0006</author>\n<author>Li Wang 0033</author>\n<author>Anton van den Hengel</author>\n<author>Ivor W. Tsang</author>\n<author>Qinfeng (Javen) Shi</author>\n<title>Learning Sparse Confidence-Weighted Classifier on Very High Dimensional Data.</title>\n<pages>2080-2086</pages>\n<year>2016</year>\n<booktitle>AAAI</booktitle>\n<ee>http://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/view/12329</ee>\n<crossref>conf/aaai/2016</crossref>\n<url>db/conf/aaai/aaai2016.html#TanYWHTS16</url>\n</inproceedings>',
-      '<inproceedings key="conf/bic-ta/Liu22" mdate="2023-07-21"><author orcid="0000-0002-4608-9448" pid="228/3773">Xukun Liu</author><title>The Utilities of Evolutionary Multiobjective Optimization for Neural Architecture Search - An Empirical Perspective.</title><pages>179-195</pages><year>2022</year><booktitle>BIC-TA</booktitle><ee>https://doi.org/10.1007/978-981-99-1549-1_15</ee><crossref>conf/bic-ta/2022</crossref><url>db/conf/bic-ta/bic-ta2022.html#Liu22</url></inproceedings>'
+      '<inproceedings key="conf/bic-ta/Liu22" mdate="2023-07-21"><author orcid="0000-0002-4608-9448" pid="228/3773">Xukun Liu</author><title>The Utilities of Evolutionary Multiobjective Optimization for Neural Architecture Search - An Empirical Perspective.</title><pages>179-195</pages><year>2022</year><booktitle>BIC-TA</booktitle><ee>https://doi.org/10.1007/978-981-99-1549-1_15</ee><crossref>conf/bic-ta/2022</crossref><url>db/conf/bic-ta/bic-ta2022.html#Liu22</url></inproceedings>',
+      '<inproceedings key="conf/spie/GarciaColetoMPPR24" mdate="2024-06-15">\n<author>Andres Garcia Coleto</author>\n<author>Benjamin Moon</author>\n<author>Jonathan C. Papa</author>\n<author>Michael Pomerantz</author>\n<author>Jannick P. Rolland</author>\n<title>Freeform Optics Design for Next-Generation Imaging Systems.</title>\n<pages>1-12</pages>\n<year>2024</year>\n<booktitle>SPIE</booktitle>\n<ee>https://doi.org/10.1117/12.example</ee>\n<crossref>conf/spie/2024</crossref>\n<url>db/conf/spie/spie2024.html#GarciaColetoMPPR24</url>\n</inproceedings>'
     ];
 
     const resolved = [
@@ -880,11 +881,10 @@ describe('OpenReview Client', function () {
           venue: { value: 'ACL (1) 2016' },
           venueid: { value: 'dblp.org/conf/ACL/2016' },
           _bibtex: { value: '@inproceedings{DBLP:conf/acl/KimBL16,\n  author={Seokhwan Kim and Rafael E. Banchs and Haizhou Li},\n  title={Exploring Convolutional and Recurrent Neural Networks in Sequential Labelling for Dialogue Topic Tracking},\n  year={2016},\n  cdate={1451606400000},\n  url={http://aclweb.org/anthology/P/P16/P16-1091.pdf},\n  booktitle={ACL (1)},\n  crossref={conf/acl/2016-1}\n}\n' },
-          authors: { value: [ 'Seokhwan Kim', 'Rafael E. Banchs', 'Haizhou Li' ] },
-          authorids: { value: [
-            '',
-            '',
-            ''
+          authors: { value: [
+            { fullname: 'Seokhwan Kim', username: '' },
+            { fullname: 'Rafael E. Banchs', username: '' },
+            { fullname: 'Haizhou Li', username: '' }
           ] },
           'pdf': { value: 'http://aclweb.org/anthology/P/P16/P16-1091.pdf' },
           'title': { value: 'Exploring Convolutional and Recurrent Neural Networks in Sequential Labelling for Dialogue Topic Tracking' }
@@ -898,7 +898,6 @@ describe('OpenReview Client', function () {
           venueid: { value: 'dblp.org/conf/ACL/1987' },
           _bibtex: { value: '@proceedings{DBLP:conf/acl/1987,\n  author={},\n  title={25th Annual Meeting of the Association for Computational Linguistics, Stanford University, Stanford, California, USA, July 6-9, 1987},\n  year={1987},\n  cdate={536457600000},\n  url={http://aclweb.org/anthology/P/P87/},\n  booktitle={ACL},\n  publisher={ACL}\n}\n' },
           authors: { value: [] },
-          authorids: { value: [] },
           html: { value: 'http://aclweb.org/anthology/P/P87/' },
           title: { value: '25th Annual Meeting of the Association for Computational Linguistics, Stanford University, Stanford, California, USA, July 6-9, 1987' }
         }
@@ -910,8 +909,9 @@ describe('OpenReview Client', function () {
           venue: { value: 'ACL 1995' },
           venueid: { value: 'dblp.org/conf/ACL/1995' },
           _bibtex: { value: '@inproceedings{DBLP:conf/acl/Rajasekaran95,\n  author={Sanguthevar Rajasekaran},\n  title={TAL Recognition in O(M(n)) Time},\n  year={1995},\n  cdate={788918400000},\n  pages={166-173},\n  url={http://aclweb.org/anthology/P/P95/P95-1023.pdf},\n  booktitle={ACL},\n  crossref={conf/acl/1995}\n}\n' },
-          authors: { value: [ 'Sanguthevar Rajasekaran' ] },
-          authorids: { value: [ '' ] },
+          authors: { value: [
+            { fullname: 'Sanguthevar Rajasekaran', username: '' }
+          ] },
           pdf: { value: 'http://aclweb.org/anthology/P/P95/P95-1023.pdf' },
           title: { value: 'TAL Recognition in O(M(n)) Time' }
         }
@@ -923,14 +923,13 @@ describe('OpenReview Client', function () {
           venue: { value: 'AAAI 2016' },
           venueid: { value: 'dblp.org/conf/AAAI/2016' },
           _bibtex: { value: '@inproceedings{DBLP:conf/aaai/TanYWHTS16,\n  author={Mingkui Tan and Yan Yan and Li Wang and Anton van den Hengel and Ivor W. Tsang and Qinfeng Javen Shi},\n  title={Learning Sparse Confidence-Weighted Classifier on Very High Dimensional Data},\n  year={2016},\n  cdate={1451606400000},\n  pages={2080-2086},\n  url={http://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/view/12329},\n  booktitle={AAAI},\n  crossref={conf/aaai/2016}\n}\n' },
-          authors: { value: [ 'Mingkui Tan', 'Yan Yan', 'Li Wang', 'Anton van den Hengel', 'Ivor W. Tsang', 'Qinfeng Javen Shi' ] },
-          authorids: { value: [
-            '',
-            '',
-            '',
-            '',
-            '',
-            ''
+          authors: { value: [
+            { fullname: 'Mingkui Tan', username: '' },
+            { fullname: 'Yan Yan', username: '' },
+            { fullname: 'Li Wang', username: '' },
+            { fullname: 'Anton van den Hengel', username: '' },
+            { fullname: 'Ivor W. Tsang', username: '' },
+            { fullname: 'Qinfeng Javen Shi', username: '' }
           ]},
           html: { value: 'http://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/view/12329' },
           title: { value: 'Learning Sparse Confidence-Weighted Classifier on Very High Dimensional Data' }
@@ -942,11 +941,30 @@ describe('OpenReview Client', function () {
         content: {
           title: {value: 'The Utilities of Evolutionary Multiobjective Optimization for Neural Architecture Search - An Empirical Perspective'},
           _bibtex: {value: '@inproceedings{DBLP:conf/bic-ta/Liu22,\n  author={Xukun Liu},\n  title={The Utilities of Evolutionary Multiobjective Optimization for Neural Architecture Search - An Empirical Perspective},\n  year={2022},\n  cdate={1640995200000},\n  pages={179-195},\n  url={https://doi.org/10.1007/978-981-99-1549-1_15},\n  booktitle={BIC-TA},\n  crossref={conf/bic-ta/2022}\n}\n'},
-          authors: { value: ['Xukun Liu'] },
-          authorids: { value: [''] },
+          authors: { value: [
+            { fullname: 'Xukun Liu', username: '' }
+          ] },
           venue: { value: 'BIC-TA 2022' },
           venueid: { value: 'dblp.org/conf/BIC-TA/2022' },
           html: { value: 'https://doi.org/10.1007/978-981-99-1549-1_15' }
+        }
+      },
+      {
+        externalId: 'dblp:conf/spie/GarciaColetoMPPR24',
+        cdate: 1704067200000,
+        content: {
+          title: { value: 'Freeform Optics Design for Next-Generation Imaging Systems' },
+          _bibtex: { value: '@inproceedings{DBLP:conf/spie/GarciaColetoMPPR24,\n  author={Andres Garcia Coleto and Benjamin Moon and Jonathan C. Papa and Michael Pomerantz and Jannick P. Rolland},\n  title={Freeform Optics Design for Next-Generation Imaging Systems},\n  year={2024},\n  cdate={1704067200000},\n  pages={1-12},\n  url={https://doi.org/10.1117/12.example},\n  booktitle={SPIE},\n  crossref={conf/spie/2024}\n}\n' },
+          authors: { value: [
+            { fullname: 'Andres Garcia Coleto', username: '' },
+            { fullname: 'Benjamin Moon', username: '' },
+            { fullname: 'Jonathan C. Papa', username: '' },
+            { fullname: 'Michael Pomerantz', username: '' },
+            { fullname: 'Jannick P. Rolland', username: '' }
+          ] },
+          venue: { value: 'SPIE 2024' },
+          venueid: { value: 'dblp.org/conf/SPIE/2024' },
+          html: { value: 'https://doi.org/10.1117/12.example' }
         }
       }
     ];
@@ -965,7 +983,7 @@ describe('OpenReview Client', function () {
         if (Array.isArray(value)) {
           assert.equal(note.content[key].value.length, value.length);
           for (let i = 0; i < value.length; i++) {
-            assert.equal(note.content[key].value[i], value[i]);
+            assert.deepStrictEqual(note.content[key].value[i], value[i]);
           }
         } else {
           assert.equal(note.content[key].value, value);
@@ -1113,20 +1131,11 @@ describe('OpenReview Client', function () {
         title: { value: "Cascade optical coherence tomography (C-OCT)" },
         authors: {
           value: [
-            "Andres Garcia Coleto",
-            "Benjamin Moon",
-            "Jonathan C. Papa",
-            "Michael Pomerantz",
-            "Jannick P. Rolland"
-          ]
-        },
-        authorids: {
-          value: [
-            "https://orcid.org/orcid-search/search?searchQuery=Andres Garcia Coleto",
-            "https://orcid.org/orcid-search/search?searchQuery=Benjamin Moon",
-            "https://orcid.org/orcid-search/search?searchQuery=Jonathan C. Papa",
-            "https://orcid.org/orcid-search/search?searchQuery=Michael Pomerantz",
-            "https://orcid.org/orcid-search/search?searchQuery=Jannick P. Rolland"
+            { fullname: 'Andres Garcia Coleto', username: 'https://orcid.org/orcid-search/search?searchQuery=Andres Garcia Coleto' },
+            { fullname: 'Benjamin Moon', username: 'https://orcid.org/orcid-search/search?searchQuery=Benjamin Moon' },
+            { fullname: 'Jonathan C. Papa', username: 'https://orcid.org/orcid-search/search?searchQuery=Jonathan C. Papa' },
+            { fullname: 'Michael Pomerantz', username: 'https://orcid.org/orcid-search/search?searchQuery=Michael Pomerantz' },
+            { fullname: 'Jannick P. Rolland', username: 'https://orcid.org/orcid-search/search?searchQuery=Jannick P. Rolland' }
           ]
         },
         // abstract: { value: null }, empty abstract should not be included
@@ -1277,20 +1286,11 @@ describe('OpenReview Client', function () {
         title: { value: "Introduction to the Special Issue on Knowledge Transferring for Recommender Systems" },
         authors: {
           value: [
-            "Zhiwei Liu",
-            "Hao Peng",
-            "Caiming Xiong",
-            "Julian McAuley",
-            "Philip Yu"
-          ]
-        },
-        authorids: {
-          value: [
-            "https://orcid.org/orcid-search/search?searchQuery=Zhiwei Liu",
-            "https://orcid.org/orcid-search/search?searchQuery=Hao Peng",
-            "https://orcid.org/orcid-search/search?searchQuery=Caiming Xiong",
-            "https://orcid.org/orcid-search/search?searchQuery=Julian McAuley",
-            "https://orcid.org/orcid-search/search?searchQuery=Philip Yu"
+            { fullname: 'Zhiwei Liu', username: 'https://orcid.org/orcid-search/search?searchQuery=Zhiwei Liu' },
+            { fullname: 'Hao Peng', username: 'https://orcid.org/orcid-search/search?searchQuery=Hao Peng' },
+            { fullname: 'Caiming Xiong', username: 'https://orcid.org/orcid-search/search?searchQuery=Caiming Xiong' },
+            { fullname: 'Julian McAuley', username: 'https://orcid.org/orcid-search/search?searchQuery=Julian McAuley' },
+            { fullname: 'Philip Yu', username: 'https://orcid.org/orcid-search/search?searchQuery=Philip Yu' }
           ]
         },
         abstract: { value: "test short description" },
@@ -1493,30 +1493,16 @@ describe('OpenReview Client', function () {
         },
         authors: {
           value: [
-            "Rohan Sanghera",
-            "Arun James Thirunavukarasu",
-            "Marc El Khoury",
-            "Jessica O'Logbon",
-            "Yuqing Chen",
-            "Archie Watt",
-            "Mustafa Mahmood",
-            "Hamid Butt",
-            "George Nishimura",
-            "Andrew Soltan",
-          ],
-        },
-        authorids: {
-          value: [
-            "https://orcid.org/orcid-search/search?searchQuery=Rohan Sanghera",
-            "https://orcid.org/orcid-search/search?searchQuery=Arun James Thirunavukarasu",
-            "https://orcid.org/orcid-search/search?searchQuery=Marc El Khoury",
-            "https://orcid.org/orcid-search/search?searchQuery=Jessica O'Logbon",
-            "https://orcid.org/orcid-search/search?searchQuery=Yuqing Chen",
-            "https://orcid.org/orcid-search/search?searchQuery=Archie Watt",
-            "https://orcid.org/orcid-search/search?searchQuery=Mustafa Mahmood",
-            "https://orcid.org/orcid-search/search?searchQuery=Hamid Butt",
-            "https://orcid.org/orcid-search/search?searchQuery=George Nishimura",
-            "https://orcid.org/orcid-search/search?searchQuery=Andrew Soltan",
+            { fullname: 'Rohan Sanghera', username: 'https://orcid.org/orcid-search/search?searchQuery=Rohan Sanghera' },
+            { fullname: 'Arun James Thirunavukarasu', username: 'https://orcid.org/orcid-search/search?searchQuery=Arun James Thirunavukarasu' },
+            { fullname: 'Marc El Khoury', username: 'https://orcid.org/orcid-search/search?searchQuery=Marc El Khoury' },
+            { fullname: "Jessica O'Logbon", username: "https://orcid.org/orcid-search/search?searchQuery=Jessica O'Logbon" },
+            { fullname: 'Yuqing Chen', username: 'https://orcid.org/orcid-search/search?searchQuery=Yuqing Chen' },
+            { fullname: 'Archie Watt', username: 'https://orcid.org/orcid-search/search?searchQuery=Archie Watt' },
+            { fullname: 'Mustafa Mahmood', username: 'https://orcid.org/orcid-search/search?searchQuery=Mustafa Mahmood' },
+            { fullname: 'Hamid Butt', username: 'https://orcid.org/orcid-search/search?searchQuery=Hamid Butt' },
+            { fullname: 'George Nishimura', username: 'https://orcid.org/orcid-search/search?searchQuery=George Nishimura' },
+            { fullname: 'Andrew Soltan', username: 'https://orcid.org/orcid-search/search?searchQuery=Andrew Soltan' },
           ],
         },
         _bibtex: {
@@ -1708,26 +1694,14 @@ describe('OpenReview Client', function () {
         },
         authors: {
           value: [
-            "Martin Landesberger",
-            "Oguz Kedilioglu",
-            "Lijiu Wang",
-            "Weimin Gan",
-            "Joana Rebelo Kornmeier",
-            "Sebastian Reitelshöfer",
-            "Jörg Franke",
-            "Michael Hofmann"
-          ],
-        },
-        authorids: {
-          value: [
-            "https://orcid.org/orcid-search/search?searchQuery=Martin Landesberger",
-            "https://orcid.org/orcid-search/search?searchQuery=Oguz Kedilioglu",
-            "https://orcid.org/orcid-search/search?searchQuery=Lijiu Wang",
-            "https://orcid.org/orcid-search/search?searchQuery=Weimin Gan",
-            "https://orcid.org/orcid-search/search?searchQuery=Joana Rebelo Kornmeier",
-            "https://orcid.org/orcid-search/search?searchQuery=Sebastian Reitelshöfer",
-            "https://orcid.org/orcid-search/search?searchQuery=Jörg Franke",
-            "https://orcid.org/orcid-search/search?searchQuery=Michael Hofmann",  
+            { fullname: 'Martin Landesberger', username: 'https://orcid.org/orcid-search/search?searchQuery=Martin Landesberger' },
+            { fullname: 'Oguz Kedilioglu', username: 'https://orcid.org/orcid-search/search?searchQuery=Oguz Kedilioglu' },
+            { fullname: 'Lijiu Wang', username: 'https://orcid.org/orcid-search/search?searchQuery=Lijiu Wang' },
+            { fullname: 'Weimin Gan', username: 'https://orcid.org/orcid-search/search?searchQuery=Weimin Gan' },
+            { fullname: 'Joana Rebelo Kornmeier', username: 'https://orcid.org/orcid-search/search?searchQuery=Joana Rebelo Kornmeier' },
+            { fullname: 'Sebastian Reitelshöfer', username: 'https://orcid.org/orcid-search/search?searchQuery=Sebastian Reitelshöfer' },
+            { fullname: 'Jörg Franke', username: 'https://orcid.org/orcid-search/search?searchQuery=Jörg Franke' },
+            { fullname: 'Michael Hofmann', username: 'https://orcid.org/orcid-search/search?searchQuery=Michael Hofmann' },
           ],
         },
   
@@ -1861,56 +1835,29 @@ describe('OpenReview Client', function () {
         },
         authors: {
           value: [
-            'Marco Mirabile',    
-            'Michele Cantiello',
-            'Marina Rejkuba',    
-            'Steffen Mieske',
-            'Enrichetta Iodice', 
-            'Chiara Buttitta',
-            'Maria Luisa Buzzo', 
-            'Johanna Hartke',
-            'Goran Doll',        
-            'Luca Rossi',
-            'Magda Arnaboldi',   
-            'Marica Branchesi',
-            "Giuseppe D'Ago",    
-            'Jesus Falcon-Barroso',
-            'Katja Fahrion',     
-            'Duncan A. Forbes',
-            'Marco Gullieuszik', 
-            'Michael Hilker',
-            'Felipe S. Lohmann', 
-            'Maurizio Paolillo',
-            'Gabriele Riccio',   
-            'Tom Richtler',
-            'Marilena Spavone'
-          ]
-        },
-        authorids: {
-          value: [
-            'https://arxiv.org/search/?query=Marco%20Mirabile&searchtype=all',
-            'https://arxiv.org/search/?query=Michele%20Cantiello&searchtype=all',
-            'https://arxiv.org/search/?query=Marina%20Rejkuba&searchtype=all',
-            'https://arxiv.org/search/?query=Steffen%20Mieske&searchtype=all',
-            'https://arxiv.org/search/?query=Enrichetta%20Iodice&searchtype=all',
-            'https://arxiv.org/search/?query=Chiara%20Buttitta&searchtype=all',
-            'https://arxiv.org/search/?query=Maria%20Luisa%20Buzzo&searchtype=all',
-            'https://arxiv.org/search/?query=Johanna%20Hartke&searchtype=all',
-            'https://arxiv.org/search/?query=Goran%20Doll&searchtype=all',
-            'https://arxiv.org/search/?query=Luca%20Rossi&searchtype=all',
-            'https://arxiv.org/search/?query=Magda%20Arnaboldi&searchtype=all',
-            'https://arxiv.org/search/?query=Marica%20Branchesi&searchtype=all',
-            "https://arxiv.org/search/?query=Giuseppe%20D'Ago&searchtype=all",
-            'https://arxiv.org/search/?query=Jesus%20Falcon-Barroso&searchtype=all',
-            'https://arxiv.org/search/?query=Katja%20Fahrion&searchtype=all',
-            'https://arxiv.org/search/?query=Duncan%20A.%20Forbes&searchtype=all',
-            'https://arxiv.org/search/?query=Marco%20Gullieuszik&searchtype=all',
-            'https://arxiv.org/search/?query=Michael%20Hilker&searchtype=all',
-            'https://arxiv.org/search/?query=Felipe%20S.%20Lohmann&searchtype=all',
-            'https://arxiv.org/search/?query=Maurizio%20Paolillo&searchtype=all',
-            'https://arxiv.org/search/?query=Gabriele%20Riccio&searchtype=all',
-            'https://arxiv.org/search/?query=Tom%20Richtler&searchtype=all',
-            'https://arxiv.org/search/?query=Marilena%20Spavone&searchtype=all'
+            { fullname: 'Marco Mirabile', username: 'https://arxiv.org/search/?query=Marco%20Mirabile&searchtype=all' },
+            { fullname: 'Michele Cantiello', username: 'https://arxiv.org/search/?query=Michele%20Cantiello&searchtype=all' },
+            { fullname: 'Marina Rejkuba', username: 'https://arxiv.org/search/?query=Marina%20Rejkuba&searchtype=all' },
+            { fullname: 'Steffen Mieske', username: 'https://arxiv.org/search/?query=Steffen%20Mieske&searchtype=all' },
+            { fullname: 'Enrichetta Iodice', username: 'https://arxiv.org/search/?query=Enrichetta%20Iodice&searchtype=all' },
+            { fullname: 'Chiara Buttitta', username: 'https://arxiv.org/search/?query=Chiara%20Buttitta&searchtype=all' },
+            { fullname: 'Maria Luisa Buzzo', username: 'https://arxiv.org/search/?query=Maria%20Luisa%20Buzzo&searchtype=all' },
+            { fullname: 'Johanna Hartke', username: 'https://arxiv.org/search/?query=Johanna%20Hartke&searchtype=all' },
+            { fullname: 'Goran Doll', username: 'https://arxiv.org/search/?query=Goran%20Doll&searchtype=all' },
+            { fullname: 'Luca Rossi', username: 'https://arxiv.org/search/?query=Luca%20Rossi&searchtype=all' },
+            { fullname: 'Magda Arnaboldi', username: 'https://arxiv.org/search/?query=Magda%20Arnaboldi&searchtype=all' },
+            { fullname: 'Marica Branchesi', username: 'https://arxiv.org/search/?query=Marica%20Branchesi&searchtype=all' },
+            { fullname: "Giuseppe D'Ago", username: "https://arxiv.org/search/?query=Giuseppe%20D'Ago&searchtype=all" },
+            { fullname: 'Jesus Falcon-Barroso', username: 'https://arxiv.org/search/?query=Jesus%20Falcon-Barroso&searchtype=all' },
+            { fullname: 'Katja Fahrion', username: 'https://arxiv.org/search/?query=Katja%20Fahrion&searchtype=all' },
+            { fullname: 'Duncan A. Forbes', username: 'https://arxiv.org/search/?query=Duncan%20A.%20Forbes&searchtype=all' },
+            { fullname: 'Marco Gullieuszik', username: 'https://arxiv.org/search/?query=Marco%20Gullieuszik&searchtype=all' },
+            { fullname: 'Michael Hilker', username: 'https://arxiv.org/search/?query=Michael%20Hilker&searchtype=all' },
+            { fullname: 'Felipe S. Lohmann', username: 'https://arxiv.org/search/?query=Felipe%20S.%20Lohmann&searchtype=all' },
+            { fullname: 'Maurizio Paolillo', username: 'https://arxiv.org/search/?query=Maurizio%20Paolillo&searchtype=all' },
+            { fullname: 'Gabriele Riccio', username: 'https://arxiv.org/search/?query=Gabriele%20Riccio&searchtype=all' },
+            { fullname: 'Tom Richtler', username: 'https://arxiv.org/search/?query=Tom%20Richtler&searchtype=all' },
+            { fullname: 'Marilena Spavone', username: 'https://arxiv.org/search/?query=Marilena%20Spavone&searchtype=all' }
           ]
         },
         ['subject_areas']: { value: [ 'astro-ph.GA' ] },
