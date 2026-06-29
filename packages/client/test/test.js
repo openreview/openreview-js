@@ -41,20 +41,20 @@ describe('OpenReview Client', function () {
       emails: [ 'searchable_user@email.com' ]
     });
     assert.equal(emailData.profiles.length === 1, true);
-    assert.equal(emailData.count >= 1, true);
+    assert.ok(emailData.count >= 1);
     assert.equal(emailData.error, null);
     const profileId = emailData.profiles[0].id;
 
     const termData = await this.superClient.searchProfiles({ term: 'Searchable' });
     assert.equal(termData.profiles.length === 1, true);
-    assert.equal(termData.count >= 1, true);
+    assert.ok(termData.count >= 1);
     assert.equal(termData.error, null);
 
     const tildeData = await this.superClient.searchProfiles({
       ids: [ profileId ]
     });
     assert.equal(tildeData.profiles.length === 1, true);
-    assert.equal(tildeData.count >= 1, true);
+    assert.ok(tildeData.count >= 1);
     assert.equal(tildeData.error, null);
   });
 
@@ -567,7 +567,7 @@ describe('OpenReview Client', function () {
       emails: [ 'moderated_profile@email.com' ]
     });
     assert.equal(emailData.profiles.length === 1, true);
-    assert.equal(emailData.count >= 1, true);
+    assert.ok(emailData.count >= 1);
     assert.equal(emailData.error, null);
     const profileId = emailData.profiles[0].id;
 
@@ -694,7 +694,7 @@ describe('OpenReview Client', function () {
       emails: [ 'conflict_user_one@fb.com' ]
     });
     assert.equal(emailData.profiles.length === 1, true);
-    assert.equal(emailData.count >= 1, true);
+    assert.ok(emailData.count >= 1);
     assert.equal(emailData.error, null);
     const profileId1 = emailData.profiles[0].id;
 
@@ -710,7 +710,7 @@ describe('OpenReview Client', function () {
       emails: [ 'conflict_user_two@facebook.com' ]
     });
     assert.equal(emailData.profiles.length === 1, true);
-    assert.equal(emailData.count >= 1, true);
+    assert.ok(emailData.count >= 1);
     assert.equal(emailData.error, null);
     const profileId2 = emailData.profiles[0].id;
 
