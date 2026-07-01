@@ -88,6 +88,11 @@ uncommitted changes don't block a run).
   via puppeteer's bundled Chromium and are inherently slow/flaky. Prefer
   `test client` for reliable, infra-backed runs. Network failures there are
   environmental, not harness bugs.
+- The `test` container runs as the non-root `node` user (Chromium won't start as
+  root without `--no-sandbox`, which the app doesn't pass) with unconfined
+  seccomp for the browser sandbox. It uses Debian's `chromium` package (built for
+  the image's arch — there's no arm64 Linux build of puppeteer's Chrome) via
+  `PUPPETEER_EXECUTABLE_PATH`, so it works on both Apple Silicon and Intel.
 - First run builds images and downloads dependencies (slow). Subsequent runs
   reuse the cached volumes.
 - Elasticsearch may need a higher `vm.max_map_count` on Linux hosts

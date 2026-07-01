@@ -107,6 +107,10 @@ services:
     environment:
       # all | client | meta — which workspace suite(s) to run
       - TEST_TARGET=${TEST_TARGET:-all}
+    # The container runs as non-root `node`; unconfined seccomp lets Chromium's
+    # sandbox start without --no-sandbox (which the app code doesn't pass).
+    security_opt:
+      - seccomp=unconfined
     volumes:
       - ../:/mnt/src:ro
       - ./scripts:/docker/scripts:ro
