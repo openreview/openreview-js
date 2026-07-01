@@ -1,0 +1,122 @@
+# All services share a single network namespace via the "pod" container.
+# This means localhost resolves to the same place in every container,
+# just like CI — so we reuse openreview-api's NODE_ENV=test config as-is
+# (it points at localhost:27017 / localhost:6379 / localhost:9200 / :3001).
+
+# Explicit project name so images/volumes/network don't collide with other
+# harnesses that also live in a directory named "docker" (e.g. openreview-py).
+name: openreview-js
+
+services:
+  pod:
+    image: alpine:3
+    command: sleep infinity
+    healthcheck:
+      test: "true"
+      interval: 5s
+      retries: 1
+
+  mongo:
+    image: mongo:8.0
+    command: ["--replSet", "rs0"]
+    network_mode: "service:pod"
+    depends_on:
+      pod:
+        condition: service_healthy
+    healthcheck:
+      test: >
+        mongosh --quiet --eval "
+          try { rs.status().ok && 1 }
+          catch(e) { rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'localhost:27017'}]}); sleep(2000); rs.status().ok && 1 }
+        "
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  redis:
+    image: redis:7.2
+    network_mode: "service:pod"
+    depends_on:
+      pod:
+        condition: service_healthy
+    healthcheck:
+      test: redis-cli ping
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTICSEARCH_VERSION:-7.6.0}
+    network_mode: "service:pod"
+    depends_on:
+      pod:
+        condition: service_healthy
+    environment:
+      - xpack.security.enabled=false
+      - transport.host=localhost
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    healthcheck:
+      test: curl -sf http://localhost:9200/_cluster/health || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    network_mode: "service:pod"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=test
+      - CLEAN_START=${CLEAN_START:-true}
+      # The API itself has no browser; skip puppeteer's Chromium download.
+      - PUPPETEER_SKIP_DOWNLOAD=true
+    volumes:
+      - ${API_PATH:-../../openreview-api}:/mnt/src:ro
+      - ${PY_PATH:-../../openreview-py}:/mnt/openreview-py:ro
+      - ./scripts:/docker/scripts:ro
+      - api-node-modules:/app/node_modules
+      - api-venv:/opt/venv
+    tmpfs:
+      - /mnt/src/.git
+      - /mnt/openreview-py/.git
+    healthcheck:
+      test: test -f /tmp/setup-complete
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 180s
+    entrypoint: ["bash", "/docker/scripts/api-entrypoint.sh"]
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    network_mode: "service:pod"
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      # all | client | meta — which workspace suite(s) to run
+      - TEST_TARGET=${TEST_TARGET:-all}
+    volumes:
+      - ../:/mnt/src:ro
+      - ./scripts:/docker/scripts:ro
+      - test-node-modules:/app/node_modules
+    # Chromium (via puppeteer, used by @openreview/meta-extraction) needs a
+    # larger /dev/shm than Docker's 64MB default.
+    shm_size: 2g
+    entrypoint: ["bash", "/docker/scripts/test-entrypoint.sh"]
+
+volumes:
+  api-node-modules:
+  api-venv:
+  test-node-modules:

@@ -1,0 +1,8 @@
+{
+  "api": { "path": "../../openreview-api", "branch": "" },
+  "py":  { "path": "../../openreview-py",  "branch": "" },
+  "elasticsearch_version": "7.6.0",
+  "test_target": "all",
+  "auto_checkout": true,
+  "keep_infra": false
+}
