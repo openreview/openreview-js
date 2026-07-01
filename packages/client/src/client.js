@@ -281,7 +281,9 @@ export default class OpenReviewClient {
 
         fullResponse.profiles.push(...data.profiles);
       }
-      fullResponse.count = data.count;
+      // Exact-match searches (emails/ids) no longer return a `count`; fall back
+      // to the number of profiles found so the { profiles, count } contract holds.
+      fullResponse.count = data.count ?? fullResponse.profiles.length;
       return fullResponse;
     }
 
@@ -302,7 +304,9 @@ export default class OpenReviewClient {
 
         fullResponse.profiles.push(...data.profiles);
       }
-      fullResponse.count = data.count;
+      // Exact-match searches (emails/ids) no longer return a `count`; fall back
+      // to the number of profiles found so the { profiles, count } contract holds.
+      fullResponse.count = data.count ?? fullResponse.profiles.length;
       return fullResponse;
     }
 
@@ -323,7 +327,9 @@ export default class OpenReviewClient {
 
         fullResponse.profiles.push(...data.profiles);
       }
-      fullResponse.count = data.count;
+      // Exact-match searches (emails/ids) no longer return a `count`; fall back
+      // to the number of profiles found so the { profiles, count } contract holds.
+      fullResponse.count = data.count ?? fullResponse.profiles.length;
       return fullResponse;
     }
 

@@ -1,0 +1,9 @@
+# Override used by `run.js serve` to expose service ports on the host.
+# Ports are published on the shared-namespace "pod" container.
+
+services:
+  pod:
+    ports:
+      - "3001:3001"    # openreview-api v2
+      - "27017:27017"  # mongo (debugging)
+      - "9200:9200"    # elasticsearch (debugging)
