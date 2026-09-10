@@ -218,8 +218,8 @@ export default class Tools {
       // API v2 tokens can include strings like ${note.number}
       if (token.includes('${')) {
         token = token.replace(/\$\{(\S+)\}/g, (match, p1) => {
-            return ' {' + p1.split('.').pop() + '}';
-          })
+          return ' {' + p1.split('.').pop() + '}';
+        })
           .replace(/_/g, ' ');
         return token;
       }
@@ -238,11 +238,11 @@ export default class Tools {
 
       return token;
     })
-    .filter(formattedToken => {
-      // filter out any empty tokens
-      return formattedToken;
-    })
-    .join(' ');
+      .filter(formattedToken => {
+        // filter out any empty tokens
+        return formattedToken;
+      })
+      .join(' ');
 
     return transformedId || id;
   }
@@ -422,11 +422,11 @@ export default class Tools {
 
       for (const batch of Tools.splitArray(profiles, 10)) {
         await Promise.all(batch.map(async (profile) => {
-          const [ { notes: notesV1 }, { notes: notesV2 } ] = await Promise.all([
+          const [{ notes: notesV1 }, { notes: notesV2 }] = await Promise.all([
             this.client.getAllV1Notes({ content: { authorids: profile.id } }),
             this.client.getAllNotes({ content: { authorids: profile.id } })
           ]);
-          profileById[profile.id].content.publications = [ ...notesV1, ...notesV2 ];
+          profileById[profile.id].content.publications = [...notesV1, ...notesV2];
         }));
       }
     }
@@ -527,7 +527,7 @@ export default class Tools {
     if (authorIds.has(userInfo.id)) {
       conflicts.add(userInfo.id);
     }
-    
+
     for (const domain of userInfo.domains) {
       if (authorDomains.has(domain)) {
         conflicts.add(domain);
@@ -538,7 +538,7 @@ export default class Tools {
       if (authorEmails.has(email)) {
         conflicts.add(email);
       }
-    }    
+    }
 
     for (const relation of userInfo.relations) {
       if (authorIds.has(relation)) {
@@ -808,18 +808,17 @@ export default class Tools {
   }
 
   /**
-   * Converts a dblp xml to a note object.
+   * Converts a dblp json to a note object.
    *
    * @static
-   * @param {string} dblpXml - The dblp xml.
+   * @param {object|string} dblpJson - The dblp json (or its string representation).
    * @returns {object} The note object.
    *
    */
-  static convertDblpXmlToNote(dblpXml) {
+  static convertDblpJsonToNote(dblpJson) {
     const removeDigitsRegEx = /\s\d{4}$/;
     const removeTrailingPeriod = /\.$/;
-
-    const xmlParser = new XMLParser({ ignoreAttributes: false });
+    const dblpRecordPrefix = 'https://dblp.org/rec/';
 
     const entryTypes = [
       'article',
@@ -838,66 +837,77 @@ export default class Tools {
       'unpublished'
     ];
 
-    const getRawDataValue = rawData => {
-      const rawDataType = this.variableType(rawData);
-      if (rawDataType === 'object') {
-        return rawData['#text'];
-      } else {
-        return rawData;
+    // Every field of the row is a sparql binding: { type: 'uri' | 'literal', value: '...' }
+    const getBindingValue = (row, field) => {
+      const binding = row[field];
+      if (this.variableType(binding) === 'object') {
+        return binding.value;
       }
+      return binding;
     };
 
-    const getAuthorData = authorData => {
-      const author = getRawDataValue(authorData);
+    // The record and the crossref are given as uris: https://dblp.org/rec/<key>
+    const getRecordKey = uri => {
+      if (this.variableType(uri) !== 'string') {
+        return undefined;
+      }
+      return uri.startsWith(dblpRecordPrefix) ? uri.substring(dblpRecordPrefix.length) : uri;
+    };
+
+    const getAuthorData = authorName => {
       return {
-        author: author.replace(removeDigitsRegEx, '').replaceAll('(', '').replaceAll(')', ''),
+        author: authorName.replace(removeDigitsRegEx, '').replaceAll('(', '').replaceAll(')', ''),
         authorid: ''
       };
     };
 
-    const entryToData = entryElement => {
+    // The authors are concatenated as "<ordinal>|<name>|<pid>;;<ordinal>|<name>|<pid>;;..."
+    const getAuthorNames = authorsValue => {
+      if (!authorsValue) {
+        return [];
+      }
+      return String(authorsValue)
+        .split(';;')
+        .map(signature => signature.split('|'))
+        .filter(([, name]) => name)
+        .sort(([ordinalA], [ordinalB]) => Number(ordinalA) - Number(ordinalB))
+        .map(([, name]) => name);
+    };
+
+    const rowToData = row => {
       const data = {};
-      data.type = entryTypes.find(type => entryElement[type]) || 'misc';
-      const rawData = entryElement[data.type];
-      data.key = rawData['@_key'];
-      data.publtype = rawData['@_publtype'];
+      // The bibtex type is given as a uri: http://purl.org/net/nknouf/ns/bibtex#Inproceedings
+      const bibtexType = getBindingValue(row, 'bibtype')?.split('#').pop()?.toLowerCase();
+      data.type = entryTypes.includes(bibtexType) ? bibtexType : 'misc';
+      data.key = getRecordKey(getBindingValue(row, 'pub'));
       data.authors = [];
       data.authorids = [];
-      // TODO: Check if we want to include rawData.editor too or keep empty authors
-      if (Array.isArray(rawData.author)) {
-        for (const authorData of rawData.author) {
-          const { author, authorid } = getAuthorData(authorData);
-          data.authors.push(author);
-          data.authorids.push(authorid);
-        }
-      } else if (this.variableType(rawData.author) === 'string' || this.variableType(rawData.author) === 'object') {
-        const { author, authorid } = getAuthorData(rawData.author);
+      for (const authorName of getAuthorNames(getBindingValue(row, 'authors'))) {
+        const { author, authorid } = getAuthorData(authorName);
         data.authors.push(author);
         data.authorids.push(authorid);
       }
 
-      // TODO: What do we do with titles like: Learning Perceptually-Grounded Semantics in The L<sub>0</sub> Project?
-      // Multiple Kernel <i>k</i>-Means Clustering with Matrix-Induced Regularization.
-      data.title = getRawDataValue(rawData.title)?.trim()?.replace('\n', '')?.replace(removeTrailingPeriod, '');
-      data.year = parseInt(getRawDataValue(rawData.year), 10);
-      data.month = getRawDataValue(rawData.month);
+      data.title = getBindingValue(row, 'title')?.trim()?.replace('\n', '')?.replace(removeTrailingPeriod, '');
+      data.year = parseInt(getBindingValue(row, 'year'), 10);
+      data.month = getBindingValue(row, 'month');
 
       if (data.year) {
         const cdateString = data.month ? `${data.month} ${data.year}` : data.year;
         data.cdate = Date.parse(cdateString);
       }
 
-      data.journal = getRawDataValue(rawData.journal);
-      data.volume = getRawDataValue(rawData.volume);
-      data.number = getRawDataValue(rawData.number);
-      data.chapter = getRawDataValue(rawData.chapter);
-      data.pages = getRawDataValue(rawData.pages);
-      data.url = Array.isArray(rawData.ee) ? getRawDataValue(rawData.ee[0]) : getRawDataValue(rawData.ee);
-      data.isbn = Array.isArray(rawData.isbn) ? getRawDataValue(rawData.isbn[0]) : getRawDataValue(rawData.isbn); // TODO: Check if we want to concatenate this with ands
-      data.booktitle = getRawDataValue(rawData.booktitle);
-      data.crossref = getRawDataValue(rawData.crossref);
-      data.publisher = getRawDataValue(rawData.publisher);
-      data.school = getRawDataValue(rawData.school);
+      data.journal = getBindingValue(row, 'journal');
+      data.volume = getBindingValue(row, 'volume');
+      data.number = getBindingValue(row, 'number');
+      data.chapter = getBindingValue(row, 'chapter');
+      data.pages = getBindingValue(row, 'pages');
+      data.url = getBindingValue(row, 'ee');
+      data.isbn = getBindingValue(row, 'isbn');
+      data.booktitle = getBindingValue(row, 'booktitle');
+      data.crossref = getRecordKey(getBindingValue(row, 'crossref'));
+      data.publisher = getBindingValue(row, 'publisher');
+      data.school = getBindingValue(row, 'school');
 
       for (const key of Object.keys(data)) {
         if (data[key] === undefined || data[key] === null) {
@@ -909,11 +919,11 @@ export default class Tools {
 
     const dataToBibtex = data => {
       const bibtexIndent = '  ';
-      const bibtexComponents = [ '@', data.type, '{', 'DBLP:', data.key, ',\n' ];
+      const bibtexComponents = ['@', data.type, '{', 'DBLP:', data.key, ',\n'];
 
       const omittedFields = ['type', 'key', 'authorids'];
 
-      for (let [ field, value ] of Object.entries(data)) {
+      for (let [field, value] of Object.entries(data)) {
         if (!value || omittedFields.includes(field)) {
           continue;
         }
@@ -928,7 +938,7 @@ export default class Tools {
           valueString = String(value);
         }
 
-        bibtexComponents.push(...[ bibtexIndent, field, '={', valueString, '},\n' ]);
+        bibtexComponents.push(...[bibtexIndent, field, '={', valueString, '},\n']);
       }
 
       bibtexComponents[bibtexComponents.length - 1] = bibtexComponents[bibtexComponents.length - 1].replace(',\n', '\n');
@@ -936,23 +946,29 @@ export default class Tools {
       return bibtexComponents.join('');
     };
 
-    let dblpJson;
-    try {
-      dblpJson = xmlParser.parse(dblpXml);
-    } catch (err) {
-      throw new Error('Something went wrong parsing the dblp xml', { cause: err });
+    let row = dblpJson;
+    if (this.variableType(row) === 'string') {
+      try {
+        row = JSON.parse(row);
+      } catch (err) {
+        throw new Error('Something went wrong parsing the dblp json', { cause: err });
+      }
     }
 
-    if (Object.keys(dblpJson).length === 0) {
-      throw new Error('Something went wrong parsing the dblp xml');
+    if (this.variableType(row) !== 'object' || Object.keys(row).length === 0) {
+      throw new Error('Something went wrong parsing the dblp json');
     }
 
-    const data = entryToData(dblpJson);
+    const data = rowToData(row);
+
+    if (!data.key) {
+      throw new Error('Something went wrong parsing the dblp json: the record key is missing');
+    }
 
     const note = {
       externalId: `dblp:${data.key}`,
       cdate: data.cdate,
-      pdate: new Date(Date.UTC(data.year, 11, 31,0,0,0,0)).getTime(),
+      pdate: new Date(Date.UTC(data.year, 11, 31, 0, 0, 0, 0)).getTime(),
       content: {
         title: { value: data.title },
         _bibtex: { value: dataToBibtex(data) },
@@ -966,28 +982,24 @@ export default class Tools {
       note.content.venue = { value: venue };
     }
 
-    if (data.key) {
-      const keyParts = data.key.split('/');
-      const venueidParts = [ 'dblp.org' ];
-      // get all but the last part of the key\n
-      for (let i = 0; i < keyParts.length - 1; i++) {
-        let keyPart = keyParts[i];
-        if (i === keyParts.length - 2) {
-          keyPart = keyPart.toUpperCase();
-        }
-        venueidParts.push(keyPart);
+    const keyParts = data.key.split('/');
+    const venueidParts = ['dblp.org'];
+    // get all but the last part of the key
+    for (let i = 0; i < keyParts.length - 1; i++) {
+      let keyPart = keyParts[i];
+      if (i === keyParts.length - 2) {
+        keyPart = keyPart.toUpperCase();
       }
-
-      // we might not want this later
-      if (data.year) {
-        venueidParts.push(data.year);
-        // new addition at Andrew's request
-        if (venue) {
-          note.content.venue.value += ` ${data.year}`;
-        }
-      }
-      note.content.venueid = { value: venueidParts.join('/') };
+      venueidParts.push(keyPart);
     }
+
+    if (data.year) {
+      venueidParts.push(data.year);
+      if (venue) {
+        note.content.venue.value += ` ${data.year}`;
+      }
+    }
+    note.content.venueid = { value: venueidParts.join('/') };
 
     if (data.url) {
       if (data.url.endsWith('.pdf')) {
@@ -1075,8 +1087,8 @@ export default class Tools {
     });
 
     let arxivObj = xmlParser.parse(arxivXml);
-    arxivObj=arxivObj?.entry
-    
+    arxivObj = arxivObj?.entry
+
     const title = arxivObj?.title
     const abstract = arxivObj?.summary
     const authorNames = arxivObj?.author?.map((p) => p.name)

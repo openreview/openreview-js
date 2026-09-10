@@ -863,13 +863,66 @@ describe('OpenReview Client', function () {
     assert(conflicts.includes('facebook.com'));
   });
 
-  it('should convert DBLP xml to Note Edit', async function () {
-    const dblpXmls = [
-      '<inproceedings key="conf/acl/KimBL16" mdate="2018-09-12">\n<author>Seokhwan Kim</author>\n<author>Rafael E. Banchs</author>\n<author>Haizhou Li 0001</author>\n<title>Exploring Convolutional and Recurrent Neural Networks in Sequential Labelling for Dialogue Topic Tracking.</title>\n<year>2016</year>\n<booktitle>ACL (1)</booktitle>\n<ee>http://aclweb.org/anthology/P/P16/P16-1091.pdf</ee>\n<crossref>conf/acl/2016-1</crossref>\n<url>db/conf/acl/acl2016-1.html#KimBL16</url>\n</inproceedings>',
-      '<proceedings key="conf/acl/1987" mdate="2017-05-10">\n<editor>Candy L. Sidner</editor>\n<title>25th Annual Meeting of the Association for Computational Linguistics, Stanford University, Stanford, California, USA, July 6-9, 1987.</title>\n<booktitle>ACL</booktitle>\n<publisher>ACL</publisher>\n<year>1987</year>\n<ee>http://aclweb.org/anthology/P/P87/</ee>\n<url>db/conf/acl/acl1987.html</url>\n</proceedings>\n\n',
-      '<inproceedings key="conf/acl/Rajasekaran95" mdate="2016-12-19">\n<author>Sanguthevar Rajasekaran</author>\n<title>TAL Recognition in O(M(n<sup>2</sup>)) Time.</title>\n<pages>166-173</pages>\n<year>1995</year>\n<crossref>conf/acl/1995</crossref>\n<booktitle>ACL</booktitle>\n<url>db/conf/acl/acl95.html#Rajasekaran95</url>\n<ee>http://aclweb.org/anthology/P/P95/P95-1023.pdf</ee>\n</inproceedings>',
-      '<inproceedings key="conf/aaai/TanYWHTS16" mdate="2018-11-20">\n<author>Mingkui Tan</author>\n<author>Yan Yan 0006</author>\n<author>Li Wang 0033</author>\n<author>Anton van den Hengel</author>\n<author>Ivor W. Tsang</author>\n<author>Qinfeng (Javen) Shi</author>\n<title>Learning Sparse Confidence-Weighted Classifier on Very High Dimensional Data.</title>\n<pages>2080-2086</pages>\n<year>2016</year>\n<booktitle>AAAI</booktitle>\n<ee>http://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/view/12329</ee>\n<crossref>conf/aaai/2016</crossref>\n<url>db/conf/aaai/aaai2016.html#TanYWHTS16</url>\n</inproceedings>',
-      '<inproceedings key="conf/bic-ta/Liu22" mdate="2023-07-21"><author orcid="0000-0002-4608-9448" pid="228/3773">Xukun Liu</author><title>The Utilities of Evolutionary Multiobjective Optimization for Neural Architecture Search - An Empirical Perspective.</title><pages>179-195</pages><year>2022</year><booktitle>BIC-TA</booktitle><ee>https://doi.org/10.1007/978-981-99-1549-1_15</ee><crossref>conf/bic-ta/2022</crossref><url>db/conf/bic-ta/bic-ta2022.html#Liu22</url></inproceedings>'
+  it('should convert DBLP json to Note Edit', async function () {
+    // The json rows the web app gets from the dblp SPARQL endpoint
+    const dblpJsons = [
+      {
+        pub: { type: 'uri', value: 'https://dblp.org/rec/conf/acl/KimBL16' },
+        bibtype: { type: 'uri', value: 'http://purl.org/net/nknouf/ns/bibtex#Inproceedings' },
+        title: { type: 'literal', value: 'Exploring Convolutional and Recurrent Neural Networks in Sequential Labelling for Dialogue Topic Tracking.' },
+        year: { datatype: 'http://www.w3.org/2001/XMLSchema#gYear', type: 'literal', value: '2016' },
+        venue: { type: 'literal', value: 'ACL (1)' },
+        ee: { type: 'uri', value: 'http://aclweb.org/anthology/P/P16/P16-1091.pdf' },
+        booktitle: { type: 'literal', value: 'ACL (1)' },
+        crossref: { type: 'uri', value: 'https://dblp.org/rec/conf/acl/2016-1' },
+        authors: { type: 'literal', value: '1|Seokhwan Kim|https://dblp.org/pid/02/2980;;2|Rafael E. Banchs|https://dblp.org/pid/30/2500;;3|Haizhou Li 0001|https://dblp.org/pid/36/4118' }
+      },
+      {
+        // the record only has an editor, which is not an author
+        pub: { type: 'uri', value: 'https://dblp.org/rec/conf/acl/1987' },
+        bibtype: { type: 'uri', value: 'http://purl.org/net/nknouf/ns/bibtex#Proceedings' },
+        title: { type: 'literal', value: '25th Annual Meeting of the Association for Computational Linguistics, Stanford University, Stanford, California, USA, July 6-9, 1987.' },
+        year: { datatype: 'http://www.w3.org/2001/XMLSchema#gYear', type: 'literal', value: '1987' },
+        ee: { type: 'uri', value: 'http://aclweb.org/anthology/P/P87/' },
+        booktitle: { type: 'literal', value: 'ACL' },
+        publisher: { type: 'literal', value: 'ACL' }
+      },
+      {
+        pub: { type: 'uri', value: 'https://dblp.org/rec/conf/acl/Rajasekaran95' },
+        bibtype: { type: 'uri', value: 'http://purl.org/net/nknouf/ns/bibtex#Inproceedings' },
+        title: { type: 'literal', value: 'TAL Recognition in O(M(n)) Time.' },
+        year: { datatype: 'http://www.w3.org/2001/XMLSchema#gYear', type: 'literal', value: '1995' },
+        venue: { type: 'literal', value: 'ACL' },
+        pages: { type: 'literal', value: '166-173' },
+        ee: { type: 'uri', value: 'http://aclweb.org/anthology/P/P95/P95-1023.pdf' },
+        booktitle: { type: 'literal', value: 'ACL' },
+        crossref: { type: 'uri', value: 'https://dblp.org/rec/conf/acl/1995' },
+        authors: { type: 'literal', value: '1|Sanguthevar Rajasekaran|https://dblp.org/pid/r/SanguthevarRajasekaran' }
+      },
+      {
+        pub: { type: 'uri', value: 'https://dblp.org/rec/conf/aaai/TanYWHTS16' },
+        bibtype: { type: 'uri', value: 'http://purl.org/net/nknouf/ns/bibtex#Inproceedings' },
+        title: { type: 'literal', value: 'Learning Sparse Confidence-Weighted Classifier on Very High Dimensional Data.' },
+        year: { datatype: 'http://www.w3.org/2001/XMLSchema#gYear', type: 'literal', value: '2016' },
+        venue: { type: 'literal', value: 'AAAI' },
+        pages: { type: 'literal', value: '2080-2086' },
+        ee: { type: 'uri', value: 'http://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/view/12329' },
+        booktitle: { type: 'literal', value: 'AAAI' },
+        crossref: { type: 'uri', value: 'https://dblp.org/rec/conf/aaai/2016' },
+        authors: { type: 'literal', value: '1|Mingkui Tan|https://dblp.org/pid/49/2007;;2|Yan Yan 0006|https://dblp.org/pid/13/3953-6;;3|Li Wang 0033|https://dblp.org/pid/58/6810-33;;4|Anton van den Hengel|https://dblp.org/pid/v/AntonvandenHengel;;5|Ivor W. Tsang|https://dblp.org/pid/35/5873;;6|Qinfeng (Javen) Shi|https://dblp.org/pid/51/5804' }
+      },
+      {
+        pub: { type: 'uri', value: 'https://dblp.org/rec/conf/bic-ta/Liu22' },
+        bibtype: { type: 'uri', value: 'http://purl.org/net/nknouf/ns/bibtex#Inproceedings' },
+        title: { type: 'literal', value: 'The Utilities of Evolutionary Multiobjective Optimization for Neural Architecture Search - An Empirical Perspective.' },
+        year: { datatype: 'http://www.w3.org/2001/XMLSchema#gYear', type: 'literal', value: '2022' },
+        venue: { type: 'literal', value: 'BIC-TA' },
+        pages: { type: 'literal', value: '179-195' },
+        ee: { type: 'uri', value: 'https://doi.org/10.1007/978-981-99-1549-1_15' },
+        booktitle: { type: 'literal', value: 'BIC-TA' },
+        crossref: { type: 'uri', value: 'https://dblp.org/rec/conf/bic-ta/2022' },
+        authors: { type: 'literal', value: '1|Xukun Liu|https://dblp.org/pid/228/3773' }
+      }
     ];
 
     const resolved = [
@@ -951,8 +1004,8 @@ describe('OpenReview Client', function () {
       }
     ];
 
-    for (let i = 0; i < dblpXmls.length; i++) {
-      const note = Tools.convertDblpXmlToNote(dblpXmls[i]);
+    for (let i = 0; i < dblpJsons.length; i++) {
+      const note = Tools.convertDblpJsonToNote(dblpJsons[i]);
       const resolvedNote = resolved[i];
       assert.strictEqual(note.externalId, resolvedNote.externalId);
       if (resolvedNote.pdate) {
