@@ -176,7 +176,8 @@ export default class OpenReviewClient {
     const registerPayload = {
       email,
       password,
-      fullname: fullname ?? [first, middle, last].filter(name => name).join(' ')
+      fullname: fullname ?? [first, middle, last].filter(name => name).join(' '),
+      dob: new Date('1990-01-01').getTime()
     };
 
     const data = await this._handleResponse(() => fetch(this.registerUrl, {
@@ -273,7 +274,7 @@ export default class OpenReviewClient {
           method: 'POST',
           headers: this.headers,
           body: JSON.stringify({ emails: emailBatch })
-        }), { profiles: [], count: 0});
+        }), { profiles: [], count: 0 });
 
         if (data.error) {
           return data;
@@ -1129,8 +1130,8 @@ export default class OpenReviewClient {
         method: 'DELETE',
         headers: this.headers,
         body: JSON.stringify({
-            id: group.id,
-            members: uniqueMembers
+          id: group.id,
+          members: uniqueMembers
         })
       }), { group: {} }, 'group');
 
@@ -1336,7 +1337,7 @@ export default class OpenReviewClient {
    * @param {string|null} model - (Optional) The name of the model to use for the expertise request.
    * @returns {Promise<object>} A Promise that resolves to an object containing the expertise request.
    */
-  async requestExpertise(name, groupId, venueId, alternateMatchGroup = null, expertiseSelectionId=null, model=null) {
+  async requestExpertise(name, groupId, venueId, alternateMatchGroup = null, expertiseSelectionId = null, model = null) {
     // Build entityA from groupId
     const entityA = {
       type: 'Group',
