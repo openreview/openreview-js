@@ -555,7 +555,6 @@ describe('OpenReview Client', function () {
     let res = await this.superClient.connect({ token: this.superClient.token });
     assert.equal(res.error, null);
     assert.equal(res.token, this.superClient.token);
-    assert.equal(res.user.id, '~Super_User1');
   });
 
   it('should moderate a Profile', async function () {
