@@ -127,9 +127,7 @@ export default class OpenReviewClient {
   async connect({ username, password, token }) {
     if (token) {
       this._handleToken({ token });
-      const data = await this.getProfiles({});
-      this.user = this._formatUserProfile(data.profiles[0]);
-      return { user: this.user, token: this.token, error: null };
+      return { token: this.token, error: null };
     } else {
       const data = await this._handleResponse(() => fetch(this.loginUrl, {
         method: 'POST',
