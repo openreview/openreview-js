@@ -541,8 +541,14 @@ describe('OpenReview Client', function () {
 
   });
 
-  it('should GET a profile with no params', async function () {
+  it('should not GET a profile with no params', async function () {
     let res = await this.superClient.getProfiles();
+    assert.equal(res.error.message, 'Profile query parameters are required');
+    assert.equal(res.profiles[0].id, '~Super_User1');
+  });
+
+  it('should GET a profile with id', async function () {
+    let res = await this.superClient.getProfiles({ id: '~Super_User1' });
     assert.equal(res.error, null);
     assert.equal(res.profiles[0].id, '~Super_User1');
   });
