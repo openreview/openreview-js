@@ -888,7 +888,7 @@ export default class Tools {
         data.authorids.push(authorid);
       }
 
-      data.title = getBindingValue(row, 'title')?.trim()?.replace('\n', '')?.replace(removeTrailingPeriod, '');
+      data.title = getBindingValue(row, 'title')?.trim()?.replaceAll('\n', '')?.replace(removeTrailingPeriod, '');
       data.year = parseInt(getBindingValue(row, 'year'), 10);
       data.month = getBindingValue(row, 'month');
 
