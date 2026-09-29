@@ -8,6 +8,11 @@
   "scripts": {
     "test": "npm install && npm run --workspaces test",
     "coverage": "npm install --include=optional && npm run --workspaces coverage",
+    "docker:test": "node docker/run.js test",
+    "docker:serve": "node docker/run.js serve",
+    "docker:shell": "node docker/run.js shell",
+    "docker:down": "node docker/run.js down",
+    "docker:clean": "node docker/run.js clean",
     "npm-publish": "npm publish -w @openreview/client --provenance --access public || true; npm publish -w @openreview/meta-extraction --provenance --access public || true"
   },
   "repository": {

@@ -1,0 +1,24 @@
+# Image that runs the openreview-js mocha suites.
+# @openreview/meta-extraction launches puppeteer's Chromium with no
+# executablePath. Google publishes no arm64 Linux build of Chrome-for-Testing,
+# so puppeteer's own download is x86-64 and can't run in an arm64 container.
+# Instead use Debian's `chromium` package, which is built for the image's
+# architecture (arm64 or amd64), and point puppeteer at it — this also pulls in
+# all of Chromium's runtime shared libraries.
+FROM node:22-bookworm
+
+RUN apt-get update && apt-get install -y \
+    rsync chromium \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
+# Chromium refuses to run as root without --no-sandbox, and the meta-extraction
+# code launches it with neither flag. So run as the image's built-in non-root
+# `node` user (mirroring services/meta-extraction/Dockerfile). Give `node`
+# ownership of /app (the tests write files there, e.g. destination.pdf).
+RUN mkdir -p /app/node_modules /home/node/.cache \
+    && chown -R node:node /app /home/node
+USER node
+WORKDIR /app
