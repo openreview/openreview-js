@@ -1058,6 +1058,69 @@ export default class Tools {
   }
 
   /**
+    * Converts an ACL Anthology record to a note object.
+    *
+    * The record is produced by openreview-py's openreview.profile.acl_anthology
+    * module, which reads it from the acl-anthology package.
+    *
+    * @static
+    * @param {object} paper - The ACL Anthology paper metadata.
+    * @returns {object} The note object.
+    *
+  */
+  static convertACLJsonToNote(paper) {
+    const monthNames = [
+      'january', 'february', 'march', 'april', 'may', 'june',
+      'july', 'august', 'september', 'october', 'november', 'december'
+    ];
+
+    // The Anthology writes months as names, numbers, or ranges such as 'June-July'
+    const getMonthIndex = month => {
+      const first = String(month ?? '').split(/[^A-Za-z0-9]+/).filter(Boolean)[0];
+      if (!first) {
+        return null;
+      }
+      const monthNumber = parseInt(first, 10);
+      if (!isNaN(monthNumber)) {
+        return (monthNumber >= 1 && monthNumber <= 12) ? monthNumber - 1 : null;
+      }
+      const index = monthNames.findIndex(name => name.startsWith(first.toLowerCase().substring(0, 3)));
+      return index === -1 ? null : index;
+    };
+
+    const getAuthorId = author => {
+      if (author.openreview) {
+        return author.openreview;
+      }
+      if (author.id) {
+        return `https://aclanthology.org/people/${author.id}/`;
+      }
+      return `https://aclanthology.org/search/?q=${encodeURIComponent(author.full ?? '')}`;
+    };
+
+    const year = parseInt(paper.year, 10);
+    const monthIndex = getMonthIndex(paper.month);
+    const authors = paper.authors ?? [];
+    const venue = paper.journal || paper.booktitle;
+
+    const note = {
+      externalId: `acl:${paper.id}`,
+      pdate: monthIndex === null ? Date.UTC(year, 11, 31) : Date.UTC(year, monthIndex, 1),
+      content: {
+        title: { value: paper.title },
+        authors: { value: authors.map(author => ({ fullname: author.full, username: getAuthorId(author) })) },
+        ...(paper.abstract && { abstract: { value: paper.abstract } }),
+        ...(paper.bibtex && { _bibtex: { value: paper.bibtex } }),
+        ...(venue && { venue: { value: venue } }),
+        ...(paper.url && { html: { value: paper.url } }),
+        ...(paper.pdf && { pdf: { value: paper.pdf } })
+      }
+    };
+
+    return note;
+  }
+
+  /**
     * Converts raw arxiv xml to a note object.
     *
     * @static

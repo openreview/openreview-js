@@ -2076,3 +2076,111 @@ describe('Rate Limit Handling', function () {
     }
   });
 });
+
+describe('ACL Anthology conversion', function () {
+  const aclRecord = {
+    id: '2023.acl-long.48',
+    bibkey: 'mccallum-etal-2023-example',
+    title: 'An Example Paper',
+    abstract: 'We present an example.',
+    authors: [
+      { first: 'Andrew', last: 'McCallum', full: 'Andrew McCallum', id: 'andrew-mccallum' },
+      { first: 'Anna', last: 'Rogers', full: 'Anna Rogers', id: 'anna-rogers' }
+    ],
+    year: '2023',
+    month: 'July',
+    venueIds: [ 'acl' ],
+    booktitle: 'Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics',
+    publisher: 'Association for Computational Linguistics',
+    address: 'Toronto, Canada',
+    pages: '352-360',
+    doi: '10.18653/v1/2023.acl-long.48',
+    url: 'https://aclanthology.org/2023.acl-long.48/',
+    pdf: 'https://aclanthology.org/2023.acl-long.48.pdf',
+    bibtex: '@inproceedings{mccallum-etal-2023-example}'
+  };
+
+  it('should convert an ACL Anthology record to a note', function () {
+    const expectedNote = {
+      externalId: 'acl:2023.acl-long.48',
+      pdate: Date.UTC(2023, 6, 1),
+      content: {
+        title: { value: 'An Example Paper' },
+        authors: {
+          value: [
+            { fullname: 'Andrew McCallum', username: 'https://aclanthology.org/people/andrew-mccallum/' },
+            { fullname: 'Anna Rogers', username: 'https://aclanthology.org/people/anna-rogers/' }
+          ]
+        },
+        abstract: { value: 'We present an example.' },
+        _bibtex: { value: '@inproceedings{mccallum-etal-2023-example}' },
+        venue: { value: 'Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics' },
+        html: { value: 'https://aclanthology.org/2023.acl-long.48/' },
+        pdf: { value: 'https://aclanthology.org/2023.acl-long.48.pdf' }
+      }
+    };
+
+    assert.deepStrictEqual(Tools.convertACLJsonToNote(aclRecord), expectedNote);
+  });
+
+  it('should use the OpenReview profile id when the Anthology has one for an author', function () {
+    const record = {
+      ...aclRecord,
+      authors: [
+        { first: 'Andrew', last: 'McCallum', full: 'Andrew McCallum', id: 'andrew-mccallum', openreview: '~Andrew_McCallum1' },
+        { first: 'Anna', last: 'Rogers', full: 'Anna Rogers', id: 'anna-rogers' }
+      ]
+    };
+
+    const note = Tools.convertACLJsonToNote(record);
+
+    assert.deepStrictEqual(note.content.authors.value, [
+      { fullname: 'Andrew McCallum', username: '~Andrew_McCallum1' },
+      { fullname: 'Anna Rogers', username: 'https://aclanthology.org/people/anna-rogers/' }
+    ]);
+  });
+
+  it('should fall back to an Anthology search when an author has no id', function () {
+    const record = { ...aclRecord, authors: [ { full: 'Andrew McCallum', last: 'McCallum' } ] };
+
+    const note = Tools.convertACLJsonToNote(record);
+
+    assert.deepStrictEqual(note.content.authors.value, [
+      { fullname: 'Andrew McCallum', username: 'https://aclanthology.org/search/?q=Andrew%20McCallum' }
+    ]);
+  });
+
+  it('should prefer the journal title over the volume title as the venue', function () {
+    const record = { ...aclRecord, journal: 'Computational Linguistics' };
+
+    assert.strictEqual(Tools.convertACLJsonToNote(record).content.venue.value, 'Computational Linguistics');
+  });
+
+  it('should leave out metadata the Anthology does not have', function () {
+    const record = {
+      id: '2023.acl-long.48',
+      title: 'An Example Paper',
+      authors: [ { full: 'Andrew McCallum', last: 'McCallum', id: 'andrew-mccallum' } ],
+      year: '2023',
+      url: 'https://aclanthology.org/2023.acl-long.48/'
+    };
+
+    const note = Tools.convertACLJsonToNote(record);
+
+    assert.strictEqual('abstract' in note.content, false);
+    assert.strictEqual('pdf' in note.content, false);
+    assert.strictEqual('_bibtex' in note.content, false);
+    assert.strictEqual('venue' in note.content, false);
+  });
+
+  it('should date a paper the Anthology gives no month for at the end of its year', function () {
+    const record = { ...aclRecord, month: undefined };
+
+    assert.strictEqual(Tools.convertACLJsonToNote(record).pdate, Date.UTC(2023, 11, 31));
+  });
+
+  it('should read a month given as a range or as a number', function () {
+    assert.strictEqual(Tools.convertACLJsonToNote({ ...aclRecord, month: 'June-July' }).pdate, Date.UTC(2023, 5, 1));
+    assert.strictEqual(Tools.convertACLJsonToNote({ ...aclRecord, month: '11' }).pdate, Date.UTC(2023, 10, 1));
+  });
+});
