@@ -63,6 +63,23 @@ export default class OpenReviewClient {
    * @param {string} response.token - Authentication token.
    * @returns {void}
    */
+  /**
+   * Reads the profile id out of an authentication token.
+   *
+   * @private
+   * @param {string} token - Authentication token.
+   * @returns {string|undefined} The profile id the token was issued for.
+   */
+  _profileIdFromToken(token) {
+    try {
+      const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8'));
+      const user = payload.user ?? payload;
+      return user.profile?.id ?? user.id;
+    } catch {
+      return undefined;
+    }
+  }
+
   _handleToken(response) {
     if (response.token) {
       this.token = response.token;
@@ -127,8 +144,10 @@ export default class OpenReviewClient {
   async connect({ username, password, token }) {
     if (token) {
       this._handleToken({ token });
-      const data = await this.getProfiles({});
-      this.user = this._formatUserProfile(data.profiles[0]);
+      // GET /profiles requires at least one query parameter, so the caller's own profile
+      // is looked up by the id their token carries rather than by an empty query.
+      const data = await this.getProfiles({ id: this._profileIdFromToken(token) });
+      this.user = this._formatUserProfile(data.profiles?.[0]);
       return { user: this.user, token: this.token, error: null };
     } else {
       const data = await this._handleResponse(() => fetch(this.loginUrl, {
