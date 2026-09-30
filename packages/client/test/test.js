@@ -5,6 +5,8 @@ describe('OpenReview Client', function () {
   this.beforeAll(async function () {
     this.superUser = 'OpenReview.net';
     this.strongPassword = 'Or$3cur3P@ssw0rd';
+    // The API requires a date of birth and rejects anyone below the minimum age
+    this.dob = Date.UTC(1990, 0, 1);
     this.superClient = new OpenReviewClient('http://localhost:3001');
     await this.superClient.resetPassword(this.superUser, this.strongPassword);
 
@@ -22,7 +24,8 @@ describe('OpenReview Client', function () {
       email: 'new_user@email.com',
       fullname: 'New User',
       last: 'User',
-      password: this.strongPassword
+      password: this.strongPassword,
+      dob: this.dob
     });
     assert.equal(status, 'ok');
     assert.equal(error, null);
@@ -32,7 +35,8 @@ describe('OpenReview Client', function () {
     const { status, error } = await this.superClient.registerUser({
       email: 'searchable_user@email.com',
       fullname: 'Searchable User',
-      password: this.strongPassword
+      password: this.strongPassword,
+      dob: this.dob
     });
     assert.equal(status, 'ok');
     assert.equal(error, null);
@@ -558,7 +562,8 @@ describe('OpenReview Client', function () {
     const { status, error } = await this.superClient.registerUser({
       email: 'moderated_profile@email.com',
       fullname: 'Moderate User',
-      password: this.strongPassword
+      password: this.strongPassword,
+      dob: this.dob
     });
     assert.equal(status, 'ok');
     assert.equal(error, null);
@@ -685,7 +690,8 @@ describe('OpenReview Client', function () {
     let { status, error } = await this.superClient.registerUser({
       email: 'conflict_user_one@fb.com',
       fullname: 'Conflict User One',
-      password: this.strongPassword
+      password: this.strongPassword,
+      dob: this.dob
     });
     assert.equal(status, 'ok');
     assert.equal(error, null);
@@ -701,7 +707,8 @@ describe('OpenReview Client', function () {
     ({ status, error } = await this.superClient.registerUser({
       email: 'conflict_user_two@facebook.com',
       fullname: 'Conflict User Two',
-      password: this.strongPassword
+      password: this.strongPassword,
+      dob: this.dob
     }));
     assert.equal(status, 'ok');
     assert.equal(error, null);
