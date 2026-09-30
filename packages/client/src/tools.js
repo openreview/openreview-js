@@ -1101,7 +1101,10 @@ export default class Tools {
     const year = parseInt(paper.year, 10);
     const monthIndex = getMonthIndex(paper.month);
     const authors = paper.authors ?? [];
-    const venue = paper.journal || paper.booktitle;
+    // The volume title runs to a full sentence ('Proceedings of the 61st Annual Meeting
+    // of...'), so the venue is named the way the Anthology abbreviates it: 'ACL 2023'.
+    const acronyms = (paper.venueAcronyms ?? []).join(' ');
+    const venue = acronyms ? `${acronyms} ${paper.year ?? ''}`.trim() : (paper.journal || paper.booktitle);
 
     const note = {
       externalId: `acl:${paper.id}`,

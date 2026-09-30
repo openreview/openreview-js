@@ -2090,6 +2090,7 @@ describe('ACL Anthology conversion', function () {
     year: '2023',
     month: 'July',
     venueIds: [ 'acl' ],
+    venueAcronyms: [ 'ACL' ],
     booktitle: 'Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics',
     publisher: 'Association for Computational Linguistics',
     address: 'Toronto, Canada',
@@ -2114,7 +2115,7 @@ describe('ACL Anthology conversion', function () {
         },
         abstract: { value: 'We present an example.' },
         _bibtex: { value: '@inproceedings{mccallum-etal-2023-example}' },
-        venue: { value: 'Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics' },
+        venue: { value: 'ACL 2023' },
         html: { value: 'https://aclanthology.org/2023.acl-long.48/' },
         pdf: { value: 'https://aclanthology.org/2023.acl-long.48.pdf' }
       }
@@ -2150,10 +2151,24 @@ describe('ACL Anthology conversion', function () {
     ]);
   });
 
-  it('should prefer the journal title over the volume title as the venue', function () {
-    const record = { ...aclRecord, journal: 'Computational Linguistics' };
+  it('should name the venue by its acronym and year rather than the volume title', function () {
+    const record = { ...aclRecord, venueAcronyms: [ 'CL' ], journal: 'Computational Linguistics' };
+
+    assert.strictEqual(Tools.convertACLJsonToNote(record).content.venue.value, 'CL 2023');
+  });
+
+  it('should fall back to the journal title when the Anthology gives no venue acronym', function () {
+    const record = { ...aclRecord, venueAcronyms: undefined, journal: 'Computational Linguistics' };
 
     assert.strictEqual(Tools.convertACLJsonToNote(record).content.venue.value, 'Computational Linguistics');
+  });
+
+  it('should fall back to the volume title when there is no acronym and no journal', function () {
+    const record = { ...aclRecord, venueAcronyms: undefined };
+
+    assert.strictEqual(
+      Tools.convertACLJsonToNote(record).content.venue.value,
+      'Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics');
   });
 
   it('should leave out metadata the Anthology does not have', function () {
