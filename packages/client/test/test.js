@@ -1874,56 +1874,29 @@ describe('OpenReview Client', function () {
         },
         authors: {
           value: [
-            'Marco Mirabile',    
-            'Michele Cantiello',
-            'Marina Rejkuba',    
-            'Steffen Mieske',
-            'Enrichetta Iodice', 
-            'Chiara Buttitta',
-            'Maria Luisa Buzzo', 
-            'Johanna Hartke',
-            'Goran Doll',        
-            'Luca Rossi',
-            'Magda Arnaboldi',   
-            'Marica Branchesi',
-            "Giuseppe D'Ago",    
-            'Jesus Falcon-Barroso',
-            'Katja Fahrion',     
-            'Duncan A. Forbes',
-            'Marco Gullieuszik', 
-            'Michael Hilker',
-            'Felipe S. Lohmann', 
-            'Maurizio Paolillo',
-            'Gabriele Riccio',   
-            'Tom Richtler',
-            'Marilena Spavone'
-          ]
-        },
-        authorids: {
-          value: [
-            'https://arxiv.org/search/?query=Marco%20Mirabile&searchtype=all',
-            'https://arxiv.org/search/?query=Michele%20Cantiello&searchtype=all',
-            'https://arxiv.org/search/?query=Marina%20Rejkuba&searchtype=all',
-            'https://arxiv.org/search/?query=Steffen%20Mieske&searchtype=all',
-            'https://arxiv.org/search/?query=Enrichetta%20Iodice&searchtype=all',
-            'https://arxiv.org/search/?query=Chiara%20Buttitta&searchtype=all',
-            'https://arxiv.org/search/?query=Maria%20Luisa%20Buzzo&searchtype=all',
-            'https://arxiv.org/search/?query=Johanna%20Hartke&searchtype=all',
-            'https://arxiv.org/search/?query=Goran%20Doll&searchtype=all',
-            'https://arxiv.org/search/?query=Luca%20Rossi&searchtype=all',
-            'https://arxiv.org/search/?query=Magda%20Arnaboldi&searchtype=all',
-            'https://arxiv.org/search/?query=Marica%20Branchesi&searchtype=all',
-            "https://arxiv.org/search/?query=Giuseppe%20D'Ago&searchtype=all",
-            'https://arxiv.org/search/?query=Jesus%20Falcon-Barroso&searchtype=all',
-            'https://arxiv.org/search/?query=Katja%20Fahrion&searchtype=all',
-            'https://arxiv.org/search/?query=Duncan%20A.%20Forbes&searchtype=all',
-            'https://arxiv.org/search/?query=Marco%20Gullieuszik&searchtype=all',
-            'https://arxiv.org/search/?query=Michael%20Hilker&searchtype=all',
-            'https://arxiv.org/search/?query=Felipe%20S.%20Lohmann&searchtype=all',
-            'https://arxiv.org/search/?query=Maurizio%20Paolillo&searchtype=all',
-            'https://arxiv.org/search/?query=Gabriele%20Riccio&searchtype=all',
-            'https://arxiv.org/search/?query=Tom%20Richtler&searchtype=all',
-            'https://arxiv.org/search/?query=Marilena%20Spavone&searchtype=all'
+            { fullname: 'Marco Mirabile', username: '' },
+            { fullname: 'Michele Cantiello', username: '' },
+            { fullname: 'Marina Rejkuba', username: '' },
+            { fullname: 'Steffen Mieske', username: '' },
+            { fullname: 'Enrichetta Iodice', username: '' },
+            { fullname: 'Chiara Buttitta', username: '' },
+            { fullname: 'Maria Luisa Buzzo', username: '' },
+            { fullname: 'Johanna Hartke', username: '' },
+            { fullname: 'Goran Doll', username: '' },
+            { fullname: 'Luca Rossi', username: '' },
+            { fullname: 'Magda Arnaboldi', username: '' },
+            { fullname: 'Marica Branchesi', username: '' },
+            { fullname: "Giuseppe D'Ago", username: '' },
+            { fullname: 'Jesus Falcon-Barroso', username: '' },
+            { fullname: 'Katja Fahrion', username: '' },
+            { fullname: 'Duncan A. Forbes', username: '' },
+            { fullname: 'Marco Gullieuszik', username: '' },
+            { fullname: 'Michael Hilker', username: '' },
+            { fullname: 'Felipe S. Lohmann', username: '' },
+            { fullname: 'Maurizio Paolillo', username: '' },
+            { fullname: 'Gabriele Riccio', username: '' },
+            { fullname: 'Tom Richtler', username: '' },
+            { fullname: 'Marilena Spavone', username: '' }
           ]
         },
         ['subject_areas']: { value: [ 'astro-ph.GA' ] },
@@ -2154,13 +2127,13 @@ describe('ACL Anthology conversion', function () {
     ]);
   });
 
-  it('should fall back to an Anthology search when an author has no id', function () {
+  it('should leave the username empty when an author has no id', function () {
     const record = { ...aclRecord, authors: [ { full: 'Andrew McCallum', last: 'McCallum' } ] };
 
     const note = Tools.convertACLJsonToNote(record);
 
     assert.deepStrictEqual(note.content.authors.value, [
-      { fullname: 'Andrew McCallum', username: 'https://aclanthology.org/search/?q=Andrew%20McCallum' }
+      { fullname: 'Andrew McCallum', username: '' }
     ]);
   });
 

@@ -1095,7 +1095,7 @@ export default class Tools {
       if (author.id) {
         return `https://aclanthology.org/people/${author.id}/`;
       }
-      return `https://aclanthology.org/search/?q=${encodeURIComponent(author.full ?? '')}`;
+      return '';
     };
 
     const year = parseInt(paper.year, 10);
@@ -1145,8 +1145,7 @@ export default class Tools {
     
     const title = arxivObj?.title
     const abstract = arxivObj?.summary
-    const authorNames = arxivObj?.author?.map((p) => p.name)
-    const authorIds = authorNames?.map(p => `https://arxiv.org/search/?query=${encodeURIComponent(p)}&searchtype=all`)
+    const authors = arxivObj?.author?.map((p) => ({ fullname: p.name, username: '' }))
     const subjectArea = arxivObj?.category?.['@_term']
     const pdf = arxivObj?.link?.find((p) => p['@_title'] === 'pdf')?.['@_href']
     const pdate = new Date(arxivObj?.published).getTime()
@@ -1163,10 +1162,7 @@ export default class Tools {
           value: abstract,
         },
         authors: {
-          value: authorNames,
-        },
-        authorids: {
-          value: authorIds,
+          value: authors,
         },
         // eslint-disable-next-line camelcase
         subject_areas: {
