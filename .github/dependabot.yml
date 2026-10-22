@@ -9,3 +9,11 @@ updates:
     ignore:
       - dependency-name: node
         update-types: [version-update:semver-major]
+  - package-ecosystem: npm
+    directory: /services/meta-extraction
+    schedule:
+      interval: daily
+    cooldown:
+      default-days: 5
+    allow:
+      - dependency-name: "@openreview/meta-extraction"
