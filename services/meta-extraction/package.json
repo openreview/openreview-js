@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/openreview/openreview-js#readme",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "dependencies": {
     "@openreview/meta-extraction": "^0.0.10",

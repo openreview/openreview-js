@@ -1,0 +1,9 @@
+version: 2
+updates:
+  - package-ecosystem: docker
+    directory: /services/meta-extraction
+    schedule:
+      interval: daily
+    ignore:
+      - dependency-name: node
+        update-types: [version-update:semver-major]

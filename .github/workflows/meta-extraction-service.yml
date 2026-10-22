@@ -23,14 +23,10 @@ jobs:
   docker:
     runs-on: ubuntu-24.04
 
-    strategy:
-      matrix:
-        node-version: [22, 24]
-
     steps:
       - uses: actions/checkout@v4
       - name: Build image
-        run: docker build --build-arg NODE_VERSION=${{ matrix.node-version }} -t meta-extraction services/meta-extraction
+        run: docker build -t meta-extraction services/meta-extraction
       # Docker's default seccomp profile blocks the namespaces Chrome's sandbox needs: https://pptr.dev/troubleshooting#running-puppeteer-in-docker
       - name: Start service
         run: docker run -d --name meta-extraction --cap-add=SYS_ADMIN -p 8080:8080 meta-extraction
@@ -38,7 +34,7 @@ jobs:
         run: |
           version=$(docker exec meta-extraction node --version)
           echo "Node.js $version"
-          [[ $version == v${{ matrix.node-version }}.* ]]
+          [[ $version == v24.* ]]
       - name: Check missing URL is rejected
         run: |
           status=$(curl -s -o response.json -w '%{http_code}' --retry 10 --retry-all-errors --retry-delay 1 http://localhost:8080/metadata)
