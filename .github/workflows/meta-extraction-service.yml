@@ -37,7 +37,7 @@ jobs:
           [[ $version == v${{ matrix.node-version }}.* ]]
       - name: Check missing URL is rejected
         run: |
-          status=$(curl -s -o response.json -w '%{http_code}' --retry 10 --retry-connrefused --retry-delay 1 http://localhost:8080/metadata)
+          status=$(curl -s -o response.json -w '%{http_code}' --retry 10 --retry-all-errors --retry-delay 1 http://localhost:8080/metadata)
           cat response.json
           [ "$status" = 400 ]
           grep -q '"name":"ValidationError"' response.json
