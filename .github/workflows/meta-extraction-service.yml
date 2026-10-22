@@ -12,6 +12,9 @@ on:
       - services/meta-extraction/**
       - .github/workflows/meta-extraction-service.yml
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
