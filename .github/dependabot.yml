@@ -4,6 +4,8 @@ updates:
     directory: /services/meta-extraction
     schedule:
       interval: daily
+    cooldown:
+      default-days: 5
     ignore:
       - dependency-name: node
         update-types: [version-update:semver-major]
