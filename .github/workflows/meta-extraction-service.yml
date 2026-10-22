@@ -26,6 +26,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      # Ubuntu 24.04 restricts unprivileged user namespaces, which Chrome's sandbox needs: https://pptr.dev/troubleshooting#issues-with-apparmor-on-ubuntu
+      - name: Allow Chrome sandbox
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - name: Build image
         run: docker build --build-arg NODE_VERSION=${{ matrix.node-version }} -t meta-extraction services/meta-extraction
       - name: Start service
