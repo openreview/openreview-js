@@ -1,36 +1,30 @@
-# Use Ubuntu 22.04 LTS as the base image
-FROM ubuntu:22.04
+FROM node:24-trixie-slim@sha256:43b9ba1142b8dcf33fa8f922ca1be85714adc444e0586c7cf7726daaeabc1bea
 
 ENV USER=openreview
 ENV HOME=/home/$USER
 
-# Install curl and gnupg for downloading and installing Node.js
-# Install necessary dependencies for Puppeteer and CUPS
+# Shared libraries Chrome needs to run headless under Puppeteer, plus tidy for HTML cleanup
 RUN apt-get update && \
-    apt-get install -y \
-    curl \
-    gnupg \
-    libdrm2 \
-    libgbm1 \
-    libatspi2.0-0 \
-    libatk-bridge2.0-0 \
-    libasound2 \
-    libatk1.0-0 \
-    libc6 \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    fonts-liberation \
+    libasound2t64 \
+    libatk-bridge2.0-0t64 \
+    libatk1.0-0t64 \
+    libatspi2.0-0t64 \
     libcairo2 \
-    libcups2 \
+    libcups2t64 \
     libdbus-1-3 \
+    libdrm2 \
     libexpat1 \
     libfontconfig1 \
-    libgcc1 \
-    libgconf-2-4 \
-    libgdk-pixbuf2.0-0 \
-    libglib2.0-0 \
-    libgtk-3-0 \
+    libgbm1 \
+    libglib2.0-0t64 \
+    libgtk-3-0t64 \
     libnspr4 \
+    libnss3 \
     libpango-1.0-0 \
     libpangocairo-1.0-0 \
-    libstdc++6 \
     libx11-6 \
     libx11-xcb1 \
     libxcb1 \
@@ -40,48 +34,26 @@ RUN apt-get update && \
     libxext6 \
     libxfixes3 \
     libxi6 \
+    libxkbcommon0 \
     libxrandr2 \
     libxrender1 \
     libxss1 \
     libxtst6 \
-    ca-certificates \
-    fonts-liberation \
-    libappindicator1 \
-    libnss3 \
-    lsb-release \
     tidy \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js v20
-RUN curl -L https://raw.githubusercontent.com/tj/n/master/bin/n -o n && \
-    bash n 20.11.0 && \
-    hash -r && \
-    npm install -g n && \
-    rm -rf n
+RUN useradd -ms /bin/bash $USER && \
+    install -d -o $USER -g $USER $HOME/app
 
-RUN mkdir -p $HOME/app
-
-# Set working directory
 WORKDIR $HOME/app
 
-# Copy the application code
-COPY . .
+COPY --chown=$USER:$USER . .
 
-# Create a non-root user and set permissions
-RUN useradd -ms /bin/bash $USER && \
-    chown -R $USER:$USER $HOME
-    # chmod -R 777 $HOME
-
-# Change to non-root user
 USER $USER
 
-# Install dependencies
-# RUN npm install
-RUN npx puppeteer browsers install chrome && \
-    npm install
+# Puppeteer's postinstall downloads the Chrome build matching the locked version into $HOME/.cache
+RUN npm ci --omit=dev
 
-# Expose port 8080
 EXPOSE 8080
 
-# Command to run the service
 CMD ["node", "src/index.js"]

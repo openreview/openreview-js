@@ -1,12 +1,11 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 import { extractAbstract } from '@openreview/meta-extraction';
 
 // Create an Express application
 const app = express();
 
 // Middleware setup
-app.use(bodyParser.json());
+app.use(express.json());
 
 // Define routes
 app.get('/metadata', async (req, res) => {

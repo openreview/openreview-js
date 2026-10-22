@@ -23,8 +23,11 @@
     "url": "https://github.com/openreview/openreview-js/issues"
   },
   "homepage": "https://github.com/openreview/openreview-js#readme",
+  "engines": {
+    "node": ">=24"
+  },
   "dependencies": {
-    "@openreview/meta-extraction": "^0.0.10",
+    "@openreview/meta-extraction": "^0.0.13",
     "express": "^4.22.3"
   }
 }
