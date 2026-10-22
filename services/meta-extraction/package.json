@@ -28,6 +28,6 @@
   },
   "dependencies": {
     "@openreview/meta-extraction": "^0.0.13",
-    "express": "^4.22.3"
+    "express": "^5.3.0"
   }
 }
