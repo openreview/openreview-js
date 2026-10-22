@@ -26,13 +26,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      # Ubuntu 24.04 restricts unprivileged user namespaces, which Chrome's sandbox needs: https://pptr.dev/troubleshooting#issues-with-apparmor-on-ubuntu
-      - name: Allow Chrome sandbox
-        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - name: Build image
         run: docker build --build-arg NODE_VERSION=${{ matrix.node-version }} -t meta-extraction services/meta-extraction
+      # Docker's default seccomp profile blocks the namespaces Chrome's sandbox needs: https://pptr.dev/troubleshooting#running-puppeteer-in-docker
       - name: Start service
-        run: docker run -d --name meta-extraction -p 8080:8080 meta-extraction
+        run: docker run -d --name meta-extraction --cap-add=SYS_ADMIN -p 8080:8080 meta-extraction
       - name: Check Node.js version
         run: |
           version=$(docker exec meta-extraction node --version)
