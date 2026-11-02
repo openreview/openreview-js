@@ -1137,7 +1137,9 @@ export default class Tools {
       trimValues: true,
       tagValueProcessor: (tagName, tagValue, jPath, hasAttributes, isLeafNode) => {
         return tagValue.replace(/\s+/g, ' ').trim()
-      }
+      },
+      removeNSPrefix: true,
+      isArray: (tagName, jPath) => ['entry.author', 'entry.link', 'entry.category'].includes(jPath),
     });
 
     let arxivObj = xmlParser.parse(arxivXml);
@@ -1146,7 +1148,7 @@ export default class Tools {
     const title = arxivObj?.title
     const abstract = arxivObj?.summary
     const authors = arxivObj?.author?.map((p) => ({ fullname: p.name, username: '' }))
-    const subjectArea = arxivObj?.category?.['@_term']
+    const subjectAreas = arxivObj?.category?.map((p) => p['@_term'])
     const pdf = arxivObj?.link?.find((p) => p['@_title'] === 'pdf')?.['@_href']
     const pdate = new Date(arxivObj?.published).getTime()
     const mdate = new Date(arxivObj?.updated).getTime()
@@ -1166,7 +1168,7 @@ export default class Tools {
         },
         // eslint-disable-next-line camelcase
         subject_areas: {
-          value: [subjectArea],
+          value: subjectAreas,
         },
         pdf: {
           value: pdf,

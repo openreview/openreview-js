@@ -1909,6 +1909,109 @@ describe('OpenReview Client', function () {
     assert.deepStrictEqual(Tools.convertArxivXmlToNote(rawiarxivxml), expectedNote);
   });
 
+  it('should removeNSPrefix when converting arxiv xml to note edit to handle xml posted by script', function () {
+    let rawiarxivxml = `<ns0:entry xmlns:ns0="http://www.w3.org/2005/Atom" xmlns:ns1="http://arxiv.org/schemas/atom">
+        <ns0:id>http://arxiv.org/abs/2512.20848v1</ns0:id>
+        <ns0:title>Nemotron 3 Nano: Open, Efficient Mixture-of-Experts Hybrid Mamba-Transformer Model for Agentic Reasoning</ns0:title>
+        <ns0:updated>2025-12-23T23:54:32Z</ns0:updated>
+        <ns0:link href="https://arxiv.org/abs/2512.20848v1" rel="alternate" type="text/html" />
+        <ns0:link href="https://arxiv.org/pdf/2512.20848v1" rel="related" type="application/pdf" title="pdf" />
+        <ns0:summary>We present Nemotron 3 Nano 30B-A3B, a Mixture-of-Experts hybrid Mamba-Transformer language model.</ns0:summary>
+        <ns0:category term="cs.CL" scheme="http://arxiv.org/schemas/atom" />
+        <ns0:category term="cs.AI" scheme="http://arxiv.org/schemas/atom" />
+        <ns0:category term="cs.LG" scheme="http://arxiv.org/schemas/atom" />
+        <ns0:published>2025-12-23T23:54:32Z</ns0:published>
+        <ns1:primary_category term="cs.CL" />
+        <ns0:author>
+          <ns0:name> NVIDIA</ns0:name>
+        </ns0:author>
+        <ns0:author>
+          <ns0:name> :</ns0:name>
+        </ns0:author>
+        <ns0:author>
+          <ns0:name>Aaron Blakeman</ns0:name>
+        </ns0:author>
+        <ns0:author>
+          <ns0:name>Aaron Grattafiori</ns0:name>
+        </ns0:author>
+        <ns0:author>
+          <ns0:name>Aarti Basant</ns0:name>
+        </ns0:author>
+        <ns0:author>
+          <ns0:name>Abhibha Gupta</ns0:name>
+        </ns0:author>
+        <ns0:author>
+          <ns0:name>Abhinav Khattar</ns0:name>
+        </ns0:author>
+      </ns0:entry>`
+    let expectedNote = {
+      content: {
+        title: {
+          value: 'Nemotron 3 Nano: Open, Efficient Mixture-of-Experts Hybrid Mamba-Transformer Model for Agentic Reasoning'
+        },
+        abstract: {
+          value: 'We present Nemotron 3 Nano 30B-A3B, a Mixture-of-Experts hybrid Mamba-Transformer language model.'
+        },
+        authors: {
+          value: [
+            { fullname: 'NVIDIA', username: '' },
+            { fullname: ':', username: '' },
+            { fullname: 'Aaron Blakeman', username: '' },
+            { fullname: 'Aaron Grattafiori', username: '' },
+            { fullname: 'Aarti Basant', username: '' },
+            { fullname: 'Abhibha Gupta', username: '' },
+            { fullname: 'Abhinav Khattar', username: '' },
+          ]
+        },
+        ['subject_areas']: { value: ['cs.CL', 'cs.AI', 'cs.LG'] },
+        pdf: { value: 'https://arxiv.org/pdf/2512.20848v1' }
+      },
+      pdate: 1766534072000,
+      mdate: 1766534072000,
+      externalId: 'arxiv:2512.20848v1'
+    }
+    assert.deepStrictEqual(Tools.convertArxivXmlToNote(rawiarxivxml), expectedNote);
+  });
+
+  it('should handle single author paper when converting arxiv xml to note edit', function () {
+    let rawiarxivxml = `<entry>
+      <id>http://arxiv.org/abs/2610.34133v2</id>
+      <title>Smart charging without rebound peaks: Wholesale price feedback limits distribution grid peaks from price-responsive electric vehicles</title>
+      <updated>2026-10-30T06:44:43Z</updated>
+      <link href="https://arxiv.org/abs/2610.34133v2" rel="alternate" type="text/html"/>
+      <link href="https://arxiv.org/pdf/2610.34133v2" rel="related" type="application/pdf" title="pdf"/>
+      <summary>Studies on price-optimized EV charging consistently find that the common price signal synchronizes charging of the entire fleet of cars in the cheapest hours and creates new "rebound" load peaks in low-voltage grids.</summary>
+      <category term="econ.GN" scheme="http://arxiv.org/schemas/atom"/>
+      <published>2026-10-25T08:04:55Z</published>
+      <arxiv:comment>This work has been submitted to the IEEE for possible publication. Copyright may be transferred without notice, after which this version may no longer be accessible</arxiv:comment>
+      <arxiv:primary_category term="econ.GN"/>
+      <author>
+        <name>Lion Hirth</name>
+      </author>
+    </entry>`
+    let expectedNote = {
+      content: {
+        title: {
+          value: 'Smart charging without rebound peaks: Wholesale price feedback limits distribution grid peaks from price-responsive electric vehicles'
+        },
+        abstract: {
+          value: 'Studies on price-optimized EV charging consistently find that the common price signal synchronizes charging of the entire fleet of cars in the cheapest hours and creates new "rebound" load peaks in low-voltage grids.'
+        },
+        authors: {
+          value: [
+            { fullname: 'Lion Hirth', username: '' }
+          ]
+        },
+        ['subject_areas']: { value: ['econ.GN'] },
+        pdf: { value: 'https://arxiv.org/pdf/2610.34133v2' }
+      },
+      pdate: 1792915495000,
+      mdate: 1793342683000,
+      externalId: 'arxiv:2610.34133v2'
+    }
+    assert.deepStrictEqual(Tools.convertArxivXmlToNote(rawiarxivxml), expectedNote);
+  });
+
   it('should try to extract the abstract but get a 404 error', async function () {
 
     try {
