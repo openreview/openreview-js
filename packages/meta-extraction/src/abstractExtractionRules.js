@@ -673,7 +673,7 @@ const ijcaiOrgRule = {
   executeRule: async (html, page) => {
     console.log(' run ijcai.org rule');
     const highwirePressTags = await gatherHighwirePressTags(page);
-    const abstract = await selectElemTextEvidence(page,'div.col-md-12');
+    const abstract = await selectElemTextEvidence(page,'div.article__abstract');
 
     const allEvidence = [
       ...highwirePressTags,
