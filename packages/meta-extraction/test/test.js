@@ -188,8 +188,8 @@ describe.only('Abstract Extraction', function () {
   it('should return abstract and pdf using ijcaiOrgRule rule (ijcai.org)', async function () {
     this.retries(3);
     const abstractExpected = 'We present a novel geometric deep learning method to compute the acoustic scattering properties of geometric objects. Our learning algorithm uses a point cloud representation of objects to compute the scattering properties and integrates them with ray tracing for interactive sound propagation in dynamic scenes. We use discrete Laplacian-based surface encoders and approximate the neighborhood of each point using a shared multi-layer perceptron. We show that our formulation is permutation invariant and present a neural network that computes the scattering function using spherical harmonics. Our approach can handle objects with arbitrary topologies and deforming models, and takes less than 1ms per object on a commodity GPU. We have analyzed the accuracy and perform validation on thousands of unseen 3D objects and highlight the benefits over other point-based geometric deep learning methods. To the best of our knowledge, this is the first real-time learning algorithm that can approximate the acoustic scattering properties of arbitrary objects with high accuracy.';
-    const pdfExpected = 'https://www.ijcai.org/proceedings/2021/0126.pdf';
-    // redirect to https://www.ijcai.org/proceedings/2021/126
+    const pdfExpected = 'https://ijcai.org/proceedings/2021/0126.pdf';
+    // redirect to https://ijcai.org/proceedings/2021/126
     const {abstract, pdf} = await extractAbstract('https://doi.org/10.24963/ijcai.2021/126');
     assert.equal(abstract,abstractExpected);
     assert.equal(pdf,pdfExpected);
