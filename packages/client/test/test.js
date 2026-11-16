@@ -2013,15 +2013,22 @@ describe('OpenReview Client', function () {
   });
 
   it('should try to extract the abstract but get a 404 error', async function () {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async () => new Response('Error: Page not found', { status: 404 });
 
     try {
-      await Tools.extractAbstract('https://doi.org/10.1007/978-981-99-1549-1_15');
-    } catch (error) {
-      assert.equal(error.name, 'ExtractAbstractError');
-      assert.match(error.message, /Error: Page not found/);
-      assert.equal(error.status, 404);
+      await assert.rejects(
+        () => Tools.extractAbstract('https://doi.org/10.1007/978-981-99-1549-1_15'),
+        (error) => {
+          assert.equal(error.name, 'ExtractAbstractError');
+          assert.match(error.message, /Error: Page not found/);
+          assert.equal(error.status, 404);
+          return true;
+        }
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
     }
-
   });
 
 }
